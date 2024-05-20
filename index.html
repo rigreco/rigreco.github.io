@@ -25,10 +25,31 @@
       height: 80vh;
       border: none;
     }
+    nav {
+      margin-bottom: 20px;
+    }
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <h1>Nozioni fondamentali sulle funzioni</h1>
-  <iframe src="Funzioni_definizioni.html"></iframe>
+  <nav>
+    <a href="#" onclick="showFile('Funzioni_definizioni.html')">Definizioni</a>
+    <a href="#" onclick="showFile('Funzioni_classificazione.html')">Classificazione</a>
+  </nav>
+  <iframe id="contentFrame" src="Funzioni_definizioni.html"></iframe>
+
+  <script>
+    function showFile(filename) {
+      document.getElementById('contentFrame').src = filename;
+    }
+  </script>
 </body>
 </html>
