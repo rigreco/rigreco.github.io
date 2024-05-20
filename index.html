@@ -3,48 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nozioni fondamentali sulle funzioni</title>
+  <title>Didattica e Progetti</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background-color: #f0f0f0;
-    }
-    h1 {
-      margin: 20px 0;
-    }
-    iframe {
-      width: 80%;
-      height: 80vh;
-      border: none;
-    }
-    nav {
-      margin-bottom: 20px;
-    }
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      color: #007bff;
-    }
-    nav a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Nozioni fondamentali sulle funzioni</h1>
+  <h1>Didattica e Progetti</h1>
   <nav>
     <a href="#" onclick="showFile('Funzioni_definizioni.html')">Definizioni</a>
     <a href="#" onclick="showFile('Funzioni_classificazione.html')">Classificazione</a>
   </nav>
   <iframe id="contentFrame" src="Funzioni_definizioni.html"></iframe>
+
+  <div class="category">
+    <h2>Matematica</h2>
+    <a href="#" onclick="showFile('Funzioni_definizioni.html')">Definizioni</a>
+    <a href="#" onclick="showFile('Funzioni_classificazione.html')">Classificazione</a>
+    <!-- Aggiungi altri link ai contenuti di matematica qui -->
+  </div>
+
+  <div class="category">
+    <h2>Progetti GitHub</h2>
+    <a href="https://github.com/rigreco/UniDisk" target="_blank">UniDisk</a>
+    <!-- Aggiungi altri link ai progetti qui -->
+  </div>
 
   <script>
     function showFile(filename) {
