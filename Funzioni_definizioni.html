@@ -7,33 +7,34 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    html, body {
-      height: 100%;
+    body {
       margin: 0;
       padding: 0;
-    }
-    body {
       display: flex;
       flex-direction: column;
+      height: 100vh;
     }
-    header, footer {
-      flex-shrink: 0;
+    header {
+      background-color: #2196f3;
+      color: white;
+      padding: 10px 0;
     }
-    main {
-      flex-grow: 1;
+    nav ul {
+      list-style-type: none;
+      padding: 0;
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      justify-content: center;
+    }
+    nav ul li {
+      margin: 0 10px;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
     }
     #mindmap {
       flex-grow: 1;
       width: 100%;
-      height: 100%;
-    }
-    footer {
-      background-color: #f0f0f0;
-      padding: 10px;
-      text-align: center;
     }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.17.0/dist/style.css">
@@ -51,13 +52,7 @@
     </nav>
   </header>
 
-  <main>
-    <svg id="mindmap"></svg>
-  </main>
-
-  <footer>
-    <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
-  </footer>
+  <svg id="mindmap"></svg>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.17.0/dist/browser/index.js"></script>
@@ -74,11 +69,6 @@
         const oe=M.render();
         oe.setAttribute("style","position:absolute;bottom:20px;right:20px");
         document.body.append(oe);
-        
-        // Ricalcola le dimensioni della mappa quando la finestra viene ridimensionata
-        window.addEventListener('resize', () => {
-          h.fit();
-        });
       })
     })()
   </script>
