@@ -7,21 +7,28 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
     body {
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      margin: 0;
+    }
+    header, footer {
+      flex-shrink: 0;
     }
     main {
-      flex: 1;
+      flex-grow: 1;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
     #mindmap {
-      flex: 1;
+      flex-grow: 1;
       width: 100%;
-      min-height: 500px; /* Imposta un'altezza minima */
+      height: 100%;
     }
     footer {
       background-color: #f0f0f0;
@@ -60,10 +67,26 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/webfontloader@1.6.28/webfontloader.js" defer></script>
   <script>
-    (()=>{setTimeout(()=>{const{markmap:O,mm:h}=window,M=new O.Toolbar;M.attach(h);const oe=M.render();oe.setAttribute("style","position:absolute;bottom:20px;right:20px"),document.body.append(oe)})})()
+    (()=>{
+      setTimeout(()=>{
+        const{markmap:O,mm:h}=window,M=new O.Toolbar;
+        M.attach(h);
+        const oe=M.render();
+        oe.setAttribute("style","position:absolute;bottom:20px;right:20px");
+        document.body.append(oe);
+        
+        // Ricalcola le dimensioni della mappa quando la finestra viene ridimensionata
+        window.addEventListener('resize', () => {
+          h.fit();
+        });
+      })
+    })()
   </script>
   <script>
-    ((i,L,f,r)=>{const w=i();window.mm=w.Markmap.create("svg#mindmap",(L||w.deriveOptions)(r),f)})(()=>window.markmap,null,{"content":"Nozioni fondamentali sulle funzioni","children":[/* ... il resto del contenuto della mappa mentale ... */]},{"colorFreezeLevel":2,"maxWidth":600,"initialExpandLevel":2,"maxDepth":3})
+    ((i,L,f,r)=>{
+      const w=i();
+      window.mm=w.Markmap.create("svg#mindmap",(L||w.deriveOptions)(r),f);
+    })(()=>window.markmap,null,{"content":"Nozioni fondamentali sulle funzioni","children":[/* ... il resto del contenuto della mappa mentale ... */]},{"colorFreezeLevel":2,"maxWidth":600,"initialExpandLevel":2,"maxDepth":3})
   </script>
   <script>
     lucide.createIcons();
