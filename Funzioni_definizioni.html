@@ -7,10 +7,26 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
     #mindmap {
+      flex: 1;
       width: 100%;
-      height: calc(100vh - 120px); /* Sottrai l'altezza dell'header e del footer */
-      margin-top: 20px;
+      min-height: 500px; /* Imposta un'altezza minima */
+    }
+    footer {
+      background-color: #f0f0f0;
+      padding: 10px;
+      text-align: center;
     }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.17.0/dist/style.css">
