@@ -77,3 +77,23 @@ footer {
   border: 1px solid #ccc;
   margin-top: 20px;
 }
+nav ul li a {
+  color: white;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+nav ul li a i {
+  margin-right: 5px;
+}
+
+/* Opzionale: stile per l'hover */
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Aggiungi questo se vuoi che le icone abbiano un colore specifico */
+nav ul li a i {
+  color: white;
+}
