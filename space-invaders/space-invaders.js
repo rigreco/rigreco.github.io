@@ -27,7 +27,22 @@ const alienPoints = [10, 20, 30];
 // Configurazione dell'audio
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+let audioContextStarted = false;
+
+document.addEventListener('click', function() {
+    if (!audioContextStarted) {
+        audioContext.resume().then(() => {
+            console.log('AudioContext started successfully');
+            audioContextStarted = true;
+        });
+    }
+}, { once: true });
+
+
+
+
 function playSound(frequency, duration, type = 'sine') {
+    if (!audioContextStarted) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
@@ -90,6 +105,12 @@ if ('serviceWorker' in navigator) {
           console.log('Registrazione Service Worker fallita:', error);
         });
     });
+    window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'LINK' && e.target.rel === 'icon') {
+            console.warn('Failed to load favicon. This is not critical for game functionality.');
+            e.preventDefault(); // Previene la visualizzazione dell'errore nella console
+        }
+    }, true);
   }
   
 // Aggiungi questa funzione per creare i controlli touch
@@ -443,18 +464,20 @@ function updatePlayerPosition() {
 }
 
 function handleResize() {
-    const gameAreaRect = gameArea.getBoundingClientRect();
-    const scale = Math.min(
-        window.innerWidth / gameAreaRect.width,
-        window.innerHeight / gameAreaRect.height
-    );
-    gameArea.style.transform = `scale(${scale})`;
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        const scale = Math.min(
+            window.innerWidth / gameAreaRect.width,
+            window.innerHeight / gameAreaRect.height
+        );
+        gameArea.style.transform = `scale(${scale})`;
 
-    // Show/hide touch controls based on screen width
-    const touchControlsContainer = document.getElementById('touchControlsContainer');
-    if (touchControlsContainer) {
-        touchControlsContainer.style.display = window.innerWidth < 1024 ? 'flex' : 'none';
-    }
+        const touchControlsContainer = document.getElementById('touchControlsContainer');
+        if (touchControlsContainer) {
+            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+        }
+    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
 
 function gameLoop() {
@@ -601,8 +624,8 @@ function handleResize() {
 }
 
 // Aggiungi l'event listener per il ridimensionamento
-window.addEventListener('resize', handleResize);
-window.addEventListener('orientationchange', handleResize);
+window.addEventListener('resize', () => requestAnimationFrame(handleResize));
+window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
 // Chiamala una volta all'inizio per impostare la scala corretta
 handleResize();
