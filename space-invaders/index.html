@@ -42,6 +42,19 @@
             width: 80%; /* Larghezza fissa per assicurarsi che sia visibile */
             max-width: 300px; /* Larghezza massima */
         }
+        #touchControlsContainer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
         .touch-control {
         width: 80px;
         height: 80px;
@@ -54,18 +67,14 @@
         color: white;
         user-select: none;
     }
-
     #shootControl {
         width: 120px;
-        border-radius: 40px;
     }
-
-    @media (min-width: 768px) {
-        #touchControlsContainer {
-            display: none !important;
-        }
+    @media (min-width: 1024px) {
+            #touchControlsContainer {
+                display: none !important;
+            }
     }
-
     </style>
 </head>
 <body>
@@ -84,6 +93,36 @@
         </div>
         <div id="temporaryMessage" class="message"></div>
     </div>
+    <div id="touchControlsContainer">
+        <div id="leftControl" class="touch-control">←</div>
+        <div id="shootControl" class="touch-control">Spara</div>
+        <div id="rightControl" class="touch-control">→</div>
+    </div>
     <script src="space-invaders.js"></script>
+    <script>
+        // Script inline per gestire i controlli touch
+        let isMovingLeft = false;
+        let isMovingRight = false;
+
+        function setupTouchControls() {
+            const leftControl = document.getElementById('leftControl');
+            const rightControl = document.getElementById('rightControl');
+            const shootControl = document.getElementById('shootControl');
+
+            leftControl.addEventListener('touchstart', () => { isMovingLeft = true; });
+            leftControl.addEventListener('touchend', () => { isMovingLeft = false; });
+
+            rightControl.addEventListener('touchstart', () => { isMovingRight = true; });
+            rightControl.addEventListener('touchend', () => { isMovingRight = false; });
+
+            shootControl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (typeof shoot === 'function') shoot();
+            });
+        }
+
+        // Chiamata alla funzione di setup
+        setupTouchControls();
+    </script>
 </body>
 </html>

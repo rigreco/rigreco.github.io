@@ -415,16 +415,27 @@ function checkCollisions() {
     }
 }
 
+function updatePlayerPosition() {
+    if (isMovingLeft && player.x > 10) {
+        player.x -= 5;
+    }
+    if (isMovingRight && player.x < 570) {
+        player.x += 5;
+    }
+    player.el.style.left = `${player.x}px`;
+}
+
 function gameLoop() {
     if (gameActive) {
+        updatePlayerPosition();
         moveInvaders();
         alienShoot();
         moveUfo();
         updateBullets();
         checkCollisions();
         checkScore();
-        requestAnimationFrame(gameLoop);
     }
+    requestAnimationFrame(gameLoop);
 }
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
