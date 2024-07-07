@@ -135,20 +135,8 @@ function createTouchControls() {
 
     shootControl.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        isShooting = true;
+        shoot();
     });
-
-    shootControl.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        isShooting = false;
-    });
-
-    // Gestione del movimento continuo
-    setInterval(() => {
-        if (isShooting && bullets.length < bulletsFrequency) {
-            shoot();
-        }
-    }, 200);
 }
 
 // Funzioni di movimento e sparo
@@ -167,12 +155,14 @@ function movePlayerRight() {
 }
 
 function shoot() {
-    bullets.push({
-        x: player.x + 10,
-        y: player.y - 20,
-        el: createElement(player.x + 10, player.y - 20, '|', 'bullet sprite')
-    });
-    shootSound();
+    if (bullets.length < bulletsFrequency) {
+        bullets.push({
+            x: player.x + 10,
+            y: player.y - 20,
+            el: createElement(player.x + 10, player.y - 20, '|', 'bullet sprite')
+        });
+        shootSound();
+    }
 }
 
 function initGame() {
