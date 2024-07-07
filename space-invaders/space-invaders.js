@@ -94,52 +94,62 @@ if ('serviceWorker' in navigator) {
   
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
-    const touchControlsContainer = document.createElement('div');
-    touchControlsContainer.id = 'touchControlsContainer';
-    touchControlsContainer.style.position = 'absolute';
-    touchControlsContainer.style.bottom = '20px';
-    touchControlsContainer.style.left = '0';
-    touchControlsContainer.style.width = '100%';
-    touchControlsContainer.style.display = 'flex';
-    touchControlsContainer.style.justifyContent = 'space-between';
-    touchControlsContainer.style.padding = '0 20px';
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        const touchControlsContainer = document.createElement('div');
+        touchControlsContainer.id = 'touchControlsContainer';
+        touchControlsContainer.style.position = 'absolute';
+        touchControlsContainer.style.bottom = '20px';
+        touchControlsContainer.style.left = '0';
+        touchControlsContainer.style.width = '100%';
+        touchControlsContainer.style.display = 'flex';
+        touchControlsContainer.style.justifyContent = 'space-between';
+        touchControlsContainer.style.padding = '0 20px';
 
-    const leftControl = document.createElement('div');
-    leftControl.id = 'leftControl';
-    leftControl.className = 'touch-control';
-    leftControl.textContent = '←';
+        const leftControl = document.createElement('div');
+        leftControl.id = 'leftControl';
+        leftControl.className = 'touch-control';
+        leftControl.textContent = '←';
 
-    const rightControl = document.createElement('div');
-    rightControl.id = 'rightControl';
-    rightControl.className = 'touch-control';
-    rightControl.textContent = '→';
+        const rightControl = document.createElement('div');
+        rightControl.id = 'rightControl';
+        rightControl.className = 'touch-control';
+        rightControl.textContent = '→';
 
-    const shootControl = document.createElement('div');
-    shootControl.id = 'shootControl';
-    shootControl.className = 'touch-control';
-    shootControl.textContent = 'Spara';
+        const shootControl = document.createElement('div');
+        shootControl.id = 'shootControl';
+        shootControl.className = 'touch-control';
+        shootControl.textContent = 'Spara';
 
-    touchControlsContainer.appendChild(leftControl);
-    touchControlsContainer.appendChild(shootControl);
-    touchControlsContainer.appendChild(rightControl);
+        touchControlsContainer.appendChild(leftControl);
+        touchControlsContainer.appendChild(shootControl);
+        touchControlsContainer.appendChild(rightControl);
 
-    gameArea.appendChild(touchControlsContainer);
+        gameArea.appendChild(touchControlsContainer);
 
-    // Event listeners per i controlli touch
-    leftControl.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        movePlayerLeft();
-    });
-
-    rightControl.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        movePlayerRight();
-    });
-
-    shootControl.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        shoot();
-    });
+        // Event listeners per i controlli touch
+        leftControl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isMovingLeft = true;
+        });
+        leftControl.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isMovingLeft = false;
+        });
+        
+        rightControl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isMovingRight = true;
+        });
+        rightControl.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isMovingRight = false;
+        });
+        
+        shootControl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shoot();
+        });
+    }
 }
 
 // Funzioni di movimento e sparo
@@ -203,6 +213,7 @@ function initGame() {
     createInvaders();
     createBarriers();
     createTouchControls();
+    handleResize();
 
     // Aggiornamento UI
     updateUI();
@@ -420,13 +431,29 @@ function checkCollisions() {
 }
 
 function updatePlayerPosition() {
+    const moveSpeed = 5;
     if (isMovingLeft && player.x > 10) {
-        player.x -= 5;
+        player.x -= moveSpeed;
     }
     if (isMovingRight && player.x < 570) {
-        player.x += 5;
+        player.x += moveSpeed;
     }
     player.el.style.left = `${player.x}px`;
+}
+
+function handleResize() {
+    const gameAreaRect = gameArea.getBoundingClientRect();
+    const scale = Math.min(
+        window.innerWidth / gameAreaRect.width,
+        window.innerHeight / gameAreaRect.height
+    );
+    gameArea.style.transform = `scale(${scale})`;
+
+    // Show/hide touch controls based on screen width
+    const touchControlsContainer = document.getElementById('touchControlsContainer');
+    if (touchControlsContainer) {
+        touchControlsContainer.style.display = window.innerWidth < 1024 ? 'flex' : 'none';
+    }
 }
 
 function gameLoop() {
