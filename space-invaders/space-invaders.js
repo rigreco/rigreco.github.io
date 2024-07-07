@@ -107,7 +107,7 @@ if ('serviceWorker' in navigator) {
             e.preventDefault(); // Previene la visualizzazione dell'errore nella console
         }
     }, true);
-  }
+ }
   
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
@@ -476,8 +476,11 @@ function handleResize() {
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
 
+
+let gameLoopId;
+
 function gameLoop() {
-    if (gameStarted && gameActive) {
+    if (gameActive) {
         updatePlayerPosition();
         moveInvaders();
         alienShoot();
@@ -486,7 +489,22 @@ function gameLoop() {
         checkCollisions();
         checkScore();
     }
-    requestAnimationFrame(gameLoop);
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+    gameActive = true;
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+    }
+    gameLoop();
+}
+
+function stopGame() {
+    gameActive = false;
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+    }
 }
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
