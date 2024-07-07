@@ -477,7 +477,7 @@ function handleResize() {
 }
 
 function gameLoop() {
-    if (gameActive) {
+    if (gameStarted && gameActive) {
         updatePlayerPosition();
         moveInvaders();
         alienShoot();
@@ -554,49 +554,58 @@ function startNextLevel() {
         }
     });
 
+    // Nascondi il messaggio di completamento livello
+    levelCompleteElement.style.display = 'none';
+
     // Resetta le variabili di gioco
     bullets = [];
     alienBullets = [];
     invaders = [];
     barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
+    
+    // Aumenta la difficoltà
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
     lastMoveTime = 0;
     lastAlienShootTime = 0;
 
+    // Rimuovi tutti gli elementi di gioco esistenti
+    while (gameArea.firstChild) {
+        gameArea.removeChild(gameArea.firstChild);
+    }
+
+    // Ricrea gli elementi UI
+    gameArea.appendChild(scoreElement);
+    gameArea.appendChild(livesElement);
+    gameArea.appendChild(levelElement);
+
     // Ricrea gli elementi di gioco
-    player.el = createElement(player.x, player.y, '🚀');
+    player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     createInvaders();
     createBarriers();
+    createTouchControls();
 
     // Se i controlli touch erano presenti, assicurati che siano ancora nel gameArea
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
         gameArea.appendChild(touchControlsContainer);
     }
 
-
     // Aggiorna l'UI
     updateUI();
-
-    // Nascondi il messaggio di completamento livello
-    levelCompleteElement.style.display = 'none';
 
     // Riattiva il gioco
     gameActive = true;
     gameLoop();
-    createTouchControls();
-    handleResize();
+
 }
+
+nextLevelButton.addEventListener('click', startNextLevel);
 
 restartButton.addEventListener('click', () => {
     gameOverElement.style.display = 'none';
     initGame();
     gameLoop();
-});
-
-nextLevelButton.addEventListener('click', () => {
-    startNextLevel();
 });
 
 // Funzione per gestire il ridimensionamento della finestra
