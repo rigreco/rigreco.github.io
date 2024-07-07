@@ -97,7 +97,7 @@ function createElement(x, y, content, className = 'sprite') {
 // Aggiungi questo script al tuo JavaScript
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
+      navigator.serviceWorker.register('/space-invaders/sw.js')
         .then(registration => {
           console.log('Service Worker registrato con successo:', registration);
         })
