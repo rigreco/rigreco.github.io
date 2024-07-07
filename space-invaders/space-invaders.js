@@ -17,6 +17,9 @@ let score, lives, level, invaderDirection, invaderSpeed, lastMoveTime, lastAlien
 let touchStartX = 0;
 let isShooting = false;
 
+let isMovingLeft = false;
+let isMovingRight = false;
+
 
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [10, 20, 30];
@@ -243,6 +246,7 @@ function updateUI() {
 
 // Inizializza il gioco
 initGame();
+
 function moveInvaders() {
     const currentTime = Date.now();
     if (currentTime - lastMoveTime > 500 / (invaderSpeed + level - 1)) {

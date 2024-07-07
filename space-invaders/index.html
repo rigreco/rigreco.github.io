@@ -99,30 +99,5 @@
         <div id="rightControl" class="touch-control">→</div>
     </div>
     <script src="space-invaders.js"></script>
-    <script>
-        // Script inline per gestire i controlli touch
-        let isMovingLeft = false;
-        let isMovingRight = false;
-
-        function setupTouchControls() {
-            const leftControl = document.getElementById('leftControl');
-            const rightControl = document.getElementById('rightControl');
-            const shootControl = document.getElementById('shootControl');
-
-            leftControl.addEventListener('touchstart', () => { isMovingLeft = true; });
-            leftControl.addEventListener('touchend', () => { isMovingLeft = false; });
-
-            rightControl.addEventListener('touchstart', () => { isMovingRight = true; });
-            rightControl.addEventListener('touchend', () => { isMovingRight = false; });
-
-            shootControl.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (typeof shoot === 'function') shoot();
-            });
-        }
-
-        // Chiamata alla funzione di setup
-        setupTouchControls();
-    </script>
 </body>
 </html>
