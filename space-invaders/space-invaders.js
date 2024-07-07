@@ -20,12 +20,11 @@ let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
 
-
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [10, 20, 30];
 
 // Configurazione dell'audio
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const audioContext = new (AudioContext || window.AudioContext)();
 
 let audioContextStarted = false;
 
@@ -37,9 +36,6 @@ document.addEventListener('click', function() {
         });
     }
 }, { once: true });
-
-
-
 
 function playSound(frequency, duration, type = 'sine') {
     if (!audioContextStarted) return;
@@ -501,7 +497,6 @@ function checkScore() {
     if (score % 500 === 0 && score > 0) {
         showTemporaryMessage(`Test message at ${score} points!`);
     }
-
     if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
         bulletsFrequency += 1 * level;
         powerup += 1;
@@ -558,8 +553,6 @@ function startNextLevel() {
             gameArea.removeChild(child);
         }
     });
-
-
 
     // Resetta le variabili di gioco
     bullets = [];
