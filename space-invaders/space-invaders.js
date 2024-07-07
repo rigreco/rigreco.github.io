@@ -91,20 +91,36 @@ if ('serviceWorker' in navigator) {
   
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
+    const touchControlsContainer = document.createElement('div');
+    touchControlsContainer.id = 'touchControlsContainer';
+    touchControlsContainer.style.position = 'absolute';
+    touchControlsContainer.style.bottom = '20px';
+    touchControlsContainer.style.left = '0';
+    touchControlsContainer.style.width = '100%';
+    touchControlsContainer.style.display = 'flex';
+    touchControlsContainer.style.justifyContent = 'space-between';
+    touchControlsContainer.style.padding = '0 20px';
+
     const leftControl = document.createElement('div');
     leftControl.id = 'leftControl';
     leftControl.className = 'touch-control';
-    gameArea.appendChild(leftControl);
+    leftControl.textContent = '←';
 
     const rightControl = document.createElement('div');
     rightControl.id = 'rightControl';
     rightControl.className = 'touch-control';
-    gameArea.appendChild(rightControl);
+    rightControl.textContent = '→';
 
     const shootControl = document.createElement('div');
     shootControl.id = 'shootControl';
     shootControl.className = 'touch-control';
-    gameArea.appendChild(shootControl);
+    shootControl.textContent = 'Spara';
+
+    touchControlsContainer.appendChild(leftControl);
+    touchControlsContainer.appendChild(shootControl);
+    touchControlsContainer.appendChild(rightControl);
+
+    gameArea.appendChild(touchControlsContainer);
 
     // Event listeners per i controlli touch
     leftControl.addEventListener('touchstart', (e) => {
