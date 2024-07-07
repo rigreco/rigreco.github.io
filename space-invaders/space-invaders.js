@@ -95,37 +95,38 @@ if ('serviceWorker' in navigator) {
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        const touchControlsContainer = document.createElement('div');
-        touchControlsContainer.id = 'touchControlsContainer';
-        touchControlsContainer.style.position = 'absolute';
-        touchControlsContainer.style.bottom = '20px';
-        touchControlsContainer.style.left = '0';
-        touchControlsContainer.style.width = '100%';
-        touchControlsContainer.style.display = 'flex';
-        touchControlsContainer.style.justifyContent = 'space-between';
-        touchControlsContainer.style.padding = '0 20px';
+        if (!document.getElementById('touchControlsContainer')) {
+            const touchControlsContainer = document.createElement('div');
+            touchControlsContainer.id = 'touchControlsContainer';
+            touchControlsContainer.style.position = 'absolute';
+            touchControlsContainer.style.bottom = '20px';
+            touchControlsContainer.style.left = '0';
+            touchControlsContainer.style.width = '100%';
+            touchControlsContainer.style.display = 'flex';
+            touchControlsContainer.style.justifyContent = 'space-between';
+            touchControlsContainer.style.padding = '0 20px';
 
-        const leftControl = document.createElement('div');
-        leftControl.id = 'leftControl';
-        leftControl.className = 'touch-control';
-        leftControl.textContent = '←';
+            const leftControl = document.createElement('div');
+            leftControl.id = 'leftControl';
+            leftControl.className = 'touch-control';
+            leftControl.textContent = '←';
 
-        const rightControl = document.createElement('div');
-        rightControl.id = 'rightControl';
-        rightControl.className = 'touch-control';
-        rightControl.textContent = '→';
+            const rightControl = document.createElement('div');
+            rightControl.id = 'rightControl';
+            rightControl.className = 'touch-control';
+            rightControl.textContent = '→';
 
-        const shootControl = document.createElement('div');
-        shootControl.id = 'shootControl';
-        shootControl.className = 'touch-control';
-        shootControl.textContent = 'Spara';
+            const shootControl = document.createElement('div');
+            shootControl.id = 'shootControl';
+            shootControl.className = 'touch-control';
+            shootControl.textContent = 'Spara';
 
-        touchControlsContainer.appendChild(leftControl);
-        touchControlsContainer.appendChild(shootControl);
-        touchControlsContainer.appendChild(rightControl);
+            touchControlsContainer.appendChild(leftControl);
+            touchControlsContainer.appendChild(shootControl);
+            touchControlsContainer.appendChild(rightControl);
 
-        gameArea.appendChild(touchControlsContainer);
-
+            gameArea.appendChild(touchControlsContainer);
+        }
         // Event listeners per i controlli touch
         leftControl.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -525,13 +526,17 @@ function levelComplete() {
 }
 
 function startNextLevel() {
-    // Rimuovi tutti gli elementi di gioco esistenti
-    gameArea.innerHTML = '';
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-    gameArea.appendChild(gameOverElement);
-    gameArea.appendChild(levelCompleteElement);
+    // Salva il contenitore dei controlli touch
+    const touchControlsContainer = document.getElementById('touchControlsContainer');
+
+        // Rimuovi tutti gli elementi di gioco esistenti, tranne i controlli touch
+        Array.from(gameArea.children).forEach(child => {
+        if (child.id !== 'touchControlsContainer') {
+            gameArea.removeChild(child);
+        }
+    });
+
+
 
     // Resetta le variabili di gioco
     bullets = [];
@@ -549,6 +554,12 @@ function startNextLevel() {
     createInvaders();
     createBarriers();
 
+    // Se i controlli touch erano presenti, assicurati che siano ancora nel gameArea
+    if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
+        gameArea.appendChild(touchControlsContainer);
+    }
+
+
     // Aggiorna l'UI
     updateUI();
 
@@ -558,6 +569,8 @@ function startNextLevel() {
     // Riattiva il gioco
     gameActive = true;
     gameLoop();
+    createTouchControls();
+    handleResize();
 }
 
 restartButton.addEventListener('click', () => {
@@ -578,10 +591,18 @@ function handleResize() {
         window.innerHeight / gameAreaRect.height
     );
     gameArea.style.transform = `scale(${scale})`;
+
+    // Mostra/nascondi i controlli touch basandoti sulla presenza del touch, non sulla larghezza dello schermo
+    const touchControlsContainer = document.getElementById('touchControlsContainer');
+    if (touchControlsContainer) {
+        touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+    }
+
 }
 
 // Aggiungi l'event listener per il ridimensionamento
 window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', handleResize);
 
 // Chiamala una volta all'inizio per impostare la scala corretta
 handleResize();
