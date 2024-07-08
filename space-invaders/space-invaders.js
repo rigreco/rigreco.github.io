@@ -12,6 +12,7 @@ const temporaryMessageElement = document.getElementById('temporaryMessage');
 
 let player, bullets, alienBullets, invaders, barriers, ufo;
 let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
+let lastMessageScore = 0; // Aggiungi questa variabile globale
 
 let touchStartX = 0;
 let isShooting = false;
