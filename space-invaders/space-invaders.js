@@ -11,11 +11,10 @@ const nextLevelButton = document.getElementById('nextLevelButton');
 const temporaryMessageElement = document.getElementById('temporaryMessage');
 
 let player, bullets, alienBullets, invaders, barriers, ufo;
-let score, lives, level, invaderDirection, invaderSpeed, lastAlienShootTime, gameActive, powerup, nextLifeScore, bulletsFrequency;
+let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
 
 let touchStartX = 0;
 let isShooting = false;
-
 let isMovingLeft = false;
 let isMovingRight = false;
 
@@ -114,7 +113,6 @@ function lifeUpSound() { playSound(880, 1, 'triangle'); }
 
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
-    console.log("Showing message:", message);
     temporaryMessageElement.textContent = message;
     temporaryMessageElement.style.display = 'block';
     
@@ -123,7 +121,6 @@ function showTemporaryMessage(message, duration = 2000) {
     
     setTimeout(() => {
         temporaryMessageElement.style.display = 'none';
-        console.log("Message hidden");
     }, duration);
 }
 
@@ -579,11 +576,8 @@ function stopGame() {
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
 function checkScore() {
-    console.log("Checking score:", score); // Aggiunto per debug
-
-    // Mostra il messaggio ogni 500 punti invece di ogni 100
     if (score % 500 === 0 && score > 0) {
-        showTemporaryMessage(`Test message at ${score} points!`);
+        showTemporaryMessage(`Punti raggiunti: ${score}`);
     }
     if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
         bulletsFrequency += 1 * level;
