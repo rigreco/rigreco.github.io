@@ -69,6 +69,12 @@ export function setupInputListeners(shootCallback) {
     createTouchControls(shootCallback);
 }
 
+export function safeRemoveElement(element) {
+    if (element && element.parentNode === gameArea) {
+        gameArea.removeChild(element);
+    }
+}
+
 export function createTouchControls(shootCallback) {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
         if (!document.getElementById('touchControlsContainer')) {
