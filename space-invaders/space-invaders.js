@@ -9,7 +9,7 @@ const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
 const temporaryMessageElement = document.getElementById('temporaryMessage');
-console.log("temporaryMessageElement:", temporaryMessageElement);
+
 
 let player, bullets, alienBullets, invaders, barriers, ufo;
 let score, lives, level, invaderDirection, invaderSpeed, lastAlienShootTime, gameActive, powerup, nextLifeScore, bulletsFrequency;
@@ -32,9 +32,6 @@ let currentSequenceIndex = 0;
 const alienSoundFrequencies = [55, 58, 62, 65]; // Frequenze in Hz per i 4 toni (molto più bassi)
 let alienMoveInterval = 1000; // Intervallo iniziale tra i movimenti degli alieni (in ms)
 let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
-
-
-
 
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
@@ -102,8 +99,6 @@ function playAlienMoveSound() {
     currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
 }
 
-
-
 function shootSound() { playSound(880, 0.1, 'square'); }
 function explosionSound() { playSound(110, 0.5, 'sawtooth'); }
 function gameOverSound() { playSound(55, 2, 'triangle'); }
@@ -111,7 +106,7 @@ function alienShootSound() { playSound(440, 0.1, 'sine'); }
 function ufoSound() { playSound(660, 0.1, 'sine'); }
 function levelCompleteSound() { playSound(1320, 1, 'sine'); }
 function powerupSound() { playSound(1320, 1, 'sine'); }
-function lifeUpSound() { playSound(880, 1, 'tr'); }
+function lifeUpSound() { playSound(880, 1, 'triangle'); }
 
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
@@ -122,7 +117,6 @@ function showTemporaryMessage(message, duration = 2000) {
     // Forza un reflow del DOM
     void temporaryMessageElement.offsetWidth;
     
-    console.log("Message element:", temporaryMessageElement);
     setTimeout(() => {
         temporaryMessageElement.style.display = 'none';
         console.log("Message hidden");
@@ -156,8 +150,8 @@ if ('serviceWorker' in navigator) {
             e.preventDefault(); // Previene la visualizzazione dell'errore nella console
         }
     }, true);
- }
-  
+}
+
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -194,6 +188,10 @@ function createTouchControls() {
             gameArea.appendChild(touchControlsContainer);
         }
         // Event listeners per i controlli touch
+        const leftControl = document.getElementById('leftControl');
+        const rightControl = document.getElementById('rightControl');
+        const shootControl = document.getElementById('shootControl');
+        
         leftControl.addEventListener('touchstart', (e) => {
             e.preventDefault();
             isMovingLeft = true;
@@ -283,7 +281,7 @@ function initGame() {
     createBarriers();
     createTouchControls();
     handleResize();
-    resetShotsFired(); // Aggiungi questa riga per resettare il conteggio dei colpi UFO
+    resetShotsFired();
 
     // Aggiornamento UI
     updateUI();
@@ -309,12 +307,6 @@ function createInvaders() {
             });
         }
     }
-}
-
-
-// Funzione per calcolare il punteggio totale possibile (rimane invariata)
-function calculateTotalPossibleScore() {
-    return invaders.reduce((total, invader) => total + invader.points, 0);
 }
 
 function createBarriers() {
@@ -369,7 +361,6 @@ function moveInvaders() {
         lastMoveTime = currentTime;
     }
 }
-
 
 function alienShoot() {
     const currentTime = Date.now();
@@ -427,12 +418,10 @@ function updateBullets() {
     });
 }
 
-// Aggiungi questa funzione per resettare il conteggio dei colpi quando necessario
 function resetShotsFired() {
     shotsFired = 0;
     ufoScoreIndex = 0;
 }
-
 
 function checkCollisions() {
     bullets.forEach((bullet, bulletIndex) => {
@@ -513,7 +502,6 @@ function checkCollisions() {
         });
     });
 
-
     // Controllo se gli invasori hanno raggiunto il fondo
     invaders.forEach(invader => {
         if (invader.y > 530) {
@@ -554,7 +542,6 @@ function handleResize() {
         }
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
-
 
 let gameLoopId;
 
@@ -614,15 +601,24 @@ gameLoop();
 
 document.addEventListener('keydown', (e) => {
     if (gameActive) {
-        if (e.key === 'ArrowLeft') {
-            movePlayerLeft();
+        if (e.key === 'ArrowLeft') {         
+            isMovingLeft = true;
         }
         if (e.key === 'ArrowRight') {
-            movePlayerRight();
+            isMovingRight = true;
         }
-        if (e.key === ' ' && bullets.length < bulletsFrequency) {
+        if (e.key === ' ') {
             shoot();
         }
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft') {
+        isMovingLeft = false;
+    }
+    if (e.key === 'ArrowRight') {
+        isMovingRight = false;
     }
 });
 
@@ -641,63 +637,45 @@ function levelComplete() {
 }
 
 function startNextLevel() {
-    // Salva il contenitore dei controlli touch
     const touchControlsContainer = document.getElementById('touchControlsContainer');
-
-        // Rimuovi tutti gli elementi di gioco esistenti, tranne i controlli touch
-        Array.from(gameArea.children).forEach(child => {
-        if (child.id !== 'touchControlsContainer') {
-            gameArea.removeChild(child);
+    while (gameArea.firstChild) {
+        if (gameArea.firstChild !== touchControlsContainer) {
+            gameArea.removeChild(gameArea.firstChild);
         }
-    });
+    }
 
-    // Nascondi il messaggio di completamento livello
     levelCompleteElement.style.display = 'none';
 
-    // Resetta le variabili di gioco
     bullets = [];
     alienBullets = [];
     invaders = [];
     barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
-    
-    // Aumenta la difficoltà
+
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
     lastMoveTime = 0;
     lastAlienShootTime = 0;
 
     baseInvaderSpeed = 1 + (level - 1) * 0.2;
-    
-    // Rimuovi tutti gli elementi di gioco esistenti
-    while (gameArea.firstChild) {
-        gameArea.removeChild(gameArea.firstChild);
-    }
 
-    // Ricrea gli elementi UI
     gameArea.appendChild(scoreElement);
     gameArea.appendChild(livesElement);
     gameArea.appendChild(levelElement);
 
-    // Ricrea gli elementi di gioco
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     createInvaders();
     createBarriers();
     createTouchControls();
-    resetShotsFired(); // Aggiungi questa riga per resettare il conteggio dei colpi UFO
+    resetShotsFired();
 
-    // Se i controlli touch erano presenti, assicurati che siano ancora nel gameArea
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
         gameArea.appendChild(touchControlsContainer);
     }
 
-    // Aggiorna l'UI
     updateUI();
-
-    // Riattiva il gioco
     gameActive = true;
     gameLoop();
-
 }
 
 nextLevelButton.addEventListener('click', startNextLevel);
@@ -717,17 +695,14 @@ function handleResize() {
     );
     gameArea.style.transform = `scale(${scale})`;
 
-    // Mostra/nascondi i controlli touch basandoti sulla presenza del touch, non sulla larghezza dello schermo
     const touchControlsContainer = document.getElementById('touchControlsContainer');
     if (touchControlsContainer) {
         touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
     }
-
 }
 
 // Aggiungi l'event listener per il ridimensionamento
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
-// Chiamala una volta all'inizio per impostare la scala corretta
 handleResize();
