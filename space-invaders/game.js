@@ -205,23 +205,41 @@ function updateBullets() {
 }
 
 function checkCollisions() {
-    bullets.forEach((bullet, bulletIndex) => {
-        invaders.forEach((invader, invaderIndex) => {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+        let bulletRemoved = false;
+
+        for (let j = invaders.length - 1; j >= 0; j--) {
+            const invader = invaders[j];
             if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
-                ui.gameArea.removeChild(invader.el);
-                ui.gameArea.removeChild(bullet.el);
-                invaders.splice(invaderIndex, 1);
-                bullets.splice(bulletIndex, 1);
+                if (invader.el && invader.el.parentNode === ui.gameArea) {
+                    ui.gameArea.removeChild(invader.el);
+                }
+                invaders.splice(j, 1);
+                
+                if (!bulletRemoved) {
+                    if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                        ui.gameArea.removeChild(bullet.el);
+                    }
+                    bullets.splice(i, 1);
+                    bulletRemoved = true;
+                }
+                
                 score += invader.points * level;
                 ui.updateUI(score, lives, level);
                 ui.explosionSound();
+                break;
             }
-        });
+        }
 
-        if (ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
-            ui.gameArea.removeChild(ufo.el);
-            ui.gameArea.removeChild(bullet.el);
-            bullets.splice(bulletIndex, 1);
+        if (!bulletRemoved && ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
+            if (ufo.el && ufo.el.parentNode === ui.gameArea) {
+                ui.gameArea.removeChild(ufo.el);
+            }
+            if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                ui.gameArea.removeChild(bullet.el);
+            }
+            bullets.splice(i, 1);
             ufo.active = false;
             let ufoScore = ufoScores[ufoScoreIndex];
             score += ufoScore;
@@ -230,52 +248,69 @@ function checkCollisions() {
             ui.showTemporaryMessage(`UFO colpito! +${ufoScore} punti`);
         }
 
-        barriers.forEach((barrier, barrierIndex) => {
-            const barrierRect = barrier.getBoundingClientRect();
-            const bulletRect = bullet.el.getBoundingClientRect();
-            if (bulletRect.left < barrierRect.right &&
-                bulletRect.right > barrierRect.left &&
-                bulletRect.top < barrierRect.bottom &&
-                bulletRect.bottom > barrierRect.top) {
-                ui.gameArea.removeChild(bullet.el);
-                bullets.splice(bulletIndex, 1);
-                barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
-                if (parseFloat(barrier.style.opacity) <= 0) {
-                    ui.gameArea.removeChild(barrier);
-                    barriers.splice(barrierIndex, 1);
+        if (!bulletRemoved) {
+            for (let k = barriers.length - 1; k >= 0; k--) {
+                const barrier = barriers[k];
+                const barrierRect = barrier.getBoundingClientRect();
+                const bulletRect = bullet.el.getBoundingClientRect();
+                if (bulletRect.left < barrierRect.right &&
+                    bulletRect.right > barrierRect.left &&
+                    bulletRect.top < barrierRect.bottom &&
+                    bulletRect.bottom > barrierRect.top) {
+                    if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                        ui.gameArea.removeChild(bullet.el);
+                    }
+                    bullets.splice(i, 1);
+                    barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
+                    if (parseFloat(barrier.style.opacity) <= 0) {
+                        if (barrier.parentNode === ui.gameArea) {
+                            ui.gameArea.removeChild(barrier);
+                        }
+                        barriers.splice(k, 1);
+                    }
+                    break;
                 }
             }
-        });
-    });
+        }
+    }
 
-    alienBullets.forEach((bullet, bulletIndex) => {
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        const bullet = alienBullets[i];
         if (Math.abs(bullet.x - player.x) < 20 && Math.abs(bullet.y - player.y) < 20) {
-            ui.gameArea.removeChild(bullet.el);
-            alienBullets.splice(bulletIndex, 1);
+            if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                ui.gameArea.removeChild(bullet.el);
+            }
+            alienBullets.splice(i, 1);
             lives--;
             ui.updateUI(score, lives, level);
             if (lives <= 0) {
                 gameOver();
             }
-        }
-
-        barriers.forEach((barrier, barrierIndex) => {
-            const barrierRect = barrier.getBoundingClientRect();
-            const bulletRect = bullet.el.getBoundingClientRect();
-            if (bulletRect.left < barrierRect.right &&
-                bulletRect.right > barrierRect.left &&
-                bulletRect.top < barrierRect.bottom &&
-                bulletRect.bottom > barrierRect.top) {
-                ui.gameArea.removeChild(bullet.el);
-                alienBullets.splice(bulletIndex, 1);
-                barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
-                if (parseFloat(barrier.style.opacity) <= 0) {
-                    ui.gameArea.removeChild(barrier);
-                    barriers.splice(barrierIndex, 1);
+        } else {
+            for (let k = barriers.length - 1; k >= 0; k--) {
+                const barrier = barriers[k];
+                const barrierRect = barrier.getBoundingClientRect();
+                const bulletRect = bullet.el.getBoundingClientRect();
+                if (bulletRect.left < barrierRect.right &&
+                    bulletRect.right > barrierRect.left &&
+                    bulletRect.top < barrierRect.bottom &&
+                    bulletRect.bottom > barrierRect.top) {
+                    if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                        ui.gameArea.removeChild(bullet.el);
+                    }
+                    alienBullets.splice(i, 1);
+                    barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
+                    if (parseFloat(barrier.style.opacity) <= 0) {
+                        if (barrier.parentNode === ui.gameArea) {
+                            ui.gameArea.removeChild(barrier);
+                        }
+                        barriers.splice(k, 1);
+                    }
+                    break;
                 }
             }
-        });
-    });
+        }
+    }
 
     invaders.forEach(invader => {
         if (invader.y > 530) {
