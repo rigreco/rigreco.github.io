@@ -329,6 +329,25 @@ function updateUI() {
     levelElement.textContent = `Livello: ${level}`;
 }
 
+let resizeTimeout;
+
+function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        const scale = Math.min(
+            window.innerWidth / gameAreaRect.width,
+            window.innerHeight / gameAreaRect.height
+        );
+        gameArea.style.transform = `scale(${scale})`;
+
+        const touchControlsContainer = document.getElementById('touchControlsContainer');
+        if (touchControlsContainer) {
+            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+        }
+    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
+}
+
 // Inizializza il gioco
 initGame();
 
@@ -530,24 +549,6 @@ function updatePlayerPosition() {
     player.el.style.left = `${player.x}px`;
 }
 
-let resizeTimeout;
-
-function handleResize() {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-        const gameAreaRect = gameArea.getBoundingClientRect();
-        const scale = Math.min(
-            window.innerWidth / gameAreaRect.width,
-            window.innerHeight / gameAreaRect.height
-        );
-        gameArea.style.transform = `scale(${scale})`;
-
-        const touchControlsContainer = document.getElementById('touchControlsContainer');
-        if (touchControlsContainer) {
-            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
-        }
-    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
-}
 
 let gameLoopId;
 
