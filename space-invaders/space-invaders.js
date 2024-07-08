@@ -12,7 +12,7 @@ const temporaryMessageElement = document.getElementById('temporaryMessage');
 console.log("temporaryMessageElement:", temporaryMessageElement);
 
 let player, bullets, alienBullets, invaders, barriers, ufo;
-let score, lives, level, invaderDirection, invaderSpeed, lastMoveTime, lastAlienShootTime, gameActive, powerup, nextLifeScore, bulletsFrequency;
+let score, lives, level, invaderDirection, invaderSpeed, lastAlienShootTime, gameActive, powerup, nextLifeScore, bulletsFrequency;
 
 let touchStartX = 0;
 let isShooting = false;
@@ -23,6 +23,18 @@ let isMovingRight = false;
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
 let ufoScoreIndex = 0;
 let shotsFired = 0;
+
+let baseInvaderSpeed = 1;
+let lastMoveTime = 0;
+let alienMoveSound;
+let alienSoundSequence = [0, 1, 2, 3]; // Sequenza di quattro toni leggermente diversi
+let currentSequenceIndex = 0;
+const alienSoundFrequencies = [55, 58, 62, 65]; // Frequenze in Hz per i 4 toni (molto più bassi)
+let alienMoveInterval = 1000; // Intervallo iniziale tra i movimenti degli alieni (in ms)
+let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
+
+
+
 
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
@@ -58,6 +70,39 @@ function playSound(frequency, duration, type = 'sine') {
     oscillator.start();
     oscillator.stop(audioContext.currentTime + duration);
 }
+
+// Funzione per creare il suono degli alieni
+function createAlienMoveSound() {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(alienSoundFrequencies[0], audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.start();
+    return { oscillator, gainNode };
+}
+
+// Funzione per riprodurre il suono del movimento degli alieni (come definita precedentemente)
+function playAlienMoveSound() {
+    if (!alienMoveSound) return;
+
+    const soundDuration = 0.15;
+    const currentTone = alienSoundSequence[currentSequenceIndex];
+    
+    alienMoveSound.oscillator.frequency.setValueAtTime(
+        alienSoundFrequencies[currentTone], 
+        audioContext.currentTime
+    );
+    
+    alienMoveSound.gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + soundDuration);
+    
+    currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
+}
+
+
 
 function shootSound() { playSound(880, 0.1, 'square'); }
 function explosionSound() { playSound(110, 0.5, 'sawtooth'); }
@@ -293,7 +338,17 @@ initGame();
 
 function moveInvaders() {
     const currentTime = Date.now();
-    if (currentTime - lastMoveTime > 500 / (invaderSpeed + level - 1)) {
+    const invaderCount = invaders.length;
+
+    // Calcola il nuovo intervallo di movimento basato sul numero di invasori rimasti
+    alienMoveInterval = Math.max(
+        minAlienMoveInterval,
+        1000 - (55 - invaderCount) * 15
+    );
+    
+    if (currentTime - lastMoveTime > alienMoveInterval) {
+        playAlienMoveSound(); // Riproduci il suono ad ogni movimento
+        
         let shouldChangeDirection = false;
         invaders.forEach(invader => {
             invader.x += invaderDirection * 10;
@@ -309,12 +364,12 @@ function moveInvaders() {
                 invader.y += 20;
                 invader.el.style.top = `${invader.y}px`;
             });
-            invaderSpeed += 0.1;
         }
 
         lastMoveTime = currentTime;
     }
 }
+
 
 function alienShoot() {
     const currentTime = Date.now();
@@ -612,6 +667,8 @@ function startNextLevel() {
     lastMoveTime = 0;
     lastAlienShootTime = 0;
 
+    baseInvaderSpeed = 1 + (level - 1) * 0.2;
+    
     // Rimuovi tutti gli elementi di gioco esistenti
     while (gameArea.firstChild) {
         gameArea.removeChild(gameArea.firstChild);
