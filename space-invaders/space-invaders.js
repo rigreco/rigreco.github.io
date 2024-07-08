@@ -576,8 +576,10 @@ function stopGame() {
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
 function checkScore() {
-    if (score % 500 === 0 && score > 0) {
-        showTemporaryMessage(`Punti raggiunti: ${score}`);
+    // Mostra il messaggio solo se il punteggio è un multiplo di 500 e differente dall'ultimo punteggio per cui il messaggio è stato mostrato
+    if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
+        showTemporaryMessage(`Test message at ${score} points!`);
+        lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
     }
     if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
         bulletsFrequency += 1 * level;
@@ -593,7 +595,6 @@ function checkScore() {
         showTemporaryMessage(`Vita extra guadagnata!`);
     }
 }
-
 // Avvia il loop di gioco
 gameLoop();
 
