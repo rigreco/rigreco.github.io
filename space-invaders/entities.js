@@ -22,11 +22,8 @@ export function createInvader(x, y, type, points) {
 
 // Bullet
 export function createBullet(x, y, isAlien = false) {
-    return {
-        x: x,
-        y: y,
-        el: createElement(x, y, '|', isAlien ? 'alien-bullet sprite' : 'bullet sprite')
-    };
+    const el = createElement(x, y, '|', isAlien ? 'alien-bullet sprite' : 'bullet sprite');
+    return { x, y, el };
 }
 
 // UFO
