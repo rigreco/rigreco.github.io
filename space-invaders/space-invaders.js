@@ -36,7 +36,7 @@ const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
 
 // Configurazione dell'audio
-let audioContext;
+let audioContext = null;
 let audioContextStarted = false;
 
 function initAudioContext() {
@@ -73,6 +73,7 @@ function playSound(frequency, duration, type = 'sine') {
 
 // Funzione per creare il suono degli alieni
 function createAlienMoveSound() {
+    if (!audioContextStarted) return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     oscillator.type = 'square';
@@ -86,7 +87,7 @@ function createAlienMoveSound() {
 
 // Funzione per riprodurre il suono del movimento degli alieni
 function playAlienMoveSound() {
-    if (!alienMoveSound) return;
+    if (!audioContextStarted || !alienMoveSound) return;
 
     const soundDuration = 0.15;
     const currentTone = alienSoundSequence[currentSequenceIndex];
