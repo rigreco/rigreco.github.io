@@ -170,7 +170,7 @@ function moveUfo() {
         ui.ufoSound();
 
         if (ufo.x > 600) {
-            ui.gameArea.removeChild(ufo.el);
+            ui.safeRemoveElement(ufo.el);
             ufo.active = false;
         }
     }
@@ -182,7 +182,7 @@ function updateBullets() {
         bullet.y -= 5;
         if (bullet.y < 0) {
             if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                ui.gameArea.removeChild(bullet.el);
+                ui.safeRemoveElement(bullet.el);
             }
             bullets.splice(i, 1);
         } else {
@@ -195,7 +195,7 @@ function updateBullets() {
         bullet.y += 5 + level;
         if (bullet.y > 600) {
             if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                ui.gameArea.removeChild(bullet.el);
+                ui.safeRemoveElement(bullet.el);
             }
             alienBullets.splice(i, 1);
         } else {
@@ -213,13 +213,13 @@ function checkCollisions() {
             const invader = invaders[j];
             if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
                 if (invader.el && invader.el.parentNode === ui.gameArea) {
-                    ui.gameArea.removeChild(invader.el);
+                    ui.safeRemoveElement(invader.el);
                 }
                 invaders.splice(j, 1);
                 
                 if (!bulletRemoved) {
                     if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                        ui.gameArea.removeChild(bullet.el);
+                        ui.safeRemoveElement(bullet.el);
                     }
                     bullets.splice(i, 1);
                     bulletRemoved = true;
@@ -234,10 +234,10 @@ function checkCollisions() {
 
         if (!bulletRemoved && ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
             if (ufo.el && ufo.el.parentNode === ui.gameArea) {
-                ui.gameArea.removeChild(ufo.el);
+                ui.safeRemoveElement(ufo.el);
             }
             if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                ui.gameArea.removeChild(bullet.el);
+                ui.safeRemoveElement(bullet.el);
             }
             bullets.splice(i, 1);
             ufo.active = false;
@@ -258,13 +258,13 @@ function checkCollisions() {
                     bulletRect.top < barrierRect.bottom &&
                     bulletRect.bottom > barrierRect.top) {
                     if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                        ui.gameArea.removeChild(bullet.el);
+                        ui.safeRemoveElement(bullet.el);
                     }
                     bullets.splice(i, 1);
                     barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
                     if (parseFloat(barrier.style.opacity) <= 0) {
                         if (barrier.parentNode === ui.gameArea) {
-                            ui.gameArea.removeChild(barrier);
+                            ui.safeRemoveElement(barrier);
                         }
                         barriers.splice(k, 1);
                     }
@@ -278,7 +278,7 @@ function checkCollisions() {
         const bullet = alienBullets[i];
         if (Math.abs(bullet.x - player.x) < 20 && Math.abs(bullet.y - player.y) < 20) {
             if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                ui.gameArea.removeChild(bullet.el);
+                ui.safeRemoveElement(bullet.el);
             }
             alienBullets.splice(i, 1);
             lives--;
@@ -296,13 +296,13 @@ function checkCollisions() {
                     bulletRect.top < barrierRect.bottom &&
                     bulletRect.bottom > barrierRect.top) {
                     if (bullet.el && bullet.el.parentNode === ui.gameArea) {
-                        ui.gameArea.removeChild(bullet.el);
+                        ui.safeRemoveElement(bullet.el);
                     }
                     alienBullets.splice(i, 1);
                     barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
                     if (parseFloat(barrier.style.opacity) <= 0) {
                         if (barrier.parentNode === ui.gameArea) {
-                            ui.gameArea.removeChild(barrier);
+                            ui.safeRemoveElement(barrier);
                         }
                         barriers.splice(k, 1);
                     }
@@ -355,6 +355,41 @@ export function shoot() {
 function gameOver() {
     gameActive = false;
     ui.gameOverSound();
+
+    // Rimuovi tutti gli elementi di gioco
+    bullets.forEach(bullet => {
+        if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+            ui.safeRemoveElement(bullet.el);
+        }
+    });
+    alienBullets.forEach(bullet => {
+        if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+            ui.safeRemoveElement(bullet.el);
+        }
+    });
+    invaders.forEach(invader => {
+        if (invader.el && invader.el.parentNode === ui.gameArea) {
+            ui.safeRemoveElement(invader.el);
+        }
+    });
+    barriers.forEach(barrier => {
+        if (barrier.parentNode === ui.gameArea) {
+            ui.safeRemoveElement(barrier);
+        }
+    });
+    if (ufo.el && ufo.el.parentNode === ui.gameArea) {
+        ui.safeRemoveElement(ufo.el);
+    }
+    if (player.el && player.el.parentNode === ui.gameArea) {
+        ui.safeRemoveElement(player.el);
+    }
+
+    // Pulisci gli array
+    bullets = [];
+    alienBullets = [];
+    invaders = [];
+    barriers = [];
+
     ui.showGameOver(score);
 }
 
