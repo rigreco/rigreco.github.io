@@ -177,25 +177,31 @@ function moveUfo() {
 }
 
 function updateBullets() {
-    bullets.forEach((bullet, index) => {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
         bullet.y -= 5;
         if (bullet.y < 0) {
-            ui.gameArea.removeChild(bullet.el);
-            bullets.splice(index, 1);
+            if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                ui.gameArea.removeChild(bullet.el);
+            }
+            bullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
         }
-    });
+    }
 
-    alienBullets.forEach((bullet, index) => {
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        const bullet = alienBullets[i];
         bullet.y += 5 + level;
         if (bullet.y > 600) {
-            ui.gameArea.removeChild(bullet.el);
-            alienBullets.splice(index, 1);
+            if (bullet.el && bullet.el.parentNode === ui.gameArea) {
+                ui.gameArea.removeChild(bullet.el);
+            }
+            alienBullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
         }
-    });
+    }
 }
 
 function checkCollisions() {
