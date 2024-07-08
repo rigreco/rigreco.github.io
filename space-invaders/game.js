@@ -81,7 +81,9 @@ function createBarriers() {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 3; j++) {
             for (let k = 0; k < 5; k++) {
-                barriers.push(entities.createBarrier(i * 150 + 75 + k * 10, 500 + j * 10));
+                const barrier = entities.createBarrier(i * 150 + 75 + k * 10, 500 + j * 10);
+                ui.gameArea.appendChild(barrier);  // Aggiungi questa linea
+                barriers.push(barrier);
             }
         }
     }
@@ -348,7 +350,9 @@ function checkScore() {
 
 export function shoot() {
     if (bullets.length < bulletsFrequency) {
-        bullets.push(entities.createBullet(player.x + 10, player.y - 20));
+        const bullet = entities.createBullet(player.x + 10, player.y - 20);
+        ui.gameArea.appendChild(bullet.el);  // Aggiungi questa linea
+        bullets.push(bullet);
         ui.shootSound();
         shotsFired++;
         ufoScoreIndex = (shotsFired - 1) % 15;
