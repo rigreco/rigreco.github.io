@@ -10,7 +10,6 @@ const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
 const temporaryMessageElement = document.getElementById('temporaryMessage');
 
-
 let player, bullets, alienBullets, invaders, barriers, ufo;
 let score, lives, level, invaderDirection, invaderSpeed, lastAlienShootTime, gameActive, powerup, nextLifeScore, bulletsFrequency;
 
@@ -37,18 +36,22 @@ const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
 
 // Configurazione dell'audio
-const audioContext = new (AudioContext || window.AudioContext)();
-
+let audioContext;
 let audioContextStarted = false;
 
-document.addEventListener('click', function() {
+function initAudioContext() {
     if (!audioContextStarted) {
+        audioContext = new (AudioContext || window.AudioContext)();
         audioContext.resume().then(() => {
             console.log('AudioContext started successfully');
             audioContextStarted = true;
         });
     }
-}, { once: true });
+}
+
+// Aggiungi un listener per il primo gesto dell'utente
+document.addEventListener('click', initAudioContext, { once: true });
+document.addEventListener('touchstart', initAudioContext, { once: true });
 
 function playSound(frequency, duration, type = 'sine') {
     if (!audioContextStarted) return;
@@ -81,7 +84,7 @@ function createAlienMoveSound() {
     return { oscillator, gainNode };
 }
 
-// Funzione per riprodurre il suono del movimento degli alieni (come definita precedentemente)
+// Funzione per riprodurre il suono del movimento degli alieni
 function playAlienMoveSound() {
     if (!alienMoveSound) return;
 
@@ -601,7 +604,7 @@ gameLoop();
 
 document.addEventListener('keydown', (e) => {
     if (gameActive) {
-        if (e.key === 'ArrowLeft') {         
+        if (e.key === 'ArrowLeft') {
             isMovingLeft = true;
         }
         if (e.key === 'ArrowRight') {
