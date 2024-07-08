@@ -530,6 +530,8 @@ function updatePlayerPosition() {
     player.el.style.left = `${player.x}px`;
 }
 
+let resizeTimeout;
+
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
@@ -600,9 +602,6 @@ function checkScore() {
     }
 }
 
-// Avvia il loop di gioco
-gameLoop();
-
 document.addEventListener('keydown', (e) => {
     if (gameActive) {
         if (e.key === 'ArrowLeft') {
@@ -627,6 +626,7 @@ document.addEventListener('keyup', (e) => {
 });
 
 function gameOver() {
+    console.log("Game over!"); // Debug
     gameActive = false;
     gameOverSound();
     finalScoreElement.textContent = score;
@@ -634,6 +634,7 @@ function gameOver() {
 }
 
 function levelComplete() {
+    console.log("Level complete!"); // Debug
     gameActive = false;
     levelCompleteSound();
     level++;
@@ -691,22 +692,8 @@ restartButton.addEventListener('click', () => {
 });
 
 // Funzione per gestire il ridimensionamento della finestra
-function handleResize() {
-    const gameAreaRect = gameArea.getBoundingClientRect();
-    const scale = Math.min(
-        window.innerWidth / gameAreaRect.width,
-        window.innerHeight / gameAreaRect.height
-    );
-    gameArea.style.transform = `scale(${scale})`;
-
-    const touchControlsContainer = document.getElementById('touchControlsContainer');
-    if (touchControlsContainer) {
-        touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
-    }
-}
-
-// Aggiungi l'event listener per il ridimensionamento
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
 handleResize();
+startGame(); // Assicurati che il gioco inizi automaticamente
