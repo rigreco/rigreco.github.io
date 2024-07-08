@@ -631,6 +631,7 @@ function gameOver() {
     gameOverSound();
     finalScoreElement.textContent = score;
     gameOverElement.style.display = 'block';
+    stopGame(); // Assicurati che il ciclo di gioco si fermi
 }
 
 function levelComplete() {
@@ -639,6 +640,7 @@ function levelComplete() {
     levelCompleteSound();
     level++;
     levelCompleteElement.style.display = 'block';
+    stopGame(); // Assicurati che il ciclo di gioco si fermi
 }
 
 function startNextLevel() {
