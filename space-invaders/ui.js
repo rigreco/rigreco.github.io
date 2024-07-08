@@ -69,13 +69,64 @@ export function setupInputListeners(shootCallback) {
     createTouchControls(shootCallback);
 }
 
-function createTouchControls(shootCallback) {
+export function createTouchControls(shootCallback) {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        const touchControlsContainer = document.createElement('div');
-        touchControlsContainer.id = 'touchControlsContainer';
-        // ... (rest of the touch controls setup)
+        if (!document.getElementById('touchControlsContainer')) {
+            const touchControlsContainer = document.createElement('div');
+            touchControlsContainer.id = 'touchControlsContainer';
+            touchControlsContainer.style.position = 'absolute';
+            touchControlsContainer.style.bottom = '20px';
+            touchControlsContainer.style.left = '0';
+            touchControlsContainer.style.width = '100%';
+            touchControlsContainer.style.display = 'flex';
+            touchControlsContainer.style.justifyContent = 'space-between';
+            touchControlsContainer.style.padding = '0 20px';
 
-        gameArea.appendChild(touchControlsContainer);
+            const leftControl = document.createElement('div');
+            leftControl.id = 'leftControl';
+            leftControl.className = 'touch-control';
+            leftControl.textContent = '←';
+
+            const rightControl = document.createElement('div');
+            rightControl.id = 'rightControl';
+            rightControl.className = 'touch-control';
+            rightControl.textContent = '→';
+
+            const shootControl = document.createElement('div');
+            shootControl.id = 'shootControl';
+            shootControl.className = 'touch-control';
+            shootControl.textContent = 'Spara';
+
+            touchControlsContainer.appendChild(leftControl);
+            touchControlsContainer.appendChild(shootControl);
+            touchControlsContainer.appendChild(rightControl);
+
+            gameArea.appendChild(touchControlsContainer);
+
+            // Aggiungi gli event listener per i controlli touch
+            leftControl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isMovingLeft = true;
+            });
+            leftControl.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isMovingLeft = false;
+            });
+            
+            rightControl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isMovingRight = true;
+            });
+            rightControl.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                isMovingRight = false;
+            });
+            
+            shootControl.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                shootCallback();
+            });
+        }
     }
 }
 
