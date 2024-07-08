@@ -75,6 +75,20 @@
                 display: none !important;
             }
     }
+    /* Nuovo supporto per Forced Colors Mode */
+    @media (forced-colors: active) {
+        body { background: Canvas; color: CanvasText; }
+        #gameArea { border-color: CanvasText; background-color: Canvas; }
+        .barrier { color: Highlight; }
+        #score, #lives, #level, .sprite, .bullet, .alien-bullet, .alien, #ufo, #gameOver, #levelComplete, button, #temporaryMessage {
+            background: Canvas;
+            color: CanvasText;
+        }
+        .touch-control {
+            background-color: Highlight;
+            color: HighlightText;
+        }
+    }
     </style>
 </head>
 <body>
