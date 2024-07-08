@@ -20,8 +20,12 @@ let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
 
+const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
+let ufoScoreIndex = 0;
+let shotsFired = 0;
+
 const alienTypes = ['👾', '👽', '👻'];
-const alienPoints = [10, 20, 30];
+const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
 
 // Configurazione dell'audio
 const audioContext = new (AudioContext || window.AudioContext)();
@@ -193,6 +197,8 @@ function shoot() {
             el: createElement(player.x + 10, player.y - 20, '|', 'bullet sprite')
         });
         shootSound();
+        shotsFired++;
+        ufoScoreIndex = (shotsFired - 1) % 15; // Aggiorna l'indice del punteggio UFO
     }
 }
 
@@ -232,6 +238,7 @@ function initGame() {
     createBarriers();
     createTouchControls();
     handleResize();
+    resetShotsFired(); // Aggiungi questa riga per resettare il conteggio dei colpi UFO
 
     // Aggiornamento UI
     updateUI();
@@ -245,16 +252,24 @@ function initGame() {
 function createInvaders() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < 11; j++) {
-            const alienType = alienTypes[Math.floor(i / 2)];
+            const typeIndex = Math.floor(i / 2);
+            const alienType = alienTypes[typeIndex];
+            const points = alienPoints[typeIndex];
             invaders.push({
                 x: j * 40 + 40,
                 y: i * 40 + 40,
                 type: alienType,
-                points: alienPoints[Math.floor(i / 2)],
+                points: points,
                 el: createElement(j * 40 + 40, i * 40 + 40, alienType, 'alien sprite')
             });
         }
     }
+}
+
+
+// Funzione per calcolare il punteggio totale possibile (rimane invariata)
+function calculateTotalPossibleScore() {
+    return invaders.reduce((total, invader) => total + invader.points, 0);
 }
 
 function createBarriers() {
@@ -357,6 +372,13 @@ function updateBullets() {
     });
 }
 
+// Aggiungi questa funzione per resettare il conteggio dei colpi quando necessario
+function resetShotsFired() {
+    shotsFired = 0;
+    ufoScoreIndex = 0;
+}
+
+
 function checkCollisions() {
     bullets.forEach((bullet, bulletIndex) => {
         // Collisione con gli invasori
@@ -378,9 +400,11 @@ function checkCollisions() {
             gameArea.removeChild(bullet.el);
             bullets.splice(bulletIndex, 1);
             ufo.active = false;
-            score += 100 * level;
+            let ufoScore = ufoScores[ufoScoreIndex];
+            score += ufoScore;
             updateUI();
             explosionSound();
+            showTemporaryMessage(`UFO colpito! +${ufoScore} punti`);
         }
 
         // Collisione con barriere
@@ -603,6 +627,7 @@ function startNextLevel() {
     createInvaders();
     createBarriers();
     createTouchControls();
+    resetShotsFired(); // Aggiungi questa riga per resettare il conteggio dei colpi UFO
 
     // Se i controlli touch erano presenti, assicurati che siano ancora nel gameArea
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
