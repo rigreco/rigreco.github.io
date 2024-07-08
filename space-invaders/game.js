@@ -52,7 +52,7 @@ export function initGame() {
 
     createInvaders();
     createBarriers();
-    ui.createTouchControls();
+    ui.createTouchControls(shoot);  // Passa la funzione shoot come callback
     ui.handleResize();
     resetShotsFired();
 
