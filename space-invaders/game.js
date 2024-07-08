@@ -33,6 +33,7 @@ export function initGame() {
     ui.gameArea.appendChild(ui.levelCompleteElement);
 
     player = entities.createPlayer(300, 550);
+    ui.gameArea.appendChild(player.el); // Aggiungi questa linea
     bullets = [];
     bulletsFrequency = 3;
     powerup = 0;
@@ -69,7 +70,9 @@ function createInvaders() {
             const typeIndex = Math.floor(i / 2);
             const alienType = alienTypes[typeIndex];
             const points = alienPoints[typeIndex];
-            invaders.push(entities.createInvader(j * 40 + 40, i * 40 + 40, alienType, points));
+            const invader = entities.createInvader(j * 40 + 40, i * 40 + 40, alienType, points);
+            ui.gameArea.appendChild(invader.el);  // Aggiungi questa linea
+            invaders.push(invader);
         }
     }
 }
@@ -381,7 +384,7 @@ function gameOver() {
         ui.safeRemoveElement(ufo.el);
     }
     if (player.el && player.el.parentNode === ui.gameArea) {
-        ui.safeRemoveElement(player.el);
+        ui.gameArea.removeChild(player.el);
     }
 
     // Pulisci gli array
