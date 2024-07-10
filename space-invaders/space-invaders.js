@@ -116,40 +116,34 @@ function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function showTemporaryMessage(message, duration = 2000) {
     console.log(`Showing message: ${message}`); // Debug
     
-    // Assicuriamoci che l'elemento esista
+    temporaryMessageElement.style.border = '2px solid red'; // Debug visivo
+
     if (!temporaryMessageElement) {
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
         temporaryMessageElement.style.position = 'absolute';
-        temporaryMessageElement.style.top = '20%';
+        temporaryMessageElement.style.top = '10%';
         temporaryMessageElement.style.left = '50%';
-        temporaryMessageElement.style.transform = 'translate(-50%, -50%)';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
         temporaryMessageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
         temporaryMessageElement.style.color = 'white';
         temporaryMessageElement.style.padding = '10px';
         temporaryMessageElement.style.borderRadius = '5px';
-        temporaryMessageElement.style.zIndex = '1000';
+        temporaryMessageElement.style.zIndex = '9999';
         temporaryMessageElement.style.transition = 'opacity 0.3s';
         gameArea.appendChild(temporaryMessageElement);
     }
 
-    // Imposta il contenuto e mostra il messaggio
     temporaryMessageElement.textContent = message;
     temporaryMessageElement.style.display = 'block';
-    temporaryMessageElement.style.opacity = '0';
-
-    // Forza un reflow del DOM e poi mostra con fade-in
-    void temporaryMessageElement.offsetWidth;
     temporaryMessageElement.style.opacity = '1';
 
-    // Imposta il timer per nascondere il messaggio
     clearTimeout(temporaryMessageElement.hideTimer);
     temporaryMessageElement.hideTimer = setTimeout(() => {
         temporaryMessageElement.style.opacity = '0';
         setTimeout(() => {
             temporaryMessageElement.style.display = 'none';
-            console.log("Message hidden"); // Debug
-        }, 300); // Aspetta che il fade-out sia completo
+        }, 300);
     }, duration);
 }
 
@@ -281,6 +275,12 @@ function initGame() {
     gameArea.style.width = '100%';
     gameArea.style.height = '100vh';
     gameArea.style.overflow = 'hidden';
+
+    // Inizializza temporaryMessageElement
+    temporaryMessageElement = document.createElement('div');
+    temporaryMessageElement.id = 'temporaryMessage';
+    temporaryMessageElement.style.display = 'none';
+    gameArea.appendChild(temporaryMessageElement);
         
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
@@ -379,6 +379,12 @@ function handleResize() {
             touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
         }
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
+    // Assicurati che temporaryMessageElement mantenga la sua posizione
+    if (temporaryMessageElement) {
+        temporaryMessageElement.style.top = '10%';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
+    }
 }
 
 // Inizializza il gioco
@@ -633,6 +639,7 @@ function checkScore() {
         bulletsFrequency += 1 * level;
         powerup += 1;
         powerupSound();
+        console.log("Powerup triggered"); // Debug
         showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`, 3000);  // Mostra per 3 secondi
     }
     if (score >= nextLifeScore) {
