@@ -643,9 +643,14 @@ function levelComplete() {
 }
 
 function startNextLevel() {
+    console.log("Inizio startNextLevel, livello:", level);
     const touchControlsContainer = document.getElementById('touchControlsContainer');
+
     while (gameArea.firstChild) {
-        if (gameArea.firstChild !== touchControlsContainer) {
+        if (gameArea.firstChild !== touchControlsContainer && 
+            gameArea.firstChild !== scoreElement &&
+            gameArea.firstChild !== livesElement &&
+            gameArea.firstChild !== levelElement) {
             gameArea.removeChild(gameArea.firstChild);
         }
     }
@@ -670,6 +675,7 @@ function startNextLevel() {
     gameArea.appendChild(levelElement);
 
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
+    gameArea.appendChild(player.el);
     createInvaders();
     createBarriers();
     createTouchControls();
@@ -681,10 +687,19 @@ function startNextLevel() {
 
     updateUI();
     gameActive = true;
-    gameLoop();
+    console.log("Avvio gameLoop");
+    requestAnimationFrame(gameLoop);
+   
+    scoreElement.style.display = 'block';
+    livesElement.style.display = 'block';
+    levelElement.style.display = 'block';
 }
 
-nextLevelButton.addEventListener('click', startNextLevel);
+nextLevelButton.addEventListener('click', () => {
+    console.log("Pulsante Prossimo Livello cliccato");
+    startNextLevel();
+    console.log("Fine startNextLevel, livello:", level);
+  });
 
 restartButton.addEventListener('click', () => {
     gameOverElement.style.display = 'none';
