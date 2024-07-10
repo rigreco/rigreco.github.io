@@ -324,6 +324,7 @@ function createBarriers() {
 }
 
 function updateUI() {
+    console.log(`Aggiornamento UI: Score ${score}, Lives ${lives}, Level ${level}`);
     scoreElement.textContent = `Punteggio: ${score}`;
     livesElement.textContent = `Vite: ${lives}`;
     levelElement.textContent = `Livello: ${level}`;
@@ -502,6 +503,7 @@ function checkCollisions() {
             lives--;
             updateUI();
             if (lives <= 0) {
+                console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
             }
         }
@@ -561,8 +563,10 @@ function gameLoop() {
         updateBullets();
         checkCollisions();
         checkScore();
-    }
     gameLoopId = requestAnimationFrame(gameLoop);
+    } else {
+        console.log("Game loop terminato");
+    }
 }
 
 function startGame() {
@@ -627,11 +631,37 @@ document.addEventListener('keyup', (e) => {
 });
 
 function gameOver() {
-    console.log("Game over!"); // Debug
+    console.log("Inizio gameOver");
     gameActive = false;
-    gameOverSound();
-    finalScoreElement.textContent = score;
-    gameOverElement.style.display = 'block';
+    
+    // Ferma tutti i loop e le animazioni in corso
+    cancelAnimationFrame(gameLoopId);  // Assicurati di avere una variabile gameLoopId
+    
+    try {
+        gameOverSound();
+    } catch (error) {
+        console.error("Errore durante la riproduzione del suono di game over:", error);
+    }
+    
+    // Mostra il messaggio di Game Over
+    showGameOver(score);
+    
+    console.log("Fine gameOver");
+}
+
+function showGameOver(finalScore) {
+    console.log("Mostra schermata Game Over");
+    
+    // Assicurati che questi elementi esistano nel DOM
+    const gameOverElement = document.getElementById('gameOver');
+    const finalScoreElement = document.getElementById('finalScore');
+    
+    if (gameOverElement && finalScoreElement) {
+        finalScoreElement.textContent = finalScore;
+        gameOverElement.style.display = 'block';
+    } else {
+        console.error("Elementi Game Over non trovati nel DOM");
+    }
 }
 
 function levelComplete() {
