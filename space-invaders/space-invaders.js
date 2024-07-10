@@ -696,17 +696,64 @@ function showGameOver(finalScore) {
 }
 
 function levelComplete() {
-    console.log("Level complete!"); // Debug
+    console.log(`Inizio levelComplete, livello attuale: ${level}`);
     gameActive = false;
-    levelCompleteSound();
+    cancelAnimationFrame(gameLoopId);
+
+    try {
+        levelCompleteSound();
+    } catch (error) {
+        console.error("Errore durante la riproduzione del suono di livello completato:", error);
+    }
+
     level++;
+    console.log(`Passaggio al livello ${level}`);
+
+    // Mostra la schermata di livello completato
+    showLevelComplete();
+
+    console.log("Fine levelComplete");
+}
+
+function showLevelComplete() {
+    console.log("Mostra schermata Livello Completato");
+    let levelCompleteElement = document.getElementById('levelComplete');
+    if (!levelCompleteElement) {
+        levelCompleteElement = document.createElement('div');
+        levelCompleteElement.id = 'levelComplete';
+        levelCompleteElement.style.position = 'absolute';
+        levelCompleteElement.style.top = '50%';
+        levelCompleteElement.style.left = '50%';
+        levelCompleteElement.style.transform = 'translate(-50%, -50%)';
+        levelCompleteElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        levelCompleteElement.style.padding = '20px';
+        levelCompleteElement.style.borderRadius = '10px';
+        levelCompleteElement.style.textAlign = 'center';
+        gameArea.appendChild(levelCompleteElement);
+    }
+    levelCompleteElement.innerHTML = `
+        Livello ${level - 1} Completato!<br>
+        <button id="nextLevelButton">Prossimo Livello</button>
+    `;
     levelCompleteElement.style.display = 'block';
+    
+    const nextLevelButton = document.getElementById('nextLevelButton');
+    if (nextLevelButton) {
+        nextLevelButton.removeEventListener('click', startNextLevel);
+        nextLevelButton.addEventListener('click', startNextLevel);
+    }
 }
 
 function startNextLevel() {
     console.log("Inizio startNextLevel, livello:", level);
 
     const touchControlsContainer = document.getElementById('touchControlsContainer');
+
+    // Nascondi la schermata di livello completato
+    const levelCompleteElement = document.getElementById('levelComplete');
+    if (levelCompleteElement) {
+        levelCompleteElement.style.display = 'none';
+    }
 
     // Pulizia e reinizializzazione
     cleanupGameArea(touchControlsContainer);
@@ -719,8 +766,13 @@ function startNextLevel() {
     updateUIElements();
     startGameLoop();
 
+    // Assicurati che il gioco sia attivo
+    gameActive = true;
+
     console.log("Fine startNextLevel, livello:", level);
 }
+
+
 
 function cleanupGameArea(touchControlsContainer) {
     console.log("Pulizia area di gioco");
@@ -730,7 +782,6 @@ function cleanupGameArea(touchControlsContainer) {
             gameArea.removeChild(child);
         }
     });
-    levelCompleteElement.style.display = 'none';
 }
 
 function resetGameVariables() {
@@ -745,7 +796,6 @@ function resetGameVariables() {
     lastMoveTime = 0;
     lastAlienShootTime = 0;
     baseInvaderSpeed = 1 + (level - 1) * 0.2;
-    resetShotsFired();
 }
 
 function createGameElements(touchControlsContainer) {
@@ -769,12 +819,12 @@ function createGameElements(touchControlsContainer) {
 
 function updateUIElements() {
     console.log("Aggiornamento elementi UI");
-    [scoreElement, livesElement, levelElement].forEach(el => {
-        gameArea.appendChild(el);
-        el.style.display = 'block';
-    });
     updateUI();
+    scoreElement.style.display = 'block';
+    livesElement.style.display = 'block';
+    levelElement.style.display = 'block';
 }
+
 
 function startGameLoop() {
     console.log("Avvio loop di gioco");
