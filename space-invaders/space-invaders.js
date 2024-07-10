@@ -589,23 +589,36 @@ function stopGame() {
 function checkScore() {
     console.log(`Checking score: ${score}`); // Debug
     // Mostra il messaggio solo se il punteggio è un multiplo di 500 e differente dall'ultimo punteggio per cui il messaggio è stato mostrato
+    //if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
+    //    showTemporaryMessage(`Test message at ${score} points!`);
+    //    lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
+    //}
     if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
-        showTemporaryMessage(`Test message at ${score} points!`);
+        showTemporaryMessage(`Test message at ${score} points!`, 3000);
         lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
     }
     if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
         bulletsFrequency += 1 * level;
         powerup += 1;
         powerupSound();
-        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`);
+        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`, 3000);  // Mostra per 3 secondi
     }
-    if (score >= nextLifeScore) { // Guadagna una vita ogni 5000 punti
+    if (score >= nextLifeScore) {
         lives += 1;
-        updateUI(); // Aggiorna la UI per mostrare la nuova vita
-        nextLifeScore += 5000; // Imposta il prossimo punteggio per guadagnare una vita
-        lifeUpSound(); // Suono per il guadagno di una vita
-        showTemporaryMessage(`Vita extra guadagnata!`);
+        updateUI();
+        nextLifeScore += 5000;
+        lifeUpSound();
+        showTemporaryMessage(`Vita extra guadagnata! Vite attuali: ${lives}`, 3000);  // Mostra per 3 secondi
+        flashLivesIndicator();  // Implementa questa funzione per far lampeggiare l'indicatore delle vite
     }
+}
+
+function flashLivesIndicator() {
+    const originalColor = livesElement.style.color;
+    livesElement.style.color = 'yellow';
+    setTimeout(() => {
+        livesElement.style.color = originalColor;
+    }, 500);
 }
 
 document.addEventListener('keydown', (e) => {
