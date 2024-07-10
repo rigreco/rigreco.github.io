@@ -566,6 +566,7 @@ function gameLoop() {
     gameLoopId = requestAnimationFrame(gameLoop);
     } else {
         console.log("Game loop terminato");
+        cancelAnimationFrame(gameLoopId);
     }
 }
 
@@ -633,9 +634,7 @@ document.addEventListener('keyup', (e) => {
 function gameOver() {
     console.log("Inizio gameOver");
     gameActive = false;
-    
-    // Ferma tutti i loop e le animazioni in corso
-    cancelAnimationFrame(gameLoopId);  // Assicurati di avere una variabile gameLoopId
+    cancelAnimationFrame(gameLoopId);
     
     try {
         gameOverSound();
@@ -643,24 +642,56 @@ function gameOver() {
         console.error("Errore durante la riproduzione del suono di game over:", error);
     }
     
-    // Mostra il messaggio di Game Over
     showGameOver(score);
+    
+    // Aggiungi un event listener per il pulsante di riavvio
+    const restartButton = document.getElementById('restartButton');
+    if (restartButton) {
+        restartButton.addEventListener('click', restartGame);
+    }
     
     console.log("Fine gameOver");
 }
 
+function restartGame() {
+    console.log("Riavvio del gioco");
+    // Nascondi la schermata di Game Over
+    const gameOverElement = document.getElementById('gameOver');
+    if (gameOverElement) {
+        gameOverElement.style.display = 'none';
+    }
+    // Reinizializza il gioco
+    initGame();
+    gameActive = true;
+    gameLoop();
+}
+
+
 function showGameOver(finalScore) {
     console.log("Mostra schermata Game Over");
     
-    // Assicurati che questi elementi esistano nel DOM
-    const gameOverElement = document.getElementById('gameOver');
-    const finalScoreElement = document.getElementById('finalScore');
+    let gameOverElement = document.getElementById('gameOver');
+    let finalScoreElement = document.getElementById('finalScore');
+    
+    if (!gameOverElement) {
+        console.log("Creazione elemento gameOver");
+        gameOverElement = document.createElement('div');
+        gameOverElement.id = 'gameOver';
+        gameOverElement.innerHTML = `
+            Game Over!<br>
+            Punteggio Finale: <span id="finalScore"></span><br>
+            <button id="restartButton">Rigioca</button>
+        `;
+        document.body.appendChild(gameOverElement);
+        finalScoreElement = document.getElementById('finalScore');
+    }
     
     if (gameOverElement && finalScoreElement) {
         finalScoreElement.textContent = finalScore;
         gameOverElement.style.display = 'block';
+        console.log("Schermata Game Over visualizzata");
     } else {
-        console.error("Elementi Game Over non trovati nel DOM");
+        console.error("Impossibile mostrare la schermata Game Over");
     }
 }
 
