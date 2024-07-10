@@ -276,12 +276,7 @@ function initGame() {
     gameArea.style.height = '100vh';
     gameArea.style.overflow = 'hidden';
 
-    // Inizializza temporaryMessageElement
-    temporaryMessageElement = document.createElement('div');
-    temporaryMessageElement.id = 'temporaryMessage';
-    temporaryMessageElement.style.display = 'none';
-    gameArea.appendChild(temporaryMessageElement);
-        
+    
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
     
