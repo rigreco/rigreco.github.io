@@ -68,29 +68,53 @@
         color: white;
         -webkit-user-select: none;
         user-select: none;
-    }
-    #shootControl {
-        width: 120px;
-    }
-    @media (min-width: 1024px) {
-            #touchControlsContainer {
-                display: none !important;
+        }
+        #shootControl {
+            width: 120px;
+        }
+        @media (min-width: 1024px) {
+                #touchControlsContainer {
+                    display: none !important;
+                }
+        }
+        /* Nuovo supporto per Forced Colors Mode */
+        @media (forced-colors: active) {
+            body { background: Canvas; color: CanvasText; }
+            #gameArea { border-color: CanvasText; background-color: Canvas; }
+            .barrier { color: Highlight; }
+            #score, #lives, #level, .sprite, .bullet, .alien-bullet, .alien, #ufo, #gameOver, #levelComplete, button, #temporaryMessage {
+                background: Canvas;
+                color: CanvasText;
             }
-    }
-    /* Nuovo supporto per Forced Colors Mode */
-    @media (forced-colors: active) {
-        body { background: Canvas; color: CanvasText; }
-        #gameArea { border-color: CanvasText; background-color: Canvas; }
-        .barrier { color: Highlight; }
-        #score, #lives, #level, .sprite, .bullet, .alien-bullet, .alien, #ufo, #gameOver, #levelComplete, button, #temporaryMessage {
-            background: Canvas;
-            color: CanvasText;
+            .touch-control {
+                background-color: Highlight;
+                color: HighlightText;
+            }
         }
-        .touch-control {
-            background-color: Highlight;
-            color: HighlightText;
-        }
-    }
+        #introScreen, #highScoreScreen {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-family: 'Press Start 2P', cursive;
+            }
+            #startButton, #backToIntroButton {
+                margin-top: 20px;
+                padding: 10px 20px;
+                font-size: 18px;
+                cursor: pointer;
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+            }
     </style>
 </head>
 <body>
