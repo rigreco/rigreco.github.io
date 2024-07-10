@@ -645,12 +645,14 @@ function levelComplete() {
 function startNextLevel() {
     console.log("Inizio startNextLevel, livello:", level);
 
+    const touchControlsContainer = document.getElementById('touchControlsContainer');
+
     // Pulizia e reinizializzazione
-    cleanupGameArea();
+    cleanupGameArea(touchControlsContainer);
     resetGameVariables();
 
     // Creazione nuovi elementi di gioco
-    createGameElements();
+    createGameElements(touchControlsContainer);
 
     // Aggiornamento UI e avvio del gioco
     updateUIElements();
@@ -659,9 +661,9 @@ function startNextLevel() {
     console.log("Fine startNextLevel, livello:", level);
 }
 
-function cleanupGameArea() {
+function cleanupGameArea(touchControlsContainer) {
     console.log("Pulizia area di gioco");
-    const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement];
+    const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement].filter(Boolean);
     Array.from(gameArea.children).forEach(child => {
         if (!elementsToKeep.includes(child)) {
             gameArea.removeChild(child);
@@ -685,7 +687,7 @@ function resetGameVariables() {
     resetShotsFired();
 }
 
-function createGameElements() {
+function createGameElements(touchControlsContainer) {
     console.log("Creazione elementi di gioco");
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     gameArea.appendChild(player.el);
