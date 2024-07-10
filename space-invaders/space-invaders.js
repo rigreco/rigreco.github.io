@@ -111,13 +111,12 @@ function ufoSound() { playSound(660, 0.1, 'sine'); }
 function levelCompleteSound() { playSound(1320, 1, 'sine'); }
 function powerupSound() { playSound(1320, 1, 'sine'); }
 function lifeUpSound() { playSound(880, 1, 'triangle'); }
+function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
     console.log(`Showing message: ${message}`); // Debug
     
-    temporaryMessageElement.style.border = '2px solid red'; // Debug visivo
-
     if (!temporaryMessageElement) {
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
@@ -530,6 +529,7 @@ function checkCollisions() {
             alienBullets.splice(bulletIndex, 1);
             lives--;
             updateUI();
+            playerExplosionSound(); // Suono specifico per la distruzione del giocatore
             if (lives <= 0) {
                 console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
