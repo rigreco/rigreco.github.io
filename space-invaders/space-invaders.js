@@ -35,6 +35,13 @@ let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
 
+let gameState = 'intro';
+let highScores = [
+    { name: 'AAA', score: 0 },
+    { name: 'BBB', score: 0 },
+    { name: 'CCC', score: 0 }
+];
+
 // Configurazione dell'audio
 let audioContext = null;
 let audioContextStarted = false;
@@ -145,6 +152,66 @@ function showTemporaryMessage(message, duration = 2000) {
         }, 300);
     }, duration);
 }
+
+//*************************** */
+function showIntroScreen() {
+    gameArea.innerHTML = `
+        <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
+            <h1>SPACE INVADERS</h1>
+            <div>*SCORE ADVANCE TABLE*</div>
+            <div>🛸 = ? MYSTERY</div>
+            <div>👾 = 30 POINTS</div>
+            <div>👽 = 20 POINTS</div>
+            <div>👻 = 10 POINTS</div>
+            <button id="startButton" style="margin-top: 20px;">PLAY</button>
+        </div>
+    `;
+    document.getElementById('startButton').addEventListener('click', startGameFromIntro);
+}
+
+function startGameFromIntro() {
+    gameState = 'playing';
+    initGame();
+    gameLoop();
+}
+
+function showHighScores() {
+    gameArea.innerHTML = `
+        <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px;">
+            <h2>HIGH SCORES</h2>
+            ${highScores.map((score, index) => `
+                <div>${index + 1}. ${score.name} - ${score.score}</div>
+            `).join('')}
+            <button id="backToIntroButton" style="margin-top: 20px;">BACK</button>
+        </div>
+    `;
+    document.getElementById('backToIntroButton').addEventListener('click', showIntroScreen);
+}
+
+function checkHighScore(score) {
+    const lowestHighScore = highScores[highScores.length - 1].score;
+    if (score > lowestHighScore) {
+        return true;
+    }
+    return false;
+}
+
+function addHighScore(name, score) {
+    highScores.push({ name, score });
+    highScores.sort((a, b) => b.score - a.score);
+    highScores.pop();
+}
+
+function promptForName(score) {
+    let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
+    name = name ? name.substr(0, 3).toUpperCase() : 'AAA';
+    addHighScore(name, score);
+    showHighScores();
+}
+
+//********************************** */
+
+
 
 function createElement(x, y, content, className = 'sprite') {
     const el = document.createElement('div');
@@ -269,6 +336,14 @@ function shoot() {
 }
 
 function initGame() {
+    console.log("Inizializzazione del gioco");
+    
+    // Se siamo nella schermata di intro, mostriamo solo quella
+    //if (gameState === 'intro') {
+    //    showIntroScreen();
+    //    return;
+    //}
+    
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
     
@@ -315,6 +390,18 @@ function initGame() {
     if (temporaryMessageElement) {
         temporaryMessageElement.style.display = 'none';
     }
+
+    // Inizializza l'audio context se non è già stato fatto
+    if (!audioContextStarted) {
+        initAudioContext();
+    }
+
+    // Crea il suono del movimento degli alieni
+    if (audioContextStarted) {
+        alienMoveSound = createAlienMoveSound();
+    }
+
+    console.log("Inizializzazione del gioco completata");
 }
 
 function createInvaders() {
@@ -377,7 +464,7 @@ function handleResize() {
 }
 
 // Inizializza il gioco
-initGame();
+//initGame();
 
 function moveInvaders() {
     const currentTime = Date.now();
@@ -680,16 +767,15 @@ function gameOver() {
         console.error("Errore durante la riproduzione del suono di game over:", error);
     }
     
-    showGameOver(score);
-    
-    // Aggiungi un event listener per il pulsante di riavvio
-    const restartButton = document.getElementById('restartButton');
-    if (restartButton) {
-        restartButton.addEventListener('click', restartGame);
+    if (checkHighScore(score)) {
+        promptForName(score);
+    } else {
+        showGameOver(score);
     }
     
     console.log("Fine gameOver");
 }
+
 
 function restartGame() {
     console.log("Riavvio del gioco");
@@ -877,4 +963,5 @@ window.addEventListener('resize', () => requestAnimationFrame(handleResize));
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
 handleResize();
-startGame(); // Assicurati che il gioco inizi automaticamente
+//startGame(); // Assicurati che il gioco inizi automaticamente
+showIntroScreen();
