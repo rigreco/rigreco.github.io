@@ -115,15 +115,35 @@ function lifeUpSound() { playSound(880, 1, 'triangle'); }
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
     console.log(`Showing message: ${message}`); // Debug
+    
+    temporaryMessageElement.style.border = '2px solid red'; // Debug visivo
+
+    if (!temporaryMessageElement) {
+        temporaryMessageElement = document.createElement('div');
+        temporaryMessageElement.id = 'temporaryMessage';
+        temporaryMessageElement.style.position = 'absolute';
+        temporaryMessageElement.style.top = '10%';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
+        temporaryMessageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        temporaryMessageElement.style.color = 'white';
+        temporaryMessageElement.style.padding = '10px';
+        temporaryMessageElement.style.borderRadius = '5px';
+        temporaryMessageElement.style.zIndex = '9999';
+        temporaryMessageElement.style.transition = 'opacity 0.3s';
+        gameArea.appendChild(temporaryMessageElement);
+    }
+
     temporaryMessageElement.textContent = message;
     temporaryMessageElement.style.display = 'block';
-    
-    // Forza un reflow del DOM
-    void temporaryMessageElement.offsetWidth;
-    
-    setTimeout(() => {
-        temporaryMessageElement.style.display = 'none';
-        console.log("Message hidden"); // Debug
+    temporaryMessageElement.style.opacity = '1';
+
+    clearTimeout(temporaryMessageElement.hideTimer);
+    temporaryMessageElement.hideTimer = setTimeout(() => {
+        temporaryMessageElement.style.opacity = '0';
+        setTimeout(() => {
+            temporaryMessageElement.style.display = 'none';
+        }, 300);
     }, duration);
 }
 
@@ -250,6 +270,13 @@ function shoot() {
 }
 
 function initGame() {
+    // ... altro codice di inizializzazione ...
+    gameArea.style.position = 'relative';
+    gameArea.style.width = '100%';
+    gameArea.style.height = '100vh';
+    gameArea.style.overflow = 'hidden';
+
+    
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
     
@@ -324,6 +351,7 @@ function createBarriers() {
 }
 
 function updateUI() {
+    console.log(`Aggiornamento UI: Score ${score}, Lives ${lives}, Level ${level}`);
     scoreElement.textContent = `Punteggio: ${score}`;
     livesElement.textContent = `Vite: ${lives}`;
     levelElement.textContent = `Livello: ${level}`;
@@ -346,6 +374,12 @@ function handleResize() {
             touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
         }
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
+    // Assicurati che temporaryMessageElement mantenga la sua posizione
+    if (temporaryMessageElement) {
+        temporaryMessageElement.style.top = '10%';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
+    }
 }
 
 // Inizializza il gioco
@@ -502,6 +536,7 @@ function checkCollisions() {
             lives--;
             updateUI();
             if (lives <= 0) {
+                console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
             }
         }
@@ -561,8 +596,11 @@ function gameLoop() {
         updateBullets();
         checkCollisions();
         checkScore();
-    }
     gameLoopId = requestAnimationFrame(gameLoop);
+    } else {
+        console.log("Game loop terminato");
+        cancelAnimationFrame(gameLoopId);
+    }
 }
 
 function startGame() {
@@ -584,23 +622,37 @@ function stopGame() {
 function checkScore() {
     console.log(`Checking score: ${score}`); // Debug
     // Mostra il messaggio solo se il punteggio è un multiplo di 500 e differente dall'ultimo punteggio per cui il messaggio è stato mostrato
+    //if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
+    //    showTemporaryMessage(`Test message at ${score} points!`);
+    //    lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
+    //}
     if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
-        showTemporaryMessage(`Test message at ${score} points!`);
+        showTemporaryMessage(`Test message at ${score} points!`, 3000);
         lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
     }
     if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
         bulletsFrequency += 1 * level;
         powerup += 1;
         powerupSound();
-        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`);
+        console.log("Powerup triggered"); // Debug
+        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`, 3000);  // Mostra per 3 secondi
     }
-    if (score >= nextLifeScore) { // Guadagna una vita ogni 5000 punti
+    if (score >= nextLifeScore) {
         lives += 1;
-        updateUI(); // Aggiorna la UI per mostrare la nuova vita
-        nextLifeScore += 5000; // Imposta il prossimo punteggio per guadagnare una vita
-        lifeUpSound(); // Suono per il guadagno di una vita
-        showTemporaryMessage(`Vita extra guadagnata!`);
+        updateUI();
+        nextLifeScore += 5000;
+        lifeUpSound();
+        showTemporaryMessage(`Vita extra guadagnata! Vite attuali: ${lives}`, 3000);  // Mostra per 3 secondi
+        flashLivesIndicator();  // Implementa questa funzione per far lampeggiare l'indicatore delle vite
     }
+}
+
+function flashLivesIndicator() {
+    const originalColor = livesElement.style.color;
+    livesElement.style.color = 'yellow';
+    setTimeout(() => {
+        livesElement.style.color = originalColor;
+    }, 500);
 }
 
 document.addEventListener('keydown', (e) => {
@@ -627,64 +679,211 @@ document.addEventListener('keyup', (e) => {
 });
 
 function gameOver() {
-    console.log("Game over!"); // Debug
+    console.log("Inizio gameOver");
     gameActive = false;
-    gameOverSound();
-    finalScoreElement.textContent = score;
-    gameOverElement.style.display = 'block';
+    cancelAnimationFrame(gameLoopId);
+    
+    try {
+        gameOverSound();
+    } catch (error) {
+        console.error("Errore durante la riproduzione del suono di game over:", error);
+    }
+    
+    showGameOver(score);
+    
+    // Aggiungi un event listener per il pulsante di riavvio
+    const restartButton = document.getElementById('restartButton');
+    if (restartButton) {
+        restartButton.addEventListener('click', restartGame);
+    }
+    
+    console.log("Fine gameOver");
+}
+
+function restartGame() {
+    console.log("Riavvio del gioco");
+    // Nascondi la schermata di Game Over
+    const gameOverElement = document.getElementById('gameOver');
+    if (gameOverElement) {
+        gameOverElement.style.display = 'none';
+    }
+    // Reinizializza il gioco
+    initGame();
+    gameActive = true;
+    gameLoop();
+}
+
+
+function showGameOver(finalScore) {
+    console.log("Mostra schermata Game Over");
+    
+    let gameOverElement = document.getElementById('gameOver');
+    let finalScoreElement = document.getElementById('finalScore');
+    
+    if (!gameOverElement) {
+        console.log("Creazione elemento gameOver");
+        gameOverElement = document.createElement('div');
+        gameOverElement.id = 'gameOver';
+        gameOverElement.innerHTML = `
+            Game Over!<br>
+            Punteggio Finale: <span id="finalScore"></span><br>
+            <button id="restartButton">Rigioca</button>
+        `;
+        document.body.appendChild(gameOverElement);
+        finalScoreElement = document.getElementById('finalScore');
+    }
+    
+    if (gameOverElement && finalScoreElement) {
+        finalScoreElement.textContent = finalScore;
+        gameOverElement.style.display = 'block';
+        console.log("Schermata Game Over visualizzata");
+    } else {
+        console.error("Impossibile mostrare la schermata Game Over");
+    }
 }
 
 function levelComplete() {
-    console.log("Level complete!"); // Debug
+    console.log(`Inizio levelComplete, livello attuale: ${level}`);
     gameActive = false;
-    levelCompleteSound();
+    cancelAnimationFrame(gameLoopId);
+
+    try {
+        levelCompleteSound();
+    } catch (error) {
+        console.error("Errore durante la riproduzione del suono di livello completato:", error);
+    }
+
     level++;
+    console.log(`Passaggio al livello ${level}`);
+
+    // Mostra la schermata di livello completato
+    showLevelComplete();
+
+    console.log("Fine levelComplete");
+}
+
+function showLevelComplete() {
+    console.log("Mostra schermata Livello Completato");
+    let levelCompleteElement = document.getElementById('levelComplete');
+    if (!levelCompleteElement) {
+        levelCompleteElement = document.createElement('div');
+        levelCompleteElement.id = 'levelComplete';
+        levelCompleteElement.style.position = 'absolute';
+        levelCompleteElement.style.top = '50%';
+        levelCompleteElement.style.left = '50%';
+        levelCompleteElement.style.transform = 'translate(-50%, -50%)';
+        levelCompleteElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        levelCompleteElement.style.padding = '20px';
+        levelCompleteElement.style.borderRadius = '10px';
+        levelCompleteElement.style.textAlign = 'center';
+        gameArea.appendChild(levelCompleteElement);
+    }
+    levelCompleteElement.innerHTML = `
+        Livello ${level - 1} Completato!<br>
+        <button id="nextLevelButton">Prossimo Livello</button>
+    `;
     levelCompleteElement.style.display = 'block';
+    
+    const nextLevelButton = document.getElementById('nextLevelButton');
+    if (nextLevelButton) {
+        nextLevelButton.removeEventListener('click', startNextLevel);
+        nextLevelButton.addEventListener('click', startNextLevel);
+    }
 }
 
 function startNextLevel() {
+    console.log("Inizio startNextLevel, livello:", level);
+
     const touchControlsContainer = document.getElementById('touchControlsContainer');
-    while (gameArea.firstChild) {
-        if (gameArea.firstChild !== touchControlsContainer) {
-            gameArea.removeChild(gameArea.firstChild);
-        }
+
+    // Nascondi la schermata di livello completato
+    const levelCompleteElement = document.getElementById('levelComplete');
+    if (levelCompleteElement) {
+        levelCompleteElement.style.display = 'none';
     }
 
-    levelCompleteElement.style.display = 'none';
+    // Pulizia e reinizializzazione
+    cleanupGameArea(touchControlsContainer);
+    resetGameVariables();
 
+    // Creazione nuovi elementi di gioco
+    createGameElements(touchControlsContainer);
+
+    // Aggiornamento UI e avvio del gioco
+    updateUIElements();
+    startGameLoop();
+
+    // Assicurati che il gioco sia attivo
+    gameActive = true;
+
+    console.log("Fine startNextLevel, livello:", level);
+}
+
+
+
+function cleanupGameArea(touchControlsContainer) {
+    console.log("Pulizia area di gioco");
+    const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement].filter(Boolean);
+    Array.from(gameArea.children).forEach(child => {
+        if (!elementsToKeep.includes(child)) {
+            gameArea.removeChild(child);
+        }
+    });
+}
+
+function resetGameVariables() {
+    console.log("Reset variabili di gioco");
     bullets = [];
     alienBullets = [];
     invaders = [];
     barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
-
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
     lastMoveTime = 0;
     lastAlienShootTime = 0;
-
     baseInvaderSpeed = 1 + (level - 1) * 0.2;
+}
 
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-
+function createGameElements(touchControlsContainer) {
+    console.log("Creazione elementi di gioco");
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
+    gameArea.appendChild(player.el);
+    
+    console.log("Creazione invasori");
     createInvaders();
+    
+    console.log("Creazione barriere");
     createBarriers();
+    
+    console.log("Creazione controlli touch");
     createTouchControls();
-    resetShotsFired();
 
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
         gameArea.appendChild(touchControlsContainer);
     }
-
-    updateUI();
-    gameActive = true;
-    gameLoop();
 }
 
-nextLevelButton.addEventListener('click', startNextLevel);
+function updateUIElements() {
+    console.log("Aggiornamento elementi UI");
+    updateUI();
+    scoreElement.style.display = 'block';
+    livesElement.style.display = 'block';
+    levelElement.style.display = 'block';
+}
+
+
+function startGameLoop() {
+    console.log("Avvio loop di gioco");
+    gameActive = true;
+    requestAnimationFrame(gameLoop);
+}
+
+nextLevelButton.addEventListener('click', () => {
+    console.log("Pulsante Prossimo Livello cliccato");
+    startNextLevel();
+    console.log("Fine startNextLevel, livello:", level);
+  });
 
 restartButton.addEventListener('click', () => {
     gameOverElement.style.display = 'none';
