@@ -644,55 +644,79 @@ function levelComplete() {
 
 function startNextLevel() {
     console.log("Inizio startNextLevel, livello:", level);
-    const touchControlsContainer = document.getElementById('touchControlsContainer');
 
-    while (gameArea.firstChild) {
-        if (gameArea.firstChild !== touchControlsContainer && 
-            gameArea.firstChild !== scoreElement &&
-            gameArea.firstChild !== livesElement &&
-            gameArea.firstChild !== levelElement) {
-            gameArea.removeChild(gameArea.firstChild);
+    // Pulizia e reinizializzazione
+    cleanupGameArea();
+    resetGameVariables();
+
+    // Creazione nuovi elementi di gioco
+    createGameElements();
+
+    // Aggiornamento UI e avvio del gioco
+    updateUIElements();
+    startGameLoop();
+
+    console.log("Fine startNextLevel, livello:", level);
+}
+
+function cleanupGameArea() {
+    console.log("Pulizia area di gioco");
+    const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement];
+    Array.from(gameArea.children).forEach(child => {
+        if (!elementsToKeep.includes(child)) {
+            gameArea.removeChild(child);
         }
-    }
-
+    });
     levelCompleteElement.style.display = 'none';
+}
 
+function resetGameVariables() {
+    console.log("Reset variabili di gioco");
     bullets = [];
     alienBullets = [];
     invaders = [];
     barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
-
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
     lastMoveTime = 0;
     lastAlienShootTime = 0;
-
     baseInvaderSpeed = 1 + (level - 1) * 0.2;
+    resetShotsFired();
+}
 
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-
+function createGameElements() {
+    console.log("Creazione elementi di gioco");
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     gameArea.appendChild(player.el);
+    
+    console.log("Creazione invasori");
     createInvaders();
+    
+    console.log("Creazione barriere");
     createBarriers();
+    
+    console.log("Creazione controlli touch");
     createTouchControls();
-    resetShotsFired();
 
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
         gameArea.appendChild(touchControlsContainer);
     }
+}
 
+function updateUIElements() {
+    console.log("Aggiornamento elementi UI");
+    [scoreElement, livesElement, levelElement].forEach(el => {
+        gameArea.appendChild(el);
+        el.style.display = 'block';
+    });
     updateUI();
+}
+
+function startGameLoop() {
+    console.log("Avvio loop di gioco");
     gameActive = true;
-    console.log("Avvio gameLoop");
     requestAnimationFrame(gameLoop);
-   
-    scoreElement.style.display = 'block';
-    livesElement.style.display = 'block';
-    levelElement.style.display = 'block';
 }
 
 nextLevelButton.addEventListener('click', () => {
