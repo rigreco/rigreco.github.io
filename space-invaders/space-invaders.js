@@ -8,7 +8,7 @@ const levelCompleteElement = document.getElementById('levelComplete');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
-const temporaryMessageElement = document.getElementById('temporaryMessage');
+let temporaryMessageElement = document.getElementById('temporaryMessage'); // Aggiunto
 
 let player, bullets, alienBullets, invaders, barriers, ufo;
 let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
@@ -270,13 +270,6 @@ function shoot() {
 }
 
 function initGame() {
-    // ... altro codice di inizializzazione ...
-    gameArea.style.position = 'relative';
-    gameArea.style.width = '100%';
-    gameArea.style.height = '100vh';
-    gameArea.style.overflow = 'hidden';
-
-    
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
     
@@ -320,7 +313,9 @@ function initGame() {
     // Nascondi gli elementi di game over e level complete e i messaggi temporanei
     gameOverElement.style.display = 'none';
     levelCompleteElement.style.display = 'none';
-    temporaryMessageElement.style.display = 'none';
+    if (temporaryMessageElement) {
+        temporaryMessageElement.style.display = 'none';
+    }
 }
 
 function createInvaders() {
@@ -622,10 +617,6 @@ function stopGame() {
 function checkScore() {
     console.log(`Checking score: ${score}`); // Debug
     // Mostra il messaggio solo se il punteggio è un multiplo di 500 e differente dall'ultimo punteggio per cui il messaggio è stato mostrato
-    //if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
-    //    showTemporaryMessage(`Test message at ${score} points!`);
-    //    lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
-    //}
     if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
         showTemporaryMessage(`Test message at ${score} points!`, 3000);
         lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
@@ -712,7 +703,6 @@ function restartGame() {
     gameActive = true;
     gameLoop();
 }
-
 
 function showGameOver(finalScore) {
     console.log("Mostra schermata Game Over");
@@ -819,8 +809,6 @@ function startNextLevel() {
     console.log("Fine startNextLevel, livello:", level);
 }
 
-
-
 function cleanupGameArea(touchControlsContainer) {
     console.log("Pulizia area di gioco");
     const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement].filter(Boolean);
@@ -872,18 +860,11 @@ function updateUIElements() {
     levelElement.style.display = 'block';
 }
 
-
 function startGameLoop() {
     console.log("Avvio loop di gioco");
     gameActive = true;
     requestAnimationFrame(gameLoop);
 }
-
-nextLevelButton.addEventListener('click', () => {
-    console.log("Pulsante Prossimo Livello cliccato");
-    startNextLevel();
-    console.log("Fine startNextLevel, livello:", level);
-  });
 
 restartButton.addEventListener('click', () => {
     gameOverElement.style.display = 'none';
