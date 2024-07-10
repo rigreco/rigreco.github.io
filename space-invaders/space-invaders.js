@@ -180,7 +180,7 @@ function showHighScores() {
         <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px;">
             <h2>HIGH SCORES</h2>
             ${highScores.map((score, index) => `
-                <div>${index + 1}. ${score.name} - ${score.score}</div>
+                <div>${(index + 1).toString().padStart(2, '0')}. ${score.name.padEnd(3, ' ')} ${score.score.toString().padStart(5, '0')}</div>
             `).join('')}
             <button id="backToIntroButton" style="margin-top: 20px;">BACK</button>
         </div>
@@ -197,11 +197,15 @@ function checkHighScore(score) {
 }
 
 function addHighScore(name, score) {
+    // Assicuriamoci che il nome sia esattamente di 3 caratteri
+    name = name.padEnd(3, ' ').substr(0, 3).toUpperCase();
+    
     highScores.push({ name, score });
     highScores.sort((a, b) => b.score - a.score);
-    highScores.pop();
+    highScores = highScores.slice(0, 3);  // Mantieni solo i primi 3
 }
 
+// Modifica la funzione promptForName
 function promptForName(score) {
     let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
     name = name ? name.substr(0, 3).toUpperCase() : 'AAA';
