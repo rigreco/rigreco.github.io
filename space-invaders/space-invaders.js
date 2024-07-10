@@ -115,15 +115,41 @@ function lifeUpSound() { playSound(880, 1, 'triangle'); }
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
     console.log(`Showing message: ${message}`); // Debug
+    
+    // Assicuriamoci che l'elemento esista
+    if (!temporaryMessageElement) {
+        temporaryMessageElement = document.createElement('div');
+        temporaryMessageElement.id = 'temporaryMessage';
+        temporaryMessageElement.style.position = 'absolute';
+        temporaryMessageElement.style.top = '20%';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translate(-50%, -50%)';
+        temporaryMessageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        temporaryMessageElement.style.color = 'white';
+        temporaryMessageElement.style.padding = '10px';
+        temporaryMessageElement.style.borderRadius = '5px';
+        temporaryMessageElement.style.zIndex = '1000';
+        temporaryMessageElement.style.transition = 'opacity 0.3s';
+        gameArea.appendChild(temporaryMessageElement);
+    }
+
+    // Imposta il contenuto e mostra il messaggio
     temporaryMessageElement.textContent = message;
     temporaryMessageElement.style.display = 'block';
-    
-    // Forza un reflow del DOM
+    temporaryMessageElement.style.opacity = '0';
+
+    // Forza un reflow del DOM e poi mostra con fade-in
     void temporaryMessageElement.offsetWidth;
-    
-    setTimeout(() => {
-        temporaryMessageElement.style.display = 'none';
-        console.log("Message hidden"); // Debug
+    temporaryMessageElement.style.opacity = '1';
+
+    // Imposta il timer per nascondere il messaggio
+    clearTimeout(temporaryMessageElement.hideTimer);
+    temporaryMessageElement.hideTimer = setTimeout(() => {
+        temporaryMessageElement.style.opacity = '0';
+        setTimeout(() => {
+            temporaryMessageElement.style.display = 'none';
+            console.log("Message hidden"); // Debug
+        }, 300); // Aspetta che il fade-out sia completo
     }, duration);
 }
 
@@ -250,6 +276,13 @@ function shoot() {
 }
 
 function initGame() {
+    // ... altro codice di inizializzazione ...
+    gameArea = document.getElementById('gameArea');
+    gameArea.style.position = 'relative';
+    gameArea.style.width = '100%';
+    gameArea.style.height = '100vh';
+    gameArea.style.overflow = 'hidden';
+        
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
     
