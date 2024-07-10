@@ -277,7 +277,6 @@ function shoot() {
 
 function initGame() {
     // ... altro codice di inizializzazione ...
-    gameArea = document.getElementById('gameArea');
     gameArea.style.position = 'relative';
     gameArea.style.width = '100%';
     gameArea.style.height = '100vh';
