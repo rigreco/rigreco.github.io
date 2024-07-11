@@ -181,16 +181,24 @@ function showIntroScreen() {
             <div>👽 = 20 POINTS</div>
             <div>👻 = 10 POINTS</div>
             <button id="startButton" style="margin-top: 20px;">PLAY</button>
+            <button id="highScoresButton" style="margin-top: 20px;">HIGH SCORES</button>
         </div>
     `;
     document.getElementById('startButton').addEventListener('click', startGameFromIntro);
+    document.getElementById('highScoresButton').addEventListener('click', () => changeGameState('highScores'));
 }
 
 
+
+//function startGameFromIntro() {
+//    gameState = 'playing';
+//    initGame();
+//    gameLoop();
+//}
+
 function startGameFromIntro() {
-    gameState = 'playing';
     initGame();
-    gameLoop();
+    changeGameState('playing');
 }
 
 function showHighScores() {
@@ -337,6 +345,32 @@ function createTouchControls() {
     }
 }
 
+/// ***------********* */
+// Menu di gioco
+function changeGameState(newState) {
+    if (gameState === newState) return; // Evita di cambiare allo stesso stato
+    gameState = newState;
+    switch (newState) {
+        case 'intro':
+            showIntroScreen();
+            break;
+        case 'playing':
+            startGame();
+            break;
+        case 'gameOver':
+            showGameOver(score);
+            break;
+        case 'levelComplete':
+            showLevelComplete();
+            break;
+    }
+}
+
+
+
+
+
+
 // Funzioni di movimento e sparo
 function movePlayerLeft() {
     if (player.x > 10) {
@@ -452,6 +486,7 @@ function initGame() {
     resetShotsFired();
 
     console.log("Inizializzazione del gioco completata");
+    changeGameState('playing');
 }
 
 // Assicurati che queste funzioni siano definite altrove nel tuo codice
@@ -867,6 +902,7 @@ function gameOver() {
     }
     
     console.log("Fine gameOver");
+    changeGameState('gameOver');
 }
 
 
@@ -933,6 +969,8 @@ function levelComplete() {
     }
 
     console.log("Fine levelComplete");
+
+    changeGameState('levelComplete');
 }
 
 function showLevelComplete() {
@@ -1062,6 +1100,11 @@ restartButton.addEventListener('click', restartGame);
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
-handleResize();
-//startGame(); // Assicurati che il gioco inizi automaticamente
-showIntroScreen();
+//handleResize();
+////startGame(); // Assicurati che il gioco inizi automaticamente
+//showIntroScreen();
+
+window.addEventListener('load', () => {
+    handleResize();
+    changeGameState('intro');
+});
