@@ -115,15 +115,27 @@
                 border: none;
                 border-radius: 5px;
             }
+            #uiContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            }
+            #uiContainer > div {
+                font-size: 16px;
+                color: white;
+            }
     </style>
 </head>
 <body>
     <div id="gameArea">
-        <div id="score">Punteggio: 0</div>
-        <div id="hi-score">Hi-Score: 00000</div>
-        <div id="lives">Vite: 3</div>
-        <div id="level">Livello: 1</div>
-       <!-- Nel tuo file HTML -->
+        <div id="uiContainer"></div>
         <div id="gameOver" style="display: none;">
             Game Over!<br>
             Punteggio Finale: <span id="finalScore"></span><br>

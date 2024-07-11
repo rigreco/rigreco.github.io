@@ -348,36 +348,44 @@ function shoot() {
     }
 }
 
+
+function initUI() {
+    const uiContainer = document.getElementById('uiContainer');
+    uiContainer.innerHTML = ''; // Pulisce l'UI esistente
+
+    scoreElement = createUIElement('score', `SCORE ${score.toString().padStart(5, '0')}`);
+    hiScoreElement = createUIElement('hi-score', `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
+    livesElement = createUIElement('lives', `LIVES ${lives}`);
+    levelElement = createUIElement('level', `LEVEL ${level}`);
+
+    uiContainer.appendChild(scoreElement);
+    uiContainer.appendChild(hiScoreElement);
+    uiContainer.appendChild(livesElement);
+    uiContainer.appendChild(levelElement);
+}
+
+function createUIElement(id, text) {
+    const element = document.createElement('div');
+    element.id = id;
+    element.textContent = text;
+    return element;
+}
+
 function initGame() {
     console.log("Inizializzazione del gioco");
     
-    
-    // Rimuovi tutti gli elementi di gioco esistenti
-    gameArea.innerHTML = '';
-
-    // Crea gli elementi UI
-    scoreElement = createElement(10, 10, 'SCORE 00000');
-    hiScoreElement = createElement(200, 10, 'HI-SCORE 00000');
-    livesElement = createElement(450, 10, 'LIVES 3');
-    levelElement = createElement(300, 10, 'LEVEL 1');
-    
-    // Ricrea gli elementi UI
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-    gameArea.appendChild(gameOverElement);
-    gameArea.appendChild(levelCompleteElement);
+    // Rimuovi tutti gli elementi di gioco esistenti, tranne quelli permanenti
+    while (gameArea.firstChild) {
+        if (gameArea.firstChild.id !== 'gameOver' && 
+            gameArea.firstChild.id !== 'levelComplete' && 
+            gameArea.firstChild.id !== 'temporaryMessage') {
+            gameArea.removeChild(gameArea.firstChild);
+        } else {
+            gameArea.firstChild.style.display = 'none';
+        }
+    }
 
     // Inizializzazione delle variabili di gioco
-    player = { x: 300, y: 550, el: null };
-    bullets = [];
-    bulletsFrequency = 3;
-    powerup = 0;
-    nextLifeScore = 5000;
-    alienBullets = [];
-    invaders = [];
-    barriers = [];
-    ufo = { x: -30, y: 30, el: null, active: false };
     score = 0;
     lives = 3;
     level = 1;
@@ -386,28 +394,32 @@ function initGame() {
     lastMoveTime = 0;
     lastAlienShootTime = 0;
     gameActive = true;
+    bulletsFrequency = 3;
+    powerup = 0;
+    nextLifeScore = 5000;
+
+    // Creazione degli elementi UI
+    scoreElement = createElement(10, 10, `SCORE ${score.toString().padStart(5, '0')}`);
+    hiScoreElement = createElement(200, 10, `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
+    livesElement = createElement(450, 10, `LIVES ${lives}`);
+    levelElement = createElement(300, 10, `LEVEL ${level}`);
+    
+    gameArea.appendChild(scoreElement);
+    gameArea.appendChild(hiScoreElement);
+    gameArea.appendChild(livesElement);
+    gameArea.appendChild(levelElement);
 
     // Creazione elementi di gioco
-    player.el = createElement(player.x, player.y, '🚀');
+    player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
+    bullets = [];
+    alienBullets = [];
+    invaders = [];
+    barriers = [];
+    ufo = { x: -30, y: 30, el: null, active: false };
+
     createInvaders();
     createBarriers();
     createTouchControls();
-    handleResize();
-    resetShotsFired();
-
-    hiScoreElement = document.createElement('div');
-    hiScoreElement.id = 'hiScore';
-    gameArea.appendChild(hiScoreElement);
-
-    // Aggiornamento UI
-    updateUI();
-
-    // Nascondi gli elementi di game over e level complete e i messaggi temporanei
-    gameOverElement.style.display = 'none';
-    levelCompleteElement.style.display = 'none';
-    if (temporaryMessageElement) {
-        temporaryMessageElement.style.display = 'none';
-    }
 
     // Inizializza l'audio context se non è già stato fatto
     if (!audioContextStarted) {
@@ -419,9 +431,29 @@ function initGame() {
         alienMoveSound = createAlienMoveSound();
     }
 
+    handleResize();
+    resetShotsFired();
+
     console.log("Inizializzazione del gioco completata");
 }
 
+// Assicurati che queste funzioni siano definite altrove nel tuo codice
+function createElement(x, y, content, className = 'sprite') {
+    const el = document.createElement('div');
+    el.className = className;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.textContent = content;
+    gameArea.appendChild(el);
+    return el;
+}
+
+function updateUI() {
+    scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    livesElement.textContent = `LIVES ${lives}`;
+    levelElement.textContent = `LEVEL ${level}`;
+}
 function createInvaders() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < 11; j++) {
@@ -450,11 +482,10 @@ function createBarriers() {
 }
 
 function updateUI() {
-    console.log(`Aggiornamento UI: Score ${score}, Hi-Score ${hiScore}, Lives ${lives}, Level ${level}`);
-    scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
-    hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
-    livesElement.textContent = `LIVES ${lives}`;
-    levelElement.textContent = `LEVEL ${level}`;
+    if (scoreElement) scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    if (hiScoreElement) hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    if (livesElement) livesElement.textContent = `LIVES ${lives}`;
+    if (levelElement) levelElement.textContent = `LEVEL ${level}`;
 }
 
 // Aggiungi questa funzione
