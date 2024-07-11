@@ -45,6 +45,7 @@ let highScores = [
 ];
 
 let hiScore = 0;
+let hiScoreElement;
 
 // Configurazione dell'audio
 let audioContext = null;
@@ -160,9 +161,9 @@ function showTemporaryMessage(message, duration = 2000) {
 //*************************** */
 function showIntroScreen() {
     gameArea.innerHTML = `
-            <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
+        <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
             <h1>SPACE INVADERS</h1>
-            <div id="hiScore">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
+            <div id="introHiScore">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
             <div>*SCORE ADVANCE TABLE*</div>
             <div>🛸 = ? MYSTERY</div>
             <div>👾 = 30 POINTS</div>
@@ -173,6 +174,7 @@ function showIntroScreen() {
     `;
     document.getElementById('startButton').addEventListener('click', startGameFromIntro);
 }
+
 
 function startGameFromIntro() {
     gameState = 'playing';
@@ -350,6 +352,12 @@ function initGame() {
     
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
+
+    // Crea gli elementi UI
+    scoreElement = createElement(10, 10, 'SCORE 00000');
+    hiScoreElement = createElement(200, 10, 'HI-SCORE 00000');
+    livesElement = createElement(450, 10, 'LIVES 3');
+    levelElement = createElement(300, 10, 'LEVEL 1');
     
     // Ricrea gli elementi UI
     gameArea.appendChild(scoreElement);
@@ -585,10 +593,22 @@ function checkCollisions() {
             if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
                 gameArea.removeChild(invader.el);
                 gameArea.removeChild(bullet.el);
+                
+                // Aggiorna il punteggio basandosi sul tipo di invasore
+                let points;
+                switch(invader.type) {
+                    case '👾': points = 30; break;
+                    case '👽': points = 20; break;
+                    case '👻': points = 10; break;
+                    default: points = 10;
+                }
+                
+                score += points * level;
+                updateHiScore();
+                updateUI();
+                
                 invaders.splice(invaderIndex, 1);
                 bullets.splice(bulletIndex, 1);
-                score += invader.points * level;
-                updateUI();
                 explosionSound();
             }
         });
@@ -601,6 +621,7 @@ function checkCollisions() {
             ufo.active = false;
             let ufoScore = ufoScores[ufoScoreIndex];
             score += ufoScore;
+            updateHiScore();
             updateUI();
             explosionSound();
             showTemporaryMessage(`UFO colpito! +${ufoScore} punti`);
@@ -633,7 +654,7 @@ function checkCollisions() {
             alienBullets.splice(bulletIndex, 1);
             lives--;
             updateUI();
-            playerExplosionSound(); // Suono specifico per la distruzione del giocatore
+            playerExplosionSound();
             if (lives <= 0) {
                 console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
@@ -670,10 +691,6 @@ function checkCollisions() {
     if (invaders.length === 0) {
         levelComplete();
     }
-
-    score += invader.points * level;
-    updateHiScore();
-    updateUI();
 }
 
 function updatePlayerPosition() {
@@ -788,6 +805,8 @@ function gameOver() {
         console.error("Errore durante la riproduzione del suono di game over:", error);
     }
     
+    updateHiScore(); // Aggiorna l'Hi-Score prima di controllare
+
     if (checkHighScore(score)) {
         promptForName(score);
     } else {
