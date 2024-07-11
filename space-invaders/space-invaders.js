@@ -110,9 +110,9 @@ function playAlienMoveSound() {
         alienSoundFrequencies[currentTone], 
         audioContext.currentTime
     );
-    
-    alienMoveSound.gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + soundDuration);
+    // 0.2, 0.01 sono i valori di inizio e fine del volume, valori di prima
+    alienMoveSound.gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.05, audioContext.currentTime + soundDuration);
     
     currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
 }
