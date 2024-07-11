@@ -35,12 +35,16 @@ let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
 const alienTypes = ['👾', '👽', '👻'];
 const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
 
+let resizeTimeout;
+
 let gameState = 'intro';
 let highScores = [
     { name: 'AAA', score: 0 },
     { name: 'BBB', score: 0 },
     { name: 'CCC', score: 0 }
 ];
+
+let hiScore = 0;
 
 // Configurazione dell'audio
 let audioContext = null;
@@ -156,8 +160,9 @@ function showTemporaryMessage(message, duration = 2000) {
 //*************************** */
 function showIntroScreen() {
     gameArea.innerHTML = `
-        <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
+            <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
             <h1>SPACE INVADERS</h1>
+            <div id="hiScore">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
             <div>*SCORE ADVANCE TABLE*</div>
             <div>🛸 = ? MYSTERY</div>
             <div>👾 = 30 POINTS</div>
@@ -342,11 +347,6 @@ function shoot() {
 function initGame() {
     console.log("Inizializzazione del gioco");
     
-    // Se siamo nella schermata di intro, mostriamo solo quella
-    //if (gameState === 'intro') {
-    //    showIntroScreen();
-    //    return;
-    //}
     
     // Rimuovi tutti gli elementi di gioco esistenti
     gameArea.innerHTML = '';
@@ -384,6 +384,10 @@ function initGame() {
     createTouchControls();
     handleResize();
     resetShotsFired();
+
+    const hiScoreElement = document.createElement('div');
+    hiScoreElement.id = 'hiScore';
+    gameArea.appendChild(hiScoreElement);
 
     // Aggiornamento UI
     updateUI();
@@ -436,13 +440,22 @@ function createBarriers() {
 }
 
 function updateUI() {
-    console.log(`Aggiornamento UI: Score ${score}, Lives ${lives}, Level ${level}`);
-    scoreElement.textContent = `Punteggio: ${score}`;
-    livesElement.textContent = `Vite: ${lives}`;
-    levelElement.textContent = `Livello: ${level}`;
+    console.log(`Aggiornamento UI: Score ${score}, Hi-Score ${hiScore}, Lives ${lives}, Level ${level}`);
+    scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    livesElement.textContent = `LIVES ${lives}`;
+    levelElement.textContent = `LEVEL ${level}`;
 }
 
-let resizeTimeout;
+// Aggiungi questa funzione
+function updateHiScore() {
+    if (score > hiScore) {
+        hiScore = score;
+        updateUI();
+    }
+}
+
+
 
 function handleResize() {
     clearTimeout(resizeTimeout);
@@ -657,6 +670,10 @@ function checkCollisions() {
     if (invaders.length === 0) {
         levelComplete();
     }
+
+    score += invader.points * level;
+    updateHiScore();
+    updateUI();
 }
 
 function updatePlayerPosition() {
