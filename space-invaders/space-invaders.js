@@ -1,58 +1,67 @@
-// Inizializzazione variabili
-
+// Elementi UI
 let scoreElement;
 let livesElement;
 let levelElement;
 let hiScoreElement;
-
 const gameArea = document.getElementById('gameArea');
 const gameOverElement = document.getElementById('gameOver');
 const levelCompleteElement = document.getElementById('levelComplete');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
+let temporaryMessageElement = document.getElementById('temporaryMessage');
 
-let temporaryMessageElement = document.getElementById('temporaryMessage'); // Aggiunto
+// Elementi di gioco
 let player, bullets, alienBullets, invaders, barriers, ufo;
-let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
-let lastMessageScore = 0; // Aggiunta la variabile globale lastMessageScore
 
+// Stato del gioco
+let score = 0, lives = 3, level = 1, gameActive = true;
+let gameState = 'intro';
+let hiScore = 0;
+let gameLoopId;
+
+// Configurazione del gioco
+let invaderDirection = 1, invaderSpeed = 1;
+let powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
+let baseInvaderSpeed = 1;
+let alienMoveInterval = 1000;
+let minAlienMoveInterval = 100;
+
+// Tempistiche e controlli
+let lastAlienShootTime = 0;
+let lastMoveTime = 0;
+let lastMessageScore = 0;
 let touchStartX = 0;
 let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
 
+// Punteggi e statistiche
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
 let ufoScoreIndex = 0;
 let shotsFired = 0;
-
-let baseInvaderSpeed = 1;
-let lastMoveTime = 0;
-let alienMoveSound;
-let alienSoundSequence = [0, 1, 2, 3]; // Sequenza di quattro toni leggermente diversi
-let currentSequenceIndex = 0;
-const alienSoundFrequencies = [55, 58, 62, 65]; // Frequenze in Hz per i 4 toni (molto più bassi)
-let alienMoveInterval = 1000; // Intervallo iniziale tra i movimenti degli alieni (in ms)
-let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
-
-const alienTypes = ['👾', '👽', '👻'];
-const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
-
-let resizeTimeout;
-
-let gameState = 'intro';
 let highScores = [
     { name: 'AAA', score: 0 },
     { name: 'BBB', score: 0 },
     { name: 'CCC', score: 0 }
 ];
 
-let hiScore = 0;
+// Tipi di alieni e punti
+const alienTypes = ['👾', '👽', '👻'];
+const alienPoints = [30, 20, 10];
 
-// Configurazione dell'audio
+// Audio
 let audioContext = null;
 let audioContextStarted = false;
+let alienMoveSound;
+let alienSoundSequence = [0, 1, 2, 3];
+let currentSequenceIndex = 0;
+const alienSoundFrequencies = [55, 58, 62, 65];
 
+// Gestione del ridimensionamento
+let resizeTimeout;
+
+// Inizializza il gioco
 function initAudioContext() {
     if (!audioContextStarted) {
         audioContext = new (AudioContext || window.AudioContext)();
@@ -217,7 +226,15 @@ function addHighScore(name, score) {
 // Modifica la funzione promptForName
 function promptForName(score) {
     let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
-    name = name ? name.substr(0, 3).toUpperCase() : 'AAA';
+    
+    // Usa slice invece di substr
+    name = name ? name.slice(0, 3).toUpperCase() : 'AAA';
+    
+    // Assicurati che il nome abbia sempre 3 caratteri
+    while (name.length < 3) {
+        name += 'A';
+    }
+    
     addHighScore(name, score);
     showHighScores();
 }
@@ -738,7 +755,6 @@ function updatePlayerPosition() {
 }
 
 
-let gameLoopId;
 
 function gameLoop() {
     if (gameActive) {
@@ -968,7 +984,7 @@ function startNextLevel() {
 
     // Aggiornamento UI e avvio del gioco
     updateUI();
-    updateUIElements();
+    //updateUIElements();
     startGameLoop();
 
     // Assicurati che il gioco sia attivo
@@ -1020,13 +1036,13 @@ function createGameElements(touchControlsContainer) {
     }
 }
 
-function updateUIElements() {
-    console.log("Aggiornamento elementi UI");
-    updateUI();
-    scoreElement.style.display = 'block';
-    livesElement.style.display = 'block';
-    levelElement.style.display = 'block';
-}
+// function updateUIElements() {
+//     console.log("Aggiornamento elementi UI");
+//     updateUI();
+//     scoreElement.style.display = 'block';
+//     livesElement.style.display = 'block';
+//     levelElement.style.display = 'block';
+// }
 
 function startGameLoop() {
     console.log("Avvio loop di gioco");
@@ -1034,11 +1050,13 @@ function startGameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-restartButton.addEventListener('click', () => {
-    gameOverElement.style.display = 'none';
-    initGame();
-    gameLoop();
-});
+// restartButton.addEventListener('click', () => {
+//     gameOverElement.style.display = 'none';
+//     initGame();
+//     gameLoop();
+// });
+
+restartButton.addEventListener('click', restartGame);
 
 // Funzione per gestire il ridimensionamento della finestra
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
