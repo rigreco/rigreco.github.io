@@ -1,15 +1,18 @@
 // Inizializzazione variabili
+
+let scoreElement;
+let livesElement;
+let levelElement;
+let hiScoreElement;
+
 const gameArea = document.getElementById('gameArea');
-const scoreElement = document.getElementById('score');
-const livesElement = document.getElementById('lives');
-const levelElement = document.getElementById('level');
 const gameOverElement = document.getElementById('gameOver');
 const levelCompleteElement = document.getElementById('levelComplete');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
-let temporaryMessageElement = document.getElementById('temporaryMessage'); // Aggiunto
 
+let temporaryMessageElement = document.getElementById('temporaryMessage'); // Aggiunto
 let player, bullets, alienBullets, invaders, barriers, ufo;
 let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
 let lastMessageScore = 0; // Aggiunta la variabile globale lastMessageScore
@@ -45,7 +48,6 @@ let highScores = [
 ];
 
 let hiScore = 0;
-let hiScoreElement;
 
 // Configurazione dell'audio
 let audioContext = null;
