@@ -111,8 +111,8 @@ function playAlienMoveSound() {
         audioContext.currentTime
     );
     // 0.2, 0.01 sono i valori di inizio e fine del volume, valori di prima
-    alienMoveSound.gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.05, audioContext.currentTime + soundDuration);
+    alienMoveSound.gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.04, audioContext.currentTime + soundDuration);
     
     currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
 }
@@ -845,6 +845,10 @@ function gameOver() {
     } else {
         showGameOver(score);
     }
+
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
+    }
     
     console.log("Fine gameOver");
 }
@@ -908,6 +912,10 @@ function levelComplete() {
     // Mostra la schermata di livello completato
     showLevelComplete();
 
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
+    }
+
     console.log("Fine levelComplete");
 }
 
@@ -959,6 +967,7 @@ function startNextLevel() {
     createGameElements(touchControlsContainer);
 
     // Aggiornamento UI e avvio del gioco
+    updateUI();
     updateUIElements();
     startGameLoop();
 
