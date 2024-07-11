@@ -395,7 +395,7 @@ function initGame() {
     handleResize();
     resetShotsFired();
 
-    const hiScoreElement = document.createElement('div');
+    hiScoreElement = document.createElement('div');
     hiScoreElement.id = 'hiScore';
     gameArea.appendChild(hiScoreElement);
 
