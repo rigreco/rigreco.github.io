@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matematica - Didattica & Progetti</title>
+    <title>Grafico di una Funzione - Didattica & Progetti</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -23,25 +23,16 @@
     </header>
 
     <main>
-        <h2>Matematica</h2>
-        <div class="math-resources">
-            <div class="resource-card">
-                <h3>Funzioni</h3>
-                <ul>
-                    <li><a href="Funzioni_definizioni.html">Definizioni</a></li>
-                    <li><a href="Funzioni_classificazione.html">Classificazione</a></li>
-                    <li><a href="function_plot.html">Grafico di una Funzione</a></li>
-                    <li><a href="function_derivative.html">Derivata di una Funzione</a></li>
-                </ul>
-            </div>
-            <div class="resource-card">
-                <h3>Calcolo</h3>
-                <ul>
-                    <li><a href="#">Limiti</a></li>
-                    <li><a href="#">Derivate</a></li>
-                    <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
-                </ul>
-            </div>
+        <h2>Grafico di una Funzione</h2>
+        <div class="function-plot-container">
+            <label for="function">Funzione (es. x^2 + 2*x + 1):</label>
+            <input type="text" id="function" name="function" placeholder="Inserisci la funzione">
+            <label for="xMin">X minimo:</label>
+            <input type="number" id="xMin" name="xMin" value="-10">
+            <label for="xMax">X massimo:</label>
+            <input type="number" id="xMax" name="xMax" value="10">
+            <button id="plotButton">Traccia Grafico</button>
+            <canvas id="functionPlot" width="600" height="400"></canvas>
         </div>
     </main>
 
@@ -52,5 +43,6 @@
     <script>
         lucide.createIcons();
     </script>
+    <script src="function_plot.js"></script>
 </body>
 </html>
