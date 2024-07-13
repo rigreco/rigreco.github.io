@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Diagrammi di Bode - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .bode-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="matematica.html"><i class="fas fa-square-root-alt"></i> Matematica</a></li>
+                <li><a href="progetti.html"><i class="fas fa-project-diagram"></i> Progetti</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Generatore Diagrammi di Bode</h2>
+        <div class="bode-container">
+            <label for="num">Numeratore (es. 1,1 per s+1):</label>
+            <input type="text" id="num" name="num" placeholder="Inserisci i coefficienti del numeratore separati da virgola"><br>
+            <label for="den">Denominatore (es. 1,2,0 per s^2+2s):</label>  
+            <input type="text" id="den" name="den" placeholder="Inserisci i coefficienti del denominatore separati da virgola"><br>
+            <button onclick="calculateBode()">Calcola</button>
+            
+            <div>
+                <h3>Diagramma di Bode - Magnitudine</h3>
+                <canvas id="magPlot" width="600" height="400"></canvas>
+            </div>
+            <div>
+                <h3>Diagramma di Bode - Fase</h3>
+                <canvas id="phasePlot" width="600" height="400"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        © 2024 Didattica & Progetti - rigreco.github.io
+    </footer>
+
+    <script src="bode_plot.js"></script>
+</body>
+</html>
