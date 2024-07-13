@@ -8,36 +8,55 @@ function plotFunction() {
     // Pulisci il canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Disegna gli assi
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height / 2);
-    ctx.lineTo(canvas.width, canvas.height / 2);
-    ctx.moveTo(canvas.width / 2, 0);
-    ctx.lineTo(canvas.width / 2, canvas.height);
-    ctx.strokeStyle = '#000';
-    ctx.stroke();
+    // Funzione per mappare i valori x e y alle coordinate del canvas
+    const mapX = x => (x - xMin) / (xMax - xMin) * canvas.width;
+    const mapY = y => canvas.height - (y - yMin) / (yMax - yMin) * canvas.height;
     
     // Funzione per valutare l'espressione
     function evaluateFunction(x) {
-        return eval(functionString.replace(/x/g, `(${x})`));
+        return Function('x', `return ${functionString}`)(x);
     }
+    
+    // Trova yMin e yMax
+    let yMin = Infinity, yMax = -Infinity;
+    for (let x = xMin; x <= xMax; x += (xMax - xMin) / 1000) {
+        try {
+            const y = evaluateFunction(x);
+            yMin = Math.min(yMin, y);
+            yMax = Math.max(yMax, y);
+        } catch (e) {
+            console.error('Errore nella valutazione della funzione:', e);
+        }
+    }
+    
+    // Aggiungi un po' di margine a yMin e yMax
+    const yMargin = (yMax - yMin) * 0.1;
+    yMin -= yMargin;
+    yMax += yMargin;
+    
+    // Disegna gli assi
+    ctx.beginPath();
+    ctx.moveTo(mapX(xMin), mapY(0));
+    ctx.lineTo(mapX(xMax), mapY(0));
+    ctx.moveTo(mapX(0), mapY(yMin));
+    ctx.lineTo(mapX(0), mapY(yMax));
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
     
     // Traccia la funzione
     ctx.beginPath();
-    for (let px = 0; px < canvas.width; px++) {
-        const x = xMin + (xMax - xMin) * px / canvas.width;
-        let y;
+    for (let x = xMin; x <= xMax; x += (xMax - xMin) / 1000) {
         try {
-            y = evaluateFunction(x);
+            const y = evaluateFunction(x);
+            const px = mapX(x);
+            const py = mapY(y);
+            if (x === xMin) {
+                ctx.moveTo(px, py);
+            } else {
+                ctx.lineTo(px, py);
+            }
         } catch (e) {
             console.error('Errore nella valutazione della funzione:', e);
-            continue;
-        }
-        const py = canvas.height - (y - xMin) / (xMax - xMin) * canvas.height;
-        if (px === 0) {
-            ctx.moveTo(px, py);
-        } else {
-            ctx.lineTo(px, py);
         }
     }
     ctx.strokeStyle = '#f00';
