@@ -171,6 +171,8 @@ function showTemporaryMessage(message, duration = 2000) {
 
 //*************************** */
 function showIntroScreen() {
+    console.log("Showing intro screen");
+    gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
     gameArea.innerHTML = `
         <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
             <h1>COSMIC INVADERS</h1>
@@ -185,7 +187,7 @@ function showIntroScreen() {
         </div>
     `;
     document.getElementById('startButton').addEventListener('click', startGameFromIntro);
-    document.getElementById('highScoresButton').addEventListener('click', () => changeGameState('highScores'));
+    document.getElementById('highScoresButton').addEventListener('click', showHighScores);
 }
 
 
@@ -197,11 +199,14 @@ function showIntroScreen() {
 //}
 
 function startGameFromIntro() {
+    console.log("Starting game from intro");
     initGame();
     changeGameState('playing');
 }
 
 function showHighScores() {
+    console.log("Showing high scores");
+    gameState = 'highScores';
     gameArea.innerHTML = `
         <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px;">
             <h2>HIGH SCORES</h2>
@@ -235,10 +240,8 @@ function addHighScore(name, score) {
 function promptForName(score) {
     let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
     
-    // Usa slice invece di substr
     name = name ? name.slice(0, 3).toUpperCase() : 'AAA';
     
-    // Assicurati che il nome abbia sempre 3 caratteri
     while (name.length < 3) {
         name += 'A';
     }
@@ -348,7 +351,8 @@ function createTouchControls() {
 /// ***------********* */
 // Menu di gioco
 function changeGameState(newState) {
-    if (gameState === newState) return; // Evita di cambiare allo stesso stato
+    console.log(`Changing game state from ${gameState} to ${newState}`);
+    if (gameState === newState) return;
     gameState = newState;
     switch (newState) {
         case 'intro':
@@ -889,63 +893,60 @@ function gameOver() {
         console.error("Errore durante la riproduzione del suono di game over:", error);
     }
     
-    updateHiScore(); // Aggiorna l'Hi-Score prima di controllare
-
-    if (checkHighScore(score)) {
-        promptForName(score);
-    } else {
-        showGameOver(score);
-    }
+    updateHiScore();
 
     if (alienMoveSound && alienMoveSound.oscillator) {
         alienMoveSound.oscillator.stop();
     }
     
     console.log("Fine gameOver");
-    changeGameState('gameOver');
+    showGameOver(score);  // Chiamiamo direttamente showGameOver
 }
 
 
 function restartGame() {
     console.log("Riavvio del gioco");
-    // Nascondi la schermata di Game Over
-    const gameOverElement = document.getElementById('gameOver');
-    if (gameOverElement) {
-        gameOverElement.style.display = 'none';
-    }
-    // Reinizializza il gioco
     initGame();
-    gameActive = true;
-    gameLoop();
+    changeGameState('playing');
 }
 
 function showGameOver(finalScore) {
     console.log("Mostra schermata Game Over");
-    
     let gameOverElement = document.getElementById('gameOver');
-    let finalScoreElement = document.getElementById('finalScore');
-    
     if (!gameOverElement) {
-        console.log("Creazione elemento gameOver");
         gameOverElement = document.createElement('div');
         gameOverElement.id = 'gameOver';
-        gameOverElement.innerHTML = `
-            Game Over!<br>
-            Punteggio Finale: <span id="finalScore"></span><br>
-            <button id="restartButton">Rigioca</button>
-        `;
-        document.body.appendChild(gameOverElement);
-        finalScoreElement = document.getElementById('finalScore');
+        gameOverElement.style.position = 'absolute';
+        gameOverElement.style.top = '50%';
+        gameOverElement.style.left = '50%';
+        gameOverElement.style.transform = 'translate(-50%, -50%)';
+        gameOverElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        gameOverElement.style.padding = '20px';
+        gameOverElement.style.borderRadius = '10px';
+        gameOverElement.style.textAlign = 'center';
+        gameOverElement.style.color = 'white';
+        gameArea.appendChild(gameOverElement);
     }
+    gameOverElement.innerHTML = `
+        <h2>Game Over!</h2>
+        <p>Punteggio Finale: ${finalScore}</p>
+        <button id="continueButton">Continua</button>
+    `;
+    gameOverElement.style.display = 'block';
     
-    if (gameOverElement && finalScoreElement) {
-        finalScoreElement.textContent = finalScore;
-        gameOverElement.style.display = 'block';
-        console.log("Schermata Game Over visualizzata");
-    } else {
-        console.error("Impossibile mostrare la schermata Game Over");
+    const continueButton = document.getElementById('continueButton');
+    if (continueButton) {
+        continueButton.removeEventListener('click', onContinueClick);
+        continueButton.addEventListener('click', onContinueClick);
     }
+
+    function onContinueClick() {
+        promptForName(finalScore);
+    }
+
+    console.log("Schermata Game Over visualizzata");
 }
+
 
 function levelComplete() {
     console.log(`Inizio levelComplete, livello attuale: ${level}`);
@@ -1105,6 +1106,7 @@ window.addEventListener('orientationchange', () => setTimeout(handleResize, 100)
 //showIntroScreen();
 
 window.addEventListener('load', () => {
+    console.log("Window loaded");
     handleResize();
-    changeGameState('intro');
+    showIntroScreen(); // Chiamiamo direttamente showIntroScreen invece di changeGameState
 });
