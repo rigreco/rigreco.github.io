@@ -1,39 +1,140 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Progetti</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progetti - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <header>
-    <h1>Didattica & Progetti</h1>
-    <nav>
-      <ul>
+    <header>
+      <h1>Didattica & Progetti</h1>
+      <nav>
+        <ul>
           <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
           <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
           <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
-          <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
-          <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
-          <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
-      </ul>
-  </nav>
-  </header>
-  <main>
-    <h2>Progetti GitHub</h2>
-    <div class="project-card">
-      <h3>UniDisk</h3>
-      <p>UNIDISK 3.5 Apple II co-processor</p>
-      <a href="https://github.com/rigreco/UniDisk" target="_blank" rel="noopener noreferrer">Vai al progetto</a>
-    </div>
-  </main>
-  <footer>
-    <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
-  </footer>
-  <script>
-    lucide.createIcons();
-  </script>
+          <li class="dropdown">
+            <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+            <div class="dropdown-content">
+              <a href="space-invaders/index.html">Cosmic Invaders</a>
+            </div>
+          </li>
+          <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+        <h1>Progetti e Realizzazioni Professionali</h1>
+
+        <section id="coding-projects">
+            <h2>Progetti di Coding</h2>
+            
+            <article>
+              <h3>UniDisk Project</h3>
+              <p>Il progetto UniDisk mira a sfruttare le potenzialità dell'unità UniDisk 3.5 come co-processore per l'Apple II. L'unità, dotata di un microprocessore 65c02 a 2.0 MHz, 2KB di RAM, 8KB di ROM e 527 byte di registri periferici I/O, offre capacità che vanno oltre il semplice storage.</p>
+          
+              <p>Il primo passo cruciale di questo progetto è stato il dump della memoria dell'UniDisk, che ha gettato le basi per i successivi sviluppi.</p>
+          
+              <div class="image-container">
+                  <img src="images/unidisk-content.png" alt="Contenuto del disco UniDisk" class="project-image">
+                  <p class="image-caption">Contenuto dell'immagine disco (MDump.po) per Apple II</p>
+              </div>
+          
+              <p>I file chiave per questa fase iniziale sono:</p>
+              <ul>
+                  <li><strong>UNIPROX</strong>: Programma assemblato per il dump della ROM dell'UniDisk.</li>
+                  <li><strong>UNIPROZ</strong>: Programma assemblato per il dump della parte utilizzata della pagina zero della RAM dell'UniDisk.</li>
+                  <li><strong>STARTUP</strong>: Script di avvio per l'esecuzione automatica del processo di dump:</li>
+              </ul>
+          
+              <div class="code-container">
+                <pre><code>10 HOME 
+20 PRINT CHR$(4);"BLOAD UNIPROX"
+30 CALL 32768
+40 PRINT CHR$(4);"BSAVE UNIROM,A$2000,L$1FFF"</code></pre>
+              </div>
+          
+              <p>I file sorgente UNIPROX.s e UNIPROZ.s, scritti in assembly 65C02 e compilati con Merlin Assembler, eseguono il dump della memoria e altre operazioni fondamentali.</p>
+          
+              <div class="image-container">
+                  <img src="images/unidisk-rom-dump.png" alt="Dump della memoria ROM e RAM UniDisk" class="project-image">
+                  <p class="image-caption">Risultato del dump della memoria ROM e della pagina zero dell'UniDisk nell'immagine disco (Rom.po) per Apple II.</p>
+              </div>
+          
+              <p>Il risultato del dump della memoria:</p>
+              <ul>
+                  <li><strong>ROMX</strong>: Dump completo della ROM dell'UniDisk (da $E000 a $FFFF).</li>
+                  <li><strong>ROMZ</strong>: Dump della parte utilizzata della pagina zero (da $0000 a $00C0).</li>
+              </ul>
+          
+              <a href="https://github.com/rigreco/Unidisk" class="project-link">Vai al repository GitHub del progetto UniDisk</a>
+            </article>
+
+            <article>
+                <h3>Runge-Kutta Simulation Next</h3>
+                <p>Suite di simulazione Runge-Kutta di ordine 4(5) per x86 e x64 in C++. Questo progetto implementa il metodo numerico Runge-Kutta per risolvere equazioni differenziali ordinarie, ottimizzato per architetture x86 e x64.</p>
+                <img src="images/rk-simulation-next.png" alt="Runge-Kutta Simulation Next" class="project-image">
+                <p>L'immagine mostra un grafico generato dal software, visualizzando diverse variabili nel tempo, tra cui posizione (Pos), corrente statorica (Iss), e corrente rotorica (Irs). Il grafico illustra la capacità del software di simulare e visualizzare sistemi dinamici complessi.</p>
+                <a href="https://github.com/rigreco/Runge-Kutta-Simulation-Next" class="project-link">Vai al repository GitHub di Runge-Kutta Simulation Next</a>
+            </article>
+
+            <article>
+                <h3>Runge-Kutta Simulation per Apple II</h3>
+                <p>Suite di simulazione Runge-Kutta di ordine 4(5) per Apple II in Aztec C. Questa versione è specificamente progettata per funzionare su computer Apple II, dimostrando l'adattabilità dell'algoritmo a piattaforme hardware più limitate.</p>
+                <img src="images/rk-simulation-apple2.png" alt="Runge-Kutta Simulation per Apple II" class="project-image">
+                <p>L'immagine mostra l'interfaccia utente del software su un Apple II. Il menu principale offre opzioni per lavorare su diversi modelli, tra cui circuiti elettrici RC, motori elettrici DC e AC, e persino un'opzione per equazioni differenziali personalizzate. Inoltre, il software permette operazioni avanzate come l'output su file formattato e il salvataggio dei grafici.</p>
+                <a href="https://github.com/rigreco/Runge-Kutta-Simulation" class="project-link">Vai al repository GitHub di Runge-Kutta Simulation per Apple II</a>
+            </article>
+
+            <article>
+                <h3>ASYNCHRONOUS MOTOR APP</h3>
+                <h4>Console Application</h4>
+                <img src="images/Console.PNG" alt="Console Application 1" class="project-image">
+                <img src="images/Console2.PNG" alt="Console Application 2" class="project-image">
+                
+                <h4>Universal Windows Platform Application</h4>
+                <img src="images/UWA0.png" alt="UWP Application 1" class="project-image">
+                <img src="images/UWA1.PNG" alt="UWP Application 2" class="project-image">
+            </article>
+
+            <article>
+              <h3>LINEAR SYSTEMS</h3>
+              <p>Is a UWP App for solve linear systems up to third order. It's automatically recognize the order of system.</p>
+              <img src="images/CatturaLinear2.PNG" alt="Linear Systems App" class="project-image">
+              <div class="store-button-container">
+                  <a href="https://www.microsoft.com/store/apps/9nblggh691dm" class="store-button">
+                      <img src="images/Italian_get it from MS_864X312.svg" alt="Scaricalo da Microsoft" class="ms-store-badge">
+                  </a>
+              </div>
+            </article>
+
+            <article>
+                <h3>REGISTRO DIGITALE</h3>
+                <p>È una UWP App che funziona da collegamento al servizio Web del Registro Digitale.</p>
+                <img src="images/RD.PNG" alt="Registro Digitale App" class="project-image">
+            </article>
+        </section>
+
+        <section id="professional-projects">
+            <h2>Realizzazioni Professionali</h2>
+            
+            <article>
+                <h3>Sistema di regolazione di livello del serbatoio di carico, acquedotto pubblico</h3>
+                <img src="images/ValvolaATHENA.png" alt="Valvola ATHENA" class="project-image">
+                <img src="images/ValvolaVSM.png" alt="Valvola VSM" class="project-image">
+                <img src="images/Pressione.png" alt="Grafico Pressione" class="project-image">
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2024 Didattica & Progetti - rigreco.github.io</p>
+    </footer>
+    <script>
+      lucide.createIcons();
+    </script>
 </body>
 </html>

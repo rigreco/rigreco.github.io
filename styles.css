@@ -156,3 +156,193 @@ nav ul li a i {
 nav a[href="apple2.html"] {
   font-family: "PRNumber3", sans-serif;
 }
+
+#coding-projects, #professional-projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+article {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+article:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+}
+
+.project-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.image-container {
+  margin-bottom: 2rem;
+}
+
+.image-caption {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.project-link, .store-button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.project-link:hover, .store-button:hover {
+  background-color: #1976d2;
+}
+
+/* Stili per i progetti educativi nella pagina matematica */
+#educational-projects article {
+  margin-bottom: 2rem;
+}
+
+#educational-projects h3 {
+  color: #2196f3;
+  border-bottom: 1px solid #2196f3;
+  padding-bottom: 0.5rem;
+}
+
+.iframe-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.iframe-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .iframe-container {
+      padding-top: 75%; /* Adjust aspect ratio for smaller screens */
+  }
+}
+
+/* Stili per le risorse matematiche */
+.math-resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.resource-card {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.resource-card h2 {
+  color: #2196f3;
+  margin-top: 0;
+}
+
+.resource-card ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.resource-card ul li {
+  margin-bottom: 0.5rem;
+}
+
+.resource-card ul li a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.resource-card ul li a:hover {
+  color: #2196f3;
+}
+
+/* Contenitore per il blocco di codice */
+.code-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+/* Stile per i blocchi di codice */
+pre code {
+  display: inline-block;
+  min-width: 100%;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+  white-space: pre;
+}
+
+/* Media query per schermi più piccoli */
+@media (max-width: 600px) {
+  pre code {
+      font-size: 0.8em;
+  }
+}
+
+/* Contenitore per il pulsante dello store */
+.store-button-container {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Stile per il pulsante dello store */
+.store-button {
+  display: inline-block;
+  max-width: 200px; /* o la larghezza che preferisci*/ 
+  width: 100%;
+}
+
+/* Stile per l'immagine del badge */
+.ms-store-badge {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Assicurati che questo stile sia coerente con gli altri link del progetto */
+.project-link, .store-button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #2196f3;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  max-width: 200px; /* o la larghezza che preferisci */
+  width: 100%;
+}
+
+.project-link:hover, .store-button:hover {
+  background-color: #1976d2;
+}
