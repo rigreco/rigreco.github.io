@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore Diagrammi di Bode - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header>
+        <h1>Didattica & Progetti</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+                <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+                <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+                <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
+                <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
+                <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Generatore Diagrammi di Bode</h2>
+        <div class="bode-container">
+            <label for="num">Numeratore (es. 1,1 per s+1):</label>
+            <input type="text" id="num" name="num" placeholder="Inserisci i coefficienti del numeratore separati da virgola"><br>
+            <label for="den">Denominatore (es. 1,2,0 per s^2+2s):</label>  
+            <input type="text" id="den" name="den" placeholder="Inserisci i coefficienti del denominatore separati da virgola"><br>
+            <button onclick="calculateBode()">Calcola</button>
+            
+            <div>
+                <h3>Diagramma di Bode - Magnitudine</h3>
+                <canvas id="magPlot" width="600" height="400"></canvas>
+            </div>
+            <div>
+                <h3>Diagramma di Bode - Fase</h3>
+                <canvas id="phasePlot" width="600" height="400"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        © 2024 Didattica & Progetti - rigreco.github.io
+    </footer>
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="bode_plot.js"></script>
+</body>
+</html>
