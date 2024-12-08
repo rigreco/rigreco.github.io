@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header>
+        <h1>Didattica & Progetti</h1>
+        <nav>
+          <ul>
+            <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+            <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+            <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+              <div class="dropdown-content">
+                <a href="space-invaders/index.html">Cosmic Invaders</a>
+              </div>
+            </li>
+            <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+          </ul>
+    </header>
+
+    <main>
+        <article class="apple2-icon">
+            <h1>⌘ Apple II</h1>
+
+            <section>
+                <h1>Welcome to Apple II Projects page</h1>
+                <h2></h2>
+                <p class="font-prnumber3">&nbsp;&nbsp;&nbsp;&nbsp;Remembering the old days, remembering my first computers and first coding, a special place is left for my beloved Apple // c.
+                    In 1981 I received my first home computer, a Commodore VIC20.  Starting in 1985, an Apple //c accompanied me for many years, through high school until early college years, until I decided to put it in a box.
+                    With the Commodore, in Italy, there was a fervid enthusiast community, and in the early years I could live and share my experiences with many friends,
+                    I remember that we exchanged the tape cassettes with programs and games and I made my first steps in BASIC programming; I was not, however, so lucky with the Apple II, it was not very popular in Italy, and only exclusively thanks any magazines and little else.
+                    In the years of high school, I rewrote all my computer programs, adapting the standard PC-IBM to that of Apple II. After many years I decided to re-boot my dear Apple // c, and so I decided to resume my old programs and experiments,
+                    above thanks to having discovered through internet a global community that has helped me rediscover my passion for the Apple II machines.
+                </p>
+            </section>
+
+            <section>
+                <h1>Unidisk Project</h1>
+                <h2></h2>
+                <p class="font-prnumber3">&nbsp;&nbsp;&nbsp;&nbsp;The project is based on the knowing of internal structure of Unidisk 3.5 drive, it use same HW of Apple II machines.
+                    It's a smart device built by controlled drive board powered by 65c02 mp @2.0 Hz with 2KB RAM and 8KB ROM plus 527 byte of I/O peripheral registers, all addressing by memory mapped method.
+                    The UniDisk 3.5 drives can use directly by Apple //c with 3.5 ROM (ROM version 0) or by Apple IIe or an II Plus using special interface controller card aka "LIRON card".
+                    The Protocol Converter is a set of assembly-lenguage routines built in 3.5 ROM or in Liron controller used to support smart external I/O devices (aka SmartPort), like UniDisk 3.5.
+                    The target of project is allow to use UniDisk 3.5 drive resource to process data in-line or off-line the Apple II like a "co-processor". The project evolved steps by steps:</p>
+            </section>
+                    <p class="font-prnumber3">
+                    1) Simply command and read information of UniDisk (DIB Device Information Block) using Protocol Converter STATUS Call;
+                    <br>
+                    2) Using Protocol Converter CONTROL Call to simply Eject disk;
+                    <br>
+                    3) Using Protocol Converter CONTROL Call (Set Dowload, Download, Run) to Download and Run a special 65c02 subroutine, and using STATUS Call to read the informations. This complex sistem allow to Dumping all UnidisK memory;
+                    <br>
+                    4) Use the seme mechanism of step (3) to download a simply routine to making integer operation at one or two Byte and read the relative results;
+                    <br>
+                    5) Due to UniDisk, less the I/O Disk routine in its ROM, is a bare metal, i decide to implement the Floating Point routine by using WOZ original routine, but I was need to write the converter program from WOZ routine to Applesoft routine. This allow me to execute FP operations;
+                    <br>
+                    6) Use the UniDisk FP operations to execute Graphics calculations, ... work in progress.
+                    </p>
+            <p class="font-prnumber3">
+                <a href="https://github.com/rigreco/Unidisk">https://github.com/rigreco/Unidisk</a>
+            </p>
+            <!--
+            <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+                <input type="hidden" name="cmd" value="_s-xclick">
+                <input type="hidden" name="hosted_button_id" value="ZV9KK2C4S2KEG">
+                <p class="font-prnumber3">
+                    If you want to contribute to this project, please consider a little donating, this is an AppleII disk image contain all UniDisk ROM memory plus Firmware of zero page:<br>
+                    <input type="submit" id="donate" value="⌥ UniDisk Memory Dump Disk" name="submit"><br><br>
+                Thank you very much!</p>
+            </form>
+            -->
+        </article>
+    </main>
+    <footer>
+        <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+    </footer>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

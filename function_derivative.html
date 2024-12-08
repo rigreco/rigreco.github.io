@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Derivata di una Funzione - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header>
+        <h1>Didattica & Progetti</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+                <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+                <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+                <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
+                <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
+                <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Derivata di una Funzione</h2>
+        <div class="function-derivative-container">
+            <label for="function">Funzione (es. x^2 + 2*x + 1):</label>
+            <input type="text" id="function" name="function" placeholder="Inserisci la funzione">
+            <button id="deriveButton">Calcola Derivata</button>
+            <div id="derivativeResult"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="function_derivative.js"></script>
+</body>
+</html>

@@ -1,44 +1,67 @@
-// Inizializzazione variabili
+// Elementi UI
+let scoreElement;
+let livesElement;
+let levelElement;
+let hiScoreElement;
 const gameArea = document.getElementById('gameArea');
-const scoreElement = document.getElementById('score');
-const livesElement = document.getElementById('lives');
-const levelElement = document.getElementById('level');
 const gameOverElement = document.getElementById('gameOver');
 const levelCompleteElement = document.getElementById('levelComplete');
 const finalScoreElement = document.getElementById('finalScore');
 const restartButton = document.getElementById('restartButton');
 const nextLevelButton = document.getElementById('nextLevelButton');
-let temporaryMessageElement = document.getElementById('temporaryMessage'); // Aggiunto
+let temporaryMessageElement = document.getElementById('temporaryMessage');
 
+// Elementi di gioco
 let player, bullets, alienBullets, invaders, barriers, ufo;
-let score = 0, lives = 3, level = 1, invaderDirection = 1, invaderSpeed = 1, lastAlienShootTime = 0, gameActive = true, powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
-let lastMessageScore = 0; // Aggiunta la variabile globale lastMessageScore
 
+// Stato del gioco
+let score = 0, lives = 3, level = 1, gameActive = true;
+let gameState = 'intro';
+let hiScore = 0;
+let gameLoopId;
+
+// Configurazione del gioco
+let invaderDirection = 1, invaderSpeed = 1;
+let powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
+let baseInvaderSpeed = 1;
+let alienMoveInterval = 1000;
+let minAlienMoveInterval = 100;
+
+// Tempistiche e controlli
+let lastAlienShootTime = 0;
+let lastMoveTime = 0;
+let lastMessageScore = 0;
 let touchStartX = 0;
 let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
 
+// Punteggi e statistiche
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
 let ufoScoreIndex = 0;
 let shotsFired = 0;
+let highScores = [
+    { name: 'AAA', score: 0 },
+    { name: 'BBB', score: 0 },
+    { name: 'CCC', score: 0 }
+];
 
-let baseInvaderSpeed = 1;
-let lastMoveTime = 0;
-let alienMoveSound;
-let alienSoundSequence = [0, 1, 2, 3]; // Sequenza di quattro toni leggermente diversi
-let currentSequenceIndex = 0;
-const alienSoundFrequencies = [55, 58, 62, 65]; // Frequenze in Hz per i 4 toni (molto più bassi)
-let alienMoveInterval = 1000; // Intervallo iniziale tra i movimenti degli alieni (in ms)
-let minAlienMoveInterval = 100; // Intervallo minimo tra i movimenti (in ms)
-
+// Tipi di alieni e punti
 const alienTypes = ['👾', '👽', '👻'];
-const alienPoints = [30, 20, 10];  // Punti per tipo di alieno, dall'alto verso il basso
+const alienPoints = [30, 20, 10];
 
-// Configurazione dell'audio
+// Audio
 let audioContext = null;
 let audioContextStarted = false;
+let alienMoveSound;
+let alienSoundSequence = [0, 1, 2, 3];
+let currentSequenceIndex = 0;
+const alienSoundFrequencies = [55, 58, 62, 65];
 
+// Gestione del ridimensionamento
+let resizeTimeout;
+
+// Inizializza il gioco
 function initAudioContext() {
     if (!audioContextStarted) {
         audioContext = new (AudioContext || window.AudioContext)();
@@ -96,9 +119,9 @@ function playAlienMoveSound() {
         alienSoundFrequencies[currentTone], 
         audioContext.currentTime
     );
-    
-    alienMoveSound.gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + soundDuration);
+    // 0.2, 0.01 sono i valori di inizio e fine del volume, valori di prima
+    alienMoveSound.gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.04, audioContext.currentTime + soundDuration);
     
     currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
 }
@@ -145,6 +168,91 @@ function showTemporaryMessage(message, duration = 2000) {
         }, 300);
     }, duration);
 }
+
+//*************************** */
+function showIntroScreen() {
+    console.log("Showing intro screen");
+    gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
+    gameArea.innerHTML = `
+        <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
+            <h1>COSMIC INVADERS</h1>
+            <div id="introHiScore">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
+            <div>*SCORE ADVANCE TABLE*</div>
+            <div>🛸 = ? MYSTERY</div>
+            <div>👾 = 30 POINTS</div>
+            <div>👽 = 20 POINTS</div>
+            <div>👻 = 10 POINTS</div>
+            <button id="startButton" style="margin-top: 20px;">PLAY</button>
+            <button id="highScoresButton" style="margin-top: 20px;">HIGH SCORES</button>
+        </div>
+    `;
+    document.getElementById('startButton').addEventListener('click', startGameFromIntro);
+    document.getElementById('highScoresButton').addEventListener('click', showHighScores);
+}
+
+
+
+//function startGameFromIntro() {
+//    gameState = 'playing';
+//    initGame();
+//    gameLoop();
+//}
+
+function startGameFromIntro() {
+    console.log("Starting game from intro");
+    initGame();
+    changeGameState('playing');
+}
+
+function showHighScores() {
+    console.log("Showing high scores");
+    gameState = 'highScores';
+    gameArea.innerHTML = `
+        <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px;">
+            <h2>HIGH SCORES</h2>
+            ${highScores.map((score, index) => `
+                <div>${(index + 1).toString().padStart(2, '0')}. ${score.name.padEnd(3, ' ')} ${score.score.toString().padStart(5, '0')}</div>
+            `).join('')}
+            <button id="backToIntroButton" style="margin-top: 20px;">BACK</button>
+        </div>
+    `;
+    document.getElementById('backToIntroButton').addEventListener('click', showIntroScreen);
+}
+
+function checkHighScore(score) {
+    const lowestHighScore = highScores[highScores.length - 1].score;
+    if (score > lowestHighScore) {
+        return true;
+    }
+    return false;
+}
+
+function addHighScore(name, score) {
+    // Assicuriamoci che il nome sia esattamente di 3 caratteri
+    name = name.padEnd(3, ' ').substr(0, 3).toUpperCase();
+    
+    highScores.push({ name, score });
+    highScores.sort((a, b) => b.score - a.score);
+    highScores = highScores.slice(0, 3);  // Mantieni solo i primi 3
+}
+
+// Modifica la funzione promptForName
+function promptForName(score) {
+    let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
+    
+    name = name ? name.slice(0, 3).toUpperCase() : 'AAA';
+    
+    while (name.length < 3) {
+        name += 'A';
+    }
+    
+    addHighScore(name, score);
+    showHighScores();
+}
+
+//********************************** */
+
+
 
 function createElement(x, y, content, className = 'sprite') {
     const el = document.createElement('div');
@@ -240,6 +348,33 @@ function createTouchControls() {
     }
 }
 
+/// ***------********* */
+// Menu di gioco
+function changeGameState(newState) {
+    console.log(`Changing game state from ${gameState} to ${newState}`);
+    if (gameState === newState) return;
+    gameState = newState;
+    switch (newState) {
+        case 'intro':
+            showIntroScreen();
+            break;
+        case 'playing':
+            startGame();
+            break;
+        case 'gameOver':
+            showGameOver(score);
+            break;
+        case 'levelComplete':
+            showLevelComplete();
+            break;
+    }
+}
+
+
+
+
+
+
 // Funzioni di movimento e sparo
 function movePlayerLeft() {
     if (player.x > 10) {
@@ -268,27 +403,44 @@ function shoot() {
     }
 }
 
+
+function initUI() {
+    const uiContainer = document.getElementById('uiContainer');
+    uiContainer.innerHTML = ''; // Pulisce l'UI esistente
+
+    scoreElement = createUIElement('score', `SCORE ${score.toString().padStart(5, '0')}`);
+    hiScoreElement = createUIElement('hi-score', `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
+    livesElement = createUIElement('lives', `LIVES ${lives}`);
+    levelElement = createUIElement('level', `LEVEL ${level}`);
+
+    uiContainer.appendChild(scoreElement);
+    uiContainer.appendChild(hiScoreElement);
+    uiContainer.appendChild(livesElement);
+    uiContainer.appendChild(levelElement);
+}
+
+function createUIElement(id, text) {
+    const element = document.createElement('div');
+    element.id = id;
+    element.textContent = text;
+    return element;
+}
+
 function initGame() {
-    // Rimuovi tutti gli elementi di gioco esistenti
-    gameArea.innerHTML = '';
+    console.log("Inizializzazione del gioco");
     
-    // Ricrea gli elementi UI
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-    gameArea.appendChild(gameOverElement);
-    gameArea.appendChild(levelCompleteElement);
+    // Rimuovi tutti gli elementi di gioco esistenti, tranne quelli permanenti
+    while (gameArea.firstChild) {
+        if (gameArea.firstChild.id !== 'gameOver' && 
+            gameArea.firstChild.id !== 'levelComplete' && 
+            gameArea.firstChild.id !== 'temporaryMessage') {
+            gameArea.removeChild(gameArea.firstChild);
+        } else {
+            gameArea.firstChild.style.display = 'none';
+        }
+    }
 
     // Inizializzazione delle variabili di gioco
-    player = { x: 300, y: 550, el: null };
-    bullets = [];
-    bulletsFrequency = 3;
-    powerup = 0;
-    nextLifeScore = 5000;
-    alienBullets = [];
-    invaders = [];
-    barriers = [];
-    ufo = { x: -30, y: 30, el: null, active: false };
     score = 0;
     lives = 3;
     level = 1;
@@ -297,26 +449,67 @@ function initGame() {
     lastMoveTime = 0;
     lastAlienShootTime = 0;
     gameActive = true;
+    bulletsFrequency = 3;
+    powerup = 0;
+    nextLifeScore = 5000;
+
+    // Creazione degli elementi UI
+    scoreElement = createElement(10, 10, `SCORE ${score.toString().padStart(5, '0')}`);
+    hiScoreElement = createElement(200, 10, `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
+    livesElement = createElement(450, 10, `LIVES ${lives}`);
+    levelElement = createElement(300, 10, `LEVEL ${level}`);
+    
+    gameArea.appendChild(scoreElement);
+    gameArea.appendChild(hiScoreElement);
+    gameArea.appendChild(livesElement);
+    gameArea.appendChild(levelElement);
 
     // Creazione elementi di gioco
-    player.el = createElement(player.x, player.y, '🚀');
+    player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
+    bullets = [];
+    alienBullets = [];
+    invaders = [];
+    barriers = [];
+    ufo = { x: -30, y: 30, el: null, active: false };
+
     createInvaders();
     createBarriers();
     createTouchControls();
+
+    // Inizializza l'audio context se non è già stato fatto
+    if (!audioContextStarted) {
+        initAudioContext();
+    }
+
+    // Crea il suono del movimento degli alieni
+    if (audioContextStarted) {
+        alienMoveSound = createAlienMoveSound();
+    }
+
     handleResize();
     resetShotsFired();
 
-    // Aggiornamento UI
-    updateUI();
-
-    // Nascondi gli elementi di game over e level complete e i messaggi temporanei
-    gameOverElement.style.display = 'none';
-    levelCompleteElement.style.display = 'none';
-    if (temporaryMessageElement) {
-        temporaryMessageElement.style.display = 'none';
-    }
+    console.log("Inizializzazione del gioco completata");
+    changeGameState('playing');
 }
 
+// Assicurati che queste funzioni siano definite altrove nel tuo codice
+function createElement(x, y, content, className = 'sprite') {
+    const el = document.createElement('div');
+    el.className = className;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.textContent = content;
+    gameArea.appendChild(el);
+    return el;
+}
+
+function updateUI() {
+    scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    livesElement.textContent = `LIVES ${lives}`;
+    levelElement.textContent = `LEVEL ${level}`;
+}
 function createInvaders() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < 11; j++) {
@@ -345,13 +538,21 @@ function createBarriers() {
 }
 
 function updateUI() {
-    console.log(`Aggiornamento UI: Score ${score}, Lives ${lives}, Level ${level}`);
-    scoreElement.textContent = `Punteggio: ${score}`;
-    livesElement.textContent = `Vite: ${lives}`;
-    levelElement.textContent = `Livello: ${level}`;
+    if (scoreElement) scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    if (hiScoreElement) hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    if (livesElement) livesElement.textContent = `LIVES ${lives}`;
+    if (levelElement) levelElement.textContent = `LEVEL ${level}`;
 }
 
-let resizeTimeout;
+// Aggiungi questa funzione
+function updateHiScore() {
+    if (score > hiScore) {
+        hiScore = score;
+        updateUI();
+    }
+}
+
+
 
 function handleResize() {
     clearTimeout(resizeTimeout);
@@ -377,7 +578,7 @@ function handleResize() {
 }
 
 // Inizializza il gioco
-initGame();
+//initGame();
 
 function moveInvaders() {
     const currentTime = Date.now();
@@ -481,10 +682,22 @@ function checkCollisions() {
             if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
                 gameArea.removeChild(invader.el);
                 gameArea.removeChild(bullet.el);
+                
+                // Aggiorna il punteggio basandosi sul tipo di invasore
+                let points;
+                switch(invader.type) {
+                    case '👾': points = 30; break;
+                    case '👽': points = 20; break;
+                    case '👻': points = 10; break;
+                    default: points = 10;
+                }
+                
+                score += points * level;
+                updateHiScore();
+                updateUI();
+                
                 invaders.splice(invaderIndex, 1);
                 bullets.splice(bulletIndex, 1);
-                score += invader.points * level;
-                updateUI();
                 explosionSound();
             }
         });
@@ -497,6 +710,7 @@ function checkCollisions() {
             ufo.active = false;
             let ufoScore = ufoScores[ufoScoreIndex];
             score += ufoScore;
+            updateHiScore();
             updateUI();
             explosionSound();
             showTemporaryMessage(`UFO colpito! +${ufoScore} punti`);
@@ -529,7 +743,7 @@ function checkCollisions() {
             alienBullets.splice(bulletIndex, 1);
             lives--;
             updateUI();
-            playerExplosionSound(); // Suono specifico per la distruzione del giocatore
+            playerExplosionSound();
             if (lives <= 0) {
                 console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
@@ -580,7 +794,6 @@ function updatePlayerPosition() {
 }
 
 
-let gameLoopId;
 
 function gameLoop() {
     if (gameActive) {
@@ -680,57 +893,60 @@ function gameOver() {
         console.error("Errore durante la riproduzione del suono di game over:", error);
     }
     
-    showGameOver(score);
-    
-    // Aggiungi un event listener per il pulsante di riavvio
-    const restartButton = document.getElementById('restartButton');
-    if (restartButton) {
-        restartButton.addEventListener('click', restartGame);
+    updateHiScore();
+
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
     }
     
     console.log("Fine gameOver");
+    showGameOver(score);  // Chiamiamo direttamente showGameOver
 }
+
 
 function restartGame() {
     console.log("Riavvio del gioco");
-    // Nascondi la schermata di Game Over
-    const gameOverElement = document.getElementById('gameOver');
-    if (gameOverElement) {
-        gameOverElement.style.display = 'none';
-    }
-    // Reinizializza il gioco
     initGame();
-    gameActive = true;
-    gameLoop();
+    changeGameState('playing');
 }
 
 function showGameOver(finalScore) {
     console.log("Mostra schermata Game Over");
-    
     let gameOverElement = document.getElementById('gameOver');
-    let finalScoreElement = document.getElementById('finalScore');
-    
     if (!gameOverElement) {
-        console.log("Creazione elemento gameOver");
         gameOverElement = document.createElement('div');
         gameOverElement.id = 'gameOver';
-        gameOverElement.innerHTML = `
-            Game Over!<br>
-            Punteggio Finale: <span id="finalScore"></span><br>
-            <button id="restartButton">Rigioca</button>
-        `;
-        document.body.appendChild(gameOverElement);
-        finalScoreElement = document.getElementById('finalScore');
+        gameOverElement.style.position = 'absolute';
+        gameOverElement.style.top = '50%';
+        gameOverElement.style.left = '50%';
+        gameOverElement.style.transform = 'translate(-50%, -50%)';
+        gameOverElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        gameOverElement.style.padding = '20px';
+        gameOverElement.style.borderRadius = '10px';
+        gameOverElement.style.textAlign = 'center';
+        gameOverElement.style.color = 'white';
+        gameArea.appendChild(gameOverElement);
     }
+    gameOverElement.innerHTML = `
+        <h2>Game Over!</h2>
+        <p>Punteggio Finale: ${finalScore}</p>
+        <button id="continueButton">Continua</button>
+    `;
+    gameOverElement.style.display = 'block';
     
-    if (gameOverElement && finalScoreElement) {
-        finalScoreElement.textContent = finalScore;
-        gameOverElement.style.display = 'block';
-        console.log("Schermata Game Over visualizzata");
-    } else {
-        console.error("Impossibile mostrare la schermata Game Over");
+    const continueButton = document.getElementById('continueButton');
+    if (continueButton) {
+        continueButton.removeEventListener('click', onContinueClick);
+        continueButton.addEventListener('click', onContinueClick);
     }
+
+    function onContinueClick() {
+        promptForName(finalScore);
+    }
+
+    console.log("Schermata Game Over visualizzata");
 }
+
 
 function levelComplete() {
     console.log(`Inizio levelComplete, livello attuale: ${level}`);
@@ -749,7 +965,13 @@ function levelComplete() {
     // Mostra la schermata di livello completato
     showLevelComplete();
 
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
+    }
+
     console.log("Fine levelComplete");
+
+    changeGameState('levelComplete');
 }
 
 function showLevelComplete() {
@@ -800,7 +1022,8 @@ function startNextLevel() {
     createGameElements(touchControlsContainer);
 
     // Aggiornamento UI e avvio del gioco
-    updateUIElements();
+    updateUI();
+    //updateUIElements();
     startGameLoop();
 
     // Assicurati che il gioco sia attivo
@@ -852,13 +1075,13 @@ function createGameElements(touchControlsContainer) {
     }
 }
 
-function updateUIElements() {
-    console.log("Aggiornamento elementi UI");
-    updateUI();
-    scoreElement.style.display = 'block';
-    livesElement.style.display = 'block';
-    levelElement.style.display = 'block';
-}
+// function updateUIElements() {
+//     console.log("Aggiornamento elementi UI");
+//     updateUI();
+//     scoreElement.style.display = 'block';
+//     livesElement.style.display = 'block';
+//     levelElement.style.display = 'block';
+// }
 
 function startGameLoop() {
     console.log("Avvio loop di gioco");
@@ -866,15 +1089,24 @@ function startGameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-restartButton.addEventListener('click', () => {
-    gameOverElement.style.display = 'none';
-    initGame();
-    gameLoop();
-});
+// restartButton.addEventListener('click', () => {
+//     gameOverElement.style.display = 'none';
+//     initGame();
+//     gameLoop();
+// });
+
+restartButton.addEventListener('click', restartGame);
 
 // Funzione per gestire il ridimensionamento della finestra
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
 window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
 
-handleResize();
-startGame(); // Assicurati che il gioco inizi automaticamente
+//handleResize();
+////startGame(); // Assicurati che il gioco inizi automaticamente
+//showIntroScreen();
+
+window.addEventListener('load', () => {
+    console.log("Window loaded");
+    handleResize();
+    showIntroScreen(); // Chiamiamo direttamente showIntroScreen invece di changeGameState
+});
