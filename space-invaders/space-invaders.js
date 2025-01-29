@@ -157,7 +157,7 @@ function showTemporaryMessage(message, duration = 2000) {
         temporaryMessageElement.style.textShadow = '2px 2px 4px black';
         temporaryMessageElement.style.zIndex = '10000';
         temporaryMessageElement.style.pointerEvents = 'none';
-        gameArea.insertBefore(temporaryMessageElement, gameArea.firstChild);
+        document.body.appendChild(temporaryMessageElement);
     }
 
     // Reset dello stile e contenuto
