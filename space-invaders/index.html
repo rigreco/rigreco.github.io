@@ -93,23 +93,30 @@
             cursor: pointer;
         }
         #temporaryMessage {
-            background-color: red !important;
+            position: absolute !important;
+            top: 100px !important;  /* Valore fisso invece di percentuale */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            background-color: rgba(255, 0, 0, 0.9) !important;  /* Rosso più visibile */
+            color: white !important;
+            padding: 15px 30px !important;  /* Padding orizzontale aumentato */
+            border-radius: 5px !important;
+            font-size: 20px !important;  /* Font size aumentato */
+            text-align: center !important;
+            z-index: 10000 !important;  /* z-index aumentato */
+            pointer-events: none !important;
             opacity: 1 !important;
-            display: block !important;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 24px;
-            text-align: center;
-            z-index: 1000; /* Assicuriamoci che sia sopra gli altri elementi */
-            pointer-events: none; /* Permette di cliccare attraverso il messaggio */
-            width: 80%; /* Larghezza fissa per assicurarsi che sia visibile */
-            max-width: 300px; /* Larghezza massima */
+            transition: opacity 0.3s !important;
+            min-width: 200px !important;  /* Larghezza minima */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;  /* Ombra per migliore visibilità */
+            font-weight: bold !important;
+            border: 2px solid white !important;  /* Bordo bianco per contrasto */
         }
+        #gameArea {
+            position: relative !important;
+            overflow: visible !important;  /* Cambiato da hidden a visible */
+        }
+
         #touchControlsContainer {
             position: fixed;
             bottom: 0;
