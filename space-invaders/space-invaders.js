@@ -138,35 +138,47 @@ function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
-    console.log(`Showing message: ${message}`); // Debug
-    
+    console.log(`Attempting to show message: ${message}`); // Debug
+
+    // Se l'elemento non esiste, crealo
     if (!temporaryMessageElement) {
+        console.log('Creating new message element'); // Debug
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
-        temporaryMessageElement.style.position = 'absolute';
-        temporaryMessageElement.style.top = '10%';
-        temporaryMessageElement.style.left = '50%';
-        temporaryMessageElement.style.transform = 'translateX(-50%)';
-        temporaryMessageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        temporaryMessageElement.style.color = 'white';
-        temporaryMessageElement.style.padding = '10px';
-        temporaryMessageElement.style.borderRadius = '5px';
-        temporaryMessageElement.style.zIndex = '9999';
-        temporaryMessageElement.style.transition = 'opacity 0.3s';
-        gameArea.appendChild(temporaryMessageElement);
+        document.body.appendChild(temporaryMessageElement); // Appendiamo al body invece che al gameArea
     }
 
-    temporaryMessageElement.textContent = message;
+    // Reset dello stile e contenuto
     temporaryMessageElement.style.display = 'block';
     temporaryMessageElement.style.opacity = '1';
+    temporaryMessageElement.textContent = message;
 
-    clearTimeout(temporaryMessageElement.hideTimer);
+    // Log delle dimensioni e posizione
+    const rect = temporaryMessageElement.getBoundingClientRect();
+    console.log('Message element dimensions:', {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        display: getComputedStyle(temporaryMessageElement).display,
+        opacity: getComputedStyle(temporaryMessageElement).opacity,
+        zIndex: getComputedStyle(temporaryMessageElement).zIndex
+    });
+
+    // Rimuovi timer esistenti
+    if (temporaryMessageElement.hideTimer) {
+        clearTimeout(temporaryMessageElement.hideTimer);
+    }
+
+    // Imposta il nuovo timer
     temporaryMessageElement.hideTimer = setTimeout(() => {
         temporaryMessageElement.style.opacity = '0';
         setTimeout(() => {
             temporaryMessageElement.style.display = 'none';
         }, 300);
     }, duration);
+
+    return temporaryMessageElement; // Per debug
 }
 
 //*************************** */
@@ -201,7 +213,7 @@ function showIntroScreen() {
 function startGameFromIntro() {
     console.log("Starting game from intro");
     initGame();
-    changeGameState('playing');
+    startGame();
 }
 
 function showHighScores() {
@@ -828,26 +840,23 @@ function stopGame() {
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
 function checkScore() {
-    console.log(`Checking score: ${score}`); // Debug
-    // Mostra il messaggio solo se il punteggio è un multiplo di 500 e differente dall'ultimo punteggio per cui il messaggio è stato mostrato
-    if (score % 500 === 0 && score > 0 && score !== lastMessageScore) {
-        showTemporaryMessage(`Test message at ${score} points!`, 3000);
-        lastMessageScore = score; // Aggiorna il punteggio dell'ultimo messaggio mostrato
-    }
-    if (score >= 1000 * (powerup + 1)) { // Incremento ogni 1000 punti
+    console.log(`Checking score: ${score}, powerup: ${powerup}, nextLifeScore: ${nextLifeScore}`); // Debug
+    
+    if (score >= 1000 * (powerup + 1)) {
+        console.log('Power-up triggered!'); // Debug
         bulletsFrequency += 1 * level;
         powerup += 1;
         powerupSound();
-        console.log("Powerup triggered"); // Debug
-        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`, 3000);  // Mostra per 3 secondi
+        showTemporaryMessage(`Power-up! Frequenza di sparo aumentata!`, 3000);
     }
+    
     if (score >= nextLifeScore) {
+        console.log('Extra life triggered!'); // Debug
         lives += 1;
         updateUI();
         nextLifeScore += 5000;
         lifeUpSound();
-        showTemporaryMessage(`Vita extra guadagnata! Vite attuali: ${lives}`, 3000);  // Mostra per 3 secondi
-        flashLivesIndicator();  // Implementa questa funzione per far lampeggiare l'indicatore delle vite
+        showTemporaryMessage(`Vita extra guadagnata! Vite attuali: ${lives}`, 3000);
     }
 }
 
@@ -1089,13 +1098,12 @@ function startGameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// restartButton.addEventListener('click', () => {
-//     gameOverElement.style.display = 'none';
-//     initGame();
-//     gameLoop();
-// });
-
-restartButton.addEventListener('click', restartGame);
+function attachRestartButton() {
+    const restartButton = document.getElementById('restartButton');
+    if (restartButton) {
+        restartButton.addEventListener('click', restartGame);
+    }
+}
 
 // Funzione per gestire il ridimensionamento della finestra
 window.addEventListener('resize', () => requestAnimationFrame(handleResize));
