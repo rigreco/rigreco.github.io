@@ -145,15 +145,19 @@ function showTemporaryMessage(message, duration = 2000) {
         console.log('Creating new message element'); // Debug
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
-        temporaryMessageElement.style.position = 'absolute';
-        temporaryMessageElement.style.top = '100px';
+        temporaryMessageElement.style.position = 'fixed';
+        temporaryMessageElement.style.top = '150px';
         temporaryMessageElement.style.left = '50%';
         temporaryMessageElement.style.transform = 'translateX(-50%)';
-        temporaryMessageElement.style.zIndex = '1000';
-        temporaryMessageElement.style.color = 'white';
+        temporaryMessageElement.style.background = 'rgba(0,0,0,0.7)';
+        temporaryMessageElement.style.padding = '10px 20px';
+        temporaryMessageElement.style.borderRadius = '5px';
+        temporaryMessageElement.style.color = '#fff';
         temporaryMessageElement.style.fontSize = '24px';
         temporaryMessageElement.style.textShadow = '2px 2px 4px black';
-        gameArea.appendChild(temporaryMessageElement);
+        temporaryMessageElement.style.zIndex = '10000';
+        temporaryMessageElement.style.pointerEvents = 'none';
+        gameArea.insertBefore(temporaryMessageElement, gameArea.firstChild);
     }
 
     // Reset dello stile e contenuto
