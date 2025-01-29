@@ -145,7 +145,15 @@ function showTemporaryMessage(message, duration = 2000) {
         console.log('Creating new message element'); // Debug
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
-        document.body.appendChild(temporaryMessageElement); // Appendiamo al body invece che al gameArea
+        temporaryMessageElement.style.position = 'absolute';
+        temporaryMessageElement.style.top = '100px';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
+        temporaryMessageElement.style.zIndex = '1000';
+        temporaryMessageElement.style.color = 'white';
+        temporaryMessageElement.style.fontSize = '24px';
+        temporaryMessageElement.style.textShadow = '2px 2px 4px black';
+        gameArea.appendChild(temporaryMessageElement);
     }
 
     // Reset dello stile e contenuto
