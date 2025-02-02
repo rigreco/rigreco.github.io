@@ -276,3 +276,18 @@ function plotComplexPlane(zeros, poles) {
     ctx.fillText('Re', width + margin - 20, canvas.height / 2 - 5);
     ctx.fillText('Im', canvas.width / 2 + 5, margin + 15);
 }
+// Add this at the end of your bode_plot.js file
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure the function is globally accessible
+    if (typeof window.calculateBode !== 'function') {
+        window.calculateBode = function() {
+            try {
+                // Your existing implementation here
+                // Copy the entire calculateBode function from the previous code
+            } catch (error) {
+                alert("Errore: " + error.message);
+                console.error("Errore completo:", error);
+            }
+        };
+    }
+});
