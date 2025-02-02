@@ -24,6 +24,17 @@
     <main>
         <h2>Generatore Diagrammi di Bode</h2>
         <div class="bode-container">
+            <div class="function-display">
+                <h3>Funzione di Trasferimento</h3>
+                <div id="transfer-function" class="math-display">
+                    <div>H(s) = </div>
+                    <div class="fraction">
+                        <div class="numerator" id="function-num"></div>
+                        <div class="denominator" id="function-den"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="breakpoints" class="breakpoints-info">
                 <h3>Punti di Rottura</h3>
                 <div id="zeros">Zeri: </div>
@@ -35,17 +46,26 @@
             <input type="text" id="den" name="den" placeholder="Inserisci i coefficienti del denominatore separati da virgola"><br>
             <button onclick="calculateBode()">Calcola</button>
             
-            <div>
+            <div class="bode-plot">
                 <h3>Diagramma di Bode - Magnitudine</h3>
                 <canvas id="magPlot" width="600" height="400"></canvas>
+                <button id="downloadMag" class="download-btn" onclick="downloadPlot('magPlot', 'bode_magnitude.png')">
+                    <i data-lucide="download"></i> Salva
+                </button>
             </div>
-            <div>
+            <div class="bode-plot">
                 <h3>Diagramma di Bode - Fase</h3>
                 <canvas id="phasePlot" width="600" height="400"></canvas>
+                <button id="downloadPhase" class="download-btn" onclick="downloadPlot('phasePlot', 'bode_phase.png')">
+                    <i data-lucide="download"></i> Salva
+                </button>
             </div>
-            <div>
+            <div class="bode-plot">
                 <h3>Piano Complesso</h3>
                 <canvas id="complexPlane" width="400" height="400"></canvas>
+                <button id="downloadComplex" class="download-btn" onclick="downloadPlot('complexPlane', 'complex_plane.png')">
+                    <i data-lucide="download"></i> Salva
+                </button>
             </div>
         </div>
     </main>
@@ -55,7 +75,7 @@
     </footer>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.1.0/math.js"></script>
-    <script type="module" src="bode_plot.js"></script>
+    <script src="bode_plot.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
