@@ -1,33 +1,33 @@
+// Global math object from window.math (loaded by script tag)
+window.math = math;
+
 function findRoots(coefficients) {
     if (coefficients.length <= 1) return [];
     
     try {
         if (coefficients.length === 2) {
             // Equazione lineare: ax + b = 0
-            const root = -coefficients[1] / coefficients[0];
-            return [root.toFixed(2)];
+            const [a, b] = coefficients;
+            return [-b/a].map(x => x.toFixed(2));
         } else if (coefficients.length === 3) {
             // Equazione quadratica: ax² + bx + c = 0
             const [a, b, c] = coefficients;
-            const discriminant = b * b - 4 * a * c;
+            const discriminant = b*b - 4*a*c;
             
-            if (discriminant > 0) {
-                const x1 = (-b + Math.sqrt(discriminant)) / (2 * a);
-                const x2 = (-b - Math.sqrt(discriminant)) / (2 * a);
-                return [x1.toFixed(2), x2.toFixed(2)];
-            } else if (discriminant === 0) {
-                const x = -b / (2 * a);
-                return [x.toFixed(2)];
+            if (discriminant >= 0) {
+                const x1 = (-b + Math.sqrt(discriminant))/(2*a);
+                const x2 = (-b - Math.sqrt(discriminant))/(2*a);
+                return [x1, x2].map(x => x.toFixed(2));
             } else {
-                const realPart = -b / (2 * a);
-                const imagPart = Math.sqrt(Math.abs(discriminant)) / (2 * a);
+                const realPart = -b/(2*a);
+                const imagPart = Math.sqrt(Math.abs(discriminant))/(2*a);
                 return [
-                    `${realPart.toFixed(2)} +${imagPart.toFixed(2)}j`,
-                    `${realPart.toFixed(2)} -${imagPart.toFixed(2)}j`
+                    `${realPart.toFixed(2)}+${imagPart.toFixed(2)}j`,
+                    `${realPart.toFixed(2)}-${imagPart.toFixed(2)}j`
                 ];
             }
         } else {
-            return ["Grado > 2 non supportato"];
+            throw new Error("Polynomial degree > 2 not supported");
         }
     } catch (error) {
         console.error("Error calculating roots:", error);
@@ -36,33 +36,65 @@ function findRoots(coefficients) {
 }
 
 function computeBode(num, den, w) {
-    let numReal = 0;
-    let numImag = 0;
-    let denReal = 0;
-    let denImag = 0;
-    
-    for (let i = 0; i < num.length; i++) {
-        let power = num.length - 1 - i;
-        let term = num[i] * Math.pow(w, power);
-        numReal += term * Math.cos(power * Math.PI / 2);
-        numImag += term * Math.sin(power * Math.PI / 2);
+    try {
+        // Crea il numero complesso s = jw
+        const s = math.complex(0, w);
+
+        // Calcola H(s) = num(s)/den(s)
+        let numVal = math.complex(0);
+        let denVal = math.complex(0);
+
+        // Valuta il numeratore
+        for (let i = 0; i < num.length; i++) {
+            const power = num.length - 1 - i;
+            numVal = math.add(numVal, 
+                math.multiply(num[i], math.pow(s, power))
+            );
+        }
+
+        // Valuta il denominatore
+        for (let i = 0; i < den.length; i++) {
+            const power = den.length - 1 - i;
+            denVal = math.add(denVal,
+                math.multiply(den[i], math.pow(s, power))
+            );
+        }
+
+        // Calcola H(s)
+        const H = math.divide(numVal, denVal);
+
+        // Calcola magnitude e phase
+        const magnitude = math.abs(H);
+        let phase = math.arg(H);
+
+        // Normalizza la fase tra -π e π
+        if (phase > Math.PI) phase -= 2 * Math.PI;
+        else if (phase < -Math.PI) phase += 2 * Math.PI;
+
+        return { magnitude, phase };
+    } catch (error) {
+        console.error("Error computing Bode:", error);
+        return { magnitude: 0, phase: 0 };
     }
+}
+
+function formatPolynomial(coefficients) {
+    return coefficients.map((coeff, i) => {
+        const power = coefficients.length - 1 - i;
+        if (power === 0) return coeff.toString();
+        if (power === 1) return `${coeff}s`;
+        return `${coeff}s^${power}`;
+    }).join(' + ');
+}
+
+function downloadPlot(canvasId, filename) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
     
-    for (let i = 0; i < den.length; i++) {
-        let power = den.length - 1 - i;
-        let term = den[i] * Math.pow(w, power);
-        denReal += term * Math.cos(power * Math.PI / 2);
-        denImag += term * Math.sin(power * Math.PI / 2);
-    }
-    
-    let magnitude = Math.sqrt(Math.pow(numReal, 2) + Math.pow(numImag, 2)) / 
-                    Math.sqrt(Math.pow(denReal, 2) + Math.pow(denImag, 2));
-    let phase = Math.atan2(numImag, numReal) - Math.atan2(denImag, denReal);
-    
-    if (phase > Math.PI) phase -= 2 * Math.PI;
-    else if (phase < -Math.PI) phase += 2 * Math.PI;
-    
-    return { magnitude, phase };
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
 }
 
 window.calculateBode = function() {
@@ -96,7 +128,12 @@ window.calculateBode = function() {
         // Visualizza i risultati
         document.getElementById('zeros').innerHTML = 'Zeri: ' + zeros.join(', ');
         document.getElementById('poles').innerHTML = 'Poli: ' + poles.join(', ');
+        
+        // Visualizza la funzione di trasferimento
+        document.getElementById('function-num').innerHTML = formatPolynomial(num);
+        document.getElementById('function-den').innerHTML = formatPolynomial(den);
 
+        // Genera le frequenze
         let w = [];
         for (let i = -2; i <= 2; i += 0.01) {
             w.push(Math.pow(10, i));
@@ -106,8 +143,8 @@ window.calculateBode = function() {
         let magData = bode.map(b => 20 * Math.log10(b.magnitude));
         let phaseData = bode.map(b => b.phase * 180 / Math.PI);
         
-        plotBode('magPlot', w, magData, 'Magnitude (dB)', zeros, poles);
-        plotBode('phasePlot', w, phaseData, 'Phase (degrees)', zeros, poles);
+        plotBode('magPlot', w, magData, 'Magnitude (dB)');
+        plotBode('phasePlot', w, phaseData, 'Phase (degrees)');
         plotComplexPlane(zeros, poles);
     } catch (error) {
         alert("Errore: " + error.message);
@@ -276,18 +313,9 @@ function plotComplexPlane(zeros, poles) {
     ctx.fillText('Re', width + margin - 20, canvas.height / 2 - 5);
     ctx.fillText('Im', canvas.width / 2 + 5, margin + 15);
 }
-// Add this at the end of your bode_plot.js file
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Ensure the function is globally accessible
     if (typeof window.calculateBode !== 'function') {
-        window.calculateBode = function() {
-            try {
-                // Your existing implementation here
-                // Copy the entire calculateBode function from the previous code
-            } catch (error) {
-                alert("Errore: " + error.message);
-                console.error("Errore completo:", error);
-            }
-        };
+        console.error('calculateBode function not properly initialized');
     }
 });
