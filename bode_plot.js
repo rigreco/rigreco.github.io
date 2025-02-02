@@ -5,30 +5,23 @@ function findRoots(coefficients) {
     if (coefficients.length <= 1) return [];
     
     try {
-        if (coefficients.length === 2) {
-            // Equazione lineare: ax + b = 0
-            const [a, b] = coefficients;
-            return [-b/a].map(x => x.toFixed(2));
-        } else if (coefficients.length === 3) {
-            // Equazione quadratica: ax² + bx + c = 0
-            const [a, b, c] = coefficients;
-            const discriminant = b*b - 4*a*c;
-            
-            if (discriminant >= 0) {
-                const x1 = (-b + Math.sqrt(discriminant))/(2*a);
-                const x2 = (-b - Math.sqrt(discriminant))/(2*a);
-                return [x1, x2].map(x => x.toFixed(2));
-            } else {
-                const realPart = -b/(2*a);
-                const imagPart = Math.sqrt(Math.abs(discriminant))/(2*a);
-                return [
-                    `${realPart.toFixed(2)}+${imagPart.toFixed(2)}j`,
-                    `${realPart.toFixed(2)}-${imagPart.toFixed(2)}j`
-                ];
+        // Converti coefficienti in formato per math.polynomialRoot
+        const polyCoeffs = coefficients.reverse();
+        
+        // Calcola le radici usando math.polynomialRoot
+        const roots = math.polynomialRoot(...polyCoeffs);
+        
+        // Formatta le radici
+        return roots.map(root => {
+            if (math.typeOf(root) === 'Complex') {
+                const re = root.re.toFixed(2);
+                const im = Math.abs(root.im).toFixed(2);
+                const sign = root.im >= 0 ? '+' : '-';
+                return `${re}${sign}${im}j`;
             }
-        } else {
-            throw new Error("Polynomial degree > 2 not supported");
-        }
+            return root.toFixed(2);
+        });
+        
     } catch (error) {
         console.error("Error calculating roots:", error);
         return ["Error calculating roots"];
