@@ -1,3 +1,6 @@
+@import url("webfonts/PrintChar21/stylesheet40.css");
+@import url("webfonts/PRNumber3/stylesheet.css");
+
 body {
   font-family: 'Roboto', Arial, sans-serif;
   margin: 0;
@@ -131,9 +134,6 @@ nav ul li a i {
   vertical-align: middle;
   margin-right: 5px;
 }
-
-@import url("webfonts/PrintChar21/stylesheet40.css");
-@import url("webfonts/PRNumber3/stylesheet.css");
 
 .font-printchar21 {
   font-family: "PrintChar21", monospace;
