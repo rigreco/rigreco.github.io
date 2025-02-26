@@ -56,57 +56,95 @@ const alienSoundFrequencies = [55, 58, 62, 65];
 // Gestione del ridimensionamento
 let resizeTimeout;
 
-// Inizializza il gioco
+// Inizializza l'AudioContext - modificato per una migliore affidabilità
 function initAudioContext() {
-    if (!audioContextStarted) {
-        audioContext = new (AudioContext || window.AudioContext)();
-        audioContext.resume().then(() => {
-            console.log('AudioContext started successfully');
-            audioContextStarted = true;
-        });
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        audioContextStarted = true;
+        console.log('AudioContext inizializzato con stato:', audioContext.state);
+        
+        // Crea il suono degli alieni subito per assicurarsi che sia disponibile
+        if (!alienMoveSound) {
+            alienMoveSound = createAlienMoveSound();
+        }
+    } catch (e) {
+        console.error('Errore nell\'inizializzazione dell\'AudioContext:', e);
     }
 }
 
-// Aggiungi un listener per il primo gesto dell'utente
-document.addEventListener('click', initAudioContext, { once: true });
-document.addEventListener('touchstart', initAudioContext, { once: true });
+// Eventi per attivare l'audio al primo input dell'utente
+document.addEventListener('click', initAudioContext, { once: false });
+document.addEventListener('touchstart', initAudioContext, { once: false });
+document.addEventListener('keydown', initAudioContext, { once: false });
 
 function playSound(frequency, duration, type = 'sine') {
-    if (!audioContextStarted || !audioContext) return;
+    if (!audioContextStarted || !audioContext) {
+        // Tenta di inizializzare l'audio se non è ancora stato fatto
+        initAudioContext();
+        // Se ancora non funziona, usciamo
+        if (!audioContextStarted || !audioContext) return;
+    }
     
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    
-    gainNode.gain.setValueAtTime(1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + duration);
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        
+        gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+    } catch (e) {
+        console.error('Errore nella riproduzione del suono:', e);
+    }
 }
 
 // Funzione per creare il suono degli alieni
 function createAlienMoveSound() {
-    if (!audioContextStarted) return;
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(alienSoundFrequencies[0], audioContext.currentTime);
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.start();
-    return { oscillator, gainNode };
+    if (!audioContextStarted || !audioContext) return null;
+    
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(alienSoundFrequencies[0], audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.start();
+        
+        return { oscillator, gainNode };
+    } catch (e) {
+        console.error('Errore nella creazione del suono degli alieni:', e);
+        return null;
+    }
 }
 
 // Funzione per riprodurre il suono del movimento degli alieni
 function playAlienMoveSound() {
-    if (!audioContextStarted || !alienMoveSound) return;
+    if (!audioContextStarted || !audioContext || !alienMoveSound) {
+        // Tenta di reinizializzare il suono se necessario
+        if (audioContextStarted && audioContext) {
+            alienMoveSound = createAlienMoveSound();
+        }
+        
+        if (!alienMoveSound) return;
+    }
 
     const soundDuration = 0.15;
     const currentTone = alienSoundSequence[currentSequenceIndex];
@@ -124,7 +162,7 @@ function playAlienMoveSound() {
     } catch (e) {
         console.warn("Errore nella riproduzione del suono degli alieni:", e);
         // Ricrea il suono se c'è stato un errore
-        if (audioContextStarted) {
+        if (audioContextStarted && audioContext) {
             try {
                 alienMoveSound = createAlienMoveSound();
             } catch (err) {
@@ -206,20 +244,31 @@ function showIntroScreen() {
     `;
     document.getElementById('startButton').addEventListener('click', startGameFromIntro);
     document.getElementById('highScoresButton').addEventListener('click', showHighScores);
+    
+    // Inizializza l'AudioContext quando viene mostrata la schermata iniziale
+    initAudioContext();
 }
-
-
-
-//function startGameFromIntro() {
-//    gameState = 'playing';
-//    initGame();
-//    gameLoop();
-//}
 
 function startGameFromIntro() {
     console.log("Starting game from intro");
+    gameState = 'playing';
     initGame();
     startGame();
+    
+    // Assicurati che l'audio sia inizializzato correttamente
+    initAudioContext();
+    
+    // Forza la creazione del suono degli alieni
+    if (audioContextStarted && audioContext) {
+        if (alienMoveSound && alienMoveSound.oscillator) {
+            try {
+                alienMoveSound.oscillator.stop();
+            } catch (e) {
+                console.warn("Errore nel fermare l'oscillator precedente:", e);
+            }
+        }
+        alienMoveSound = createAlienMoveSound();
+    }
 }
 
 function showHighScores() {
@@ -498,16 +547,10 @@ function initGame() {
     createTouchControls();
 
     // Inizializza l'audio o ricrealo se necessario
-    if (!audioContextStarted) {
-        initAudioContext();
-    } else if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().catch(error => {
-            console.error("Errore durante la ripresa dell'audio context:", error);
-        });
-    }
+    initAudioContext();
 
     // Crea il suono degli alieni
-    if (audioContextStarted) {
+    if (audioContextStarted && audioContext) {
         // Assicurati che non ci siano suoni in riproduzione
         if (alienMoveSound && alienMoveSound.oscillator) {
             try {
@@ -659,6 +702,11 @@ function moveInvaders() {
     );
     
     if (currentTime - lastMoveTime > alienMoveInterval) {
+        // Assicurati che l'audio sia disponibile prima di riprodurlo
+        if (!alienMoveSound && audioContextStarted && audioContext) {
+            alienMoveSound = createAlienMoveSound();
+        }
+        
         playAlienMoveSound(); // Riproduci il suono ad ogni movimento
         
         let shouldChangeDirection = false;
@@ -978,6 +1026,15 @@ function startGame() {
     if (gameLoopId) {
         cancelAnimationFrame(gameLoopId);
     }
+    
+    // Assicurati che l'audio sia inizializzato
+    initAudioContext();
+    
+    // Ricrea il suono degli alieni se non esiste
+    if (!alienMoveSound && audioContextStarted && audioContext) {
+        alienMoveSound = createAlienMoveSound();
+    }
+    
     gameLoop();
 }
 
