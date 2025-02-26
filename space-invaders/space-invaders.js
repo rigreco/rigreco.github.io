@@ -144,42 +144,47 @@ function powerupSound() { playSound(1320, 1, 'sine'); }
 function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
-// Aggiungi questa funzione per mostrare messaggi temporanei
+// Funzione migliorata per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
-    if (!temporaryMessageElement) {
-        temporaryMessageElement = document.createElement('div');
-        temporaryMessageElement.id = 'temporaryMessage';
-        temporaryMessageElement.style.position = 'fixed';
-        temporaryMessageElement.style.top = '150px';
-        temporaryMessageElement.style.left = '50%';
-        temporaryMessageElement.style.transform = 'translateX(-50%)';
-        temporaryMessageElement.style.background = 'rgba(0,0,0,0.7)';
-        temporaryMessageElement.style.padding = '10px 20px';
-        temporaryMessageElement.style.borderRadius = '5px';
-        temporaryMessageElement.style.color = '#fff';
-        temporaryMessageElement.style.fontSize = '24px';
-        temporaryMessageElement.style.textShadow = '2px 2px 4px black';
-        temporaryMessageElement.style.zIndex = '10000';
-        temporaryMessageElement.style.pointerEvents = 'none';
-        document.body.appendChild(temporaryMessageElement);
+    // Se l'elemento esiste già, lo rimuoviamo per crearne uno nuovo
+    const existingMsg = document.getElementById('temporaryMessage');
+    if (existingMsg) {
+        existingMsg.remove();
     }
-
-    temporaryMessageElement.style.display = 'block';
-    temporaryMessageElement.style.opacity = '1';
-    temporaryMessageElement.textContent = message;
-
-    if (temporaryMessageElement.hideTimer) {
-        clearTimeout(temporaryMessageElement.hideTimer);
-    }
-
-    temporaryMessageElement.hideTimer = setTimeout(() => {
-        temporaryMessageElement.style.opacity = '0';
-        setTimeout(() => {
-            temporaryMessageElement.style.display = 'none';
-        }, 300);
+    
+    // Creiamo un nuovo elemento per il messaggio
+    const messageElement = document.createElement('div');
+    messageElement.id = 'temporaryMessage';
+    messageElement.className = 'message';
+    messageElement.textContent = message;
+    
+    // Aggiungiamo stile inline per garantire la visibilità
+    messageElement.style.position = 'absolute';
+    messageElement.style.top = '200px';
+    messageElement.style.left = '50%';
+    messageElement.style.transform = 'translateX(-50%)';
+    messageElement.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
+    messageElement.style.color = 'white';
+    messageElement.style.padding = '15px 30px';
+    messageElement.style.borderRadius = '5px';
+    messageElement.style.fontSize = '24px';
+    messageElement.style.textAlign = 'center';
+    messageElement.style.zIndex = '10000';
+    messageElement.style.fontWeight = 'bold';
+    messageElement.style.border = '2px solid white';
+    messageElement.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    
+    // Aggiungiamo l'elemento al gameArea
+    gameArea.appendChild(messageElement);
+    
+    // Impostiamo un timer per rimuovere il messaggio
+    setTimeout(() => {
+        if (messageElement.parentNode) {
+            messageElement.parentNode.removeChild(messageElement);
+        }
     }, duration);
-
-    return temporaryMessageElement;
+    
+    return messageElement;
 }
 
 //*************************** */
