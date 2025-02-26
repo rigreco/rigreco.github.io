@@ -4,12 +4,7 @@ let livesElement;
 let levelElement;
 let hiScoreElement;
 const gameArea = document.getElementById('gameArea');
-const gameOverElement = document.getElementById('gameOver');
-const levelCompleteElement = document.getElementById('levelComplete');
-const finalScoreElement = document.getElementById('finalScore');
-const restartButton = document.getElementById('restartButton');
-const nextLevelButton = document.getElementById('nextLevelButton');
-let temporaryMessageElement = document.getElementById('temporaryMessage');
+const temporaryMessageElement = document.getElementById('temporaryMessage');
 
 // Elementi di gioco
 let player, bullets, alienBullets, invaders, barriers, ufo;
@@ -77,7 +72,8 @@ document.addEventListener('click', initAudioContext, { once: true });
 document.addEventListener('touchstart', initAudioContext, { once: true });
 
 function playSound(frequency, duration, type = 'sine') {
-    if (!audioContextStarted) return;
+    if (!audioContextStarted || !audioContext) return;
+    
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
@@ -115,15 +111,27 @@ function playAlienMoveSound() {
     const soundDuration = 0.15;
     const currentTone = alienSoundSequence[currentSequenceIndex];
     
-    alienMoveSound.oscillator.frequency.setValueAtTime(
-        alienSoundFrequencies[currentTone], 
-        audioContext.currentTime
-    );
-    // 0.2, 0.01 sono i valori di inizio e fine del volume, valori di prima
-    alienMoveSound.gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
-    alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.04, audioContext.currentTime + soundDuration);
-    
-    currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
+    try {
+        alienMoveSound.oscillator.frequency.setValueAtTime(
+            alienSoundFrequencies[currentTone], 
+            audioContext.currentTime
+        );
+        // Volume più alto e decadimento più lungo per migliore percezione
+        alienMoveSound.gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+        alienMoveSound.gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + soundDuration);
+        
+        currentSequenceIndex = (currentSequenceIndex + 1) % alienSoundSequence.length;
+    } catch (e) {
+        console.warn("Errore nella riproduzione del suono degli alieni:", e);
+        // Ricrea il suono se c'è stato un errore
+        if (audioContextStarted) {
+            try {
+                alienMoveSound = createAlienMoveSound();
+            } catch (err) {
+                console.error("Impossibile ricreare il suono degli alieni:", err);
+            }
+        }
+    }
 }
 
 function shootSound() { playSound(880, 0.1, 'square'); }
@@ -138,11 +146,7 @@ function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
 // Aggiungi questa funzione per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
-    console.log(`Attempting to show message: ${message}`); // Debug
-
-    // Se l'elemento non esiste, crealo
     if (!temporaryMessageElement) {
-        console.log('Creating new message element'); // Debug
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
         temporaryMessageElement.style.position = 'fixed';
@@ -160,29 +164,14 @@ function showTemporaryMessage(message, duration = 2000) {
         document.body.appendChild(temporaryMessageElement);
     }
 
-    // Reset dello stile e contenuto
     temporaryMessageElement.style.display = 'block';
     temporaryMessageElement.style.opacity = '1';
     temporaryMessageElement.textContent = message;
 
-    // Log delle dimensioni e posizione
-    const rect = temporaryMessageElement.getBoundingClientRect();
-    console.log('Message element dimensions:', {
-        top: rect.top,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
-        display: getComputedStyle(temporaryMessageElement).display,
-        opacity: getComputedStyle(temporaryMessageElement).opacity,
-        zIndex: getComputedStyle(temporaryMessageElement).zIndex
-    });
-
-    // Rimuovi timer esistenti
     if (temporaryMessageElement.hideTimer) {
         clearTimeout(temporaryMessageElement.hideTimer);
     }
 
-    // Imposta il nuovo timer
     temporaryMessageElement.hideTimer = setTimeout(() => {
         temporaryMessageElement.style.opacity = '0';
         setTimeout(() => {
@@ -190,7 +179,7 @@ function showTemporaryMessage(message, duration = 2000) {
         }, 300);
     }, duration);
 
-    return temporaryMessageElement; // Per debug
+    return temporaryMessageElement;
 }
 
 //*************************** */
@@ -375,7 +364,6 @@ function createTouchControls() {
 /// ***------********* */
 // Menu di gioco
 function changeGameState(newState) {
-    console.log(`Changing game state from ${gameState} to ${newState}`);
     if (gameState === newState) return;
     gameState = newState;
     switch (newState) {
@@ -430,17 +418,21 @@ function shoot() {
 
 function initUI() {
     const uiContainer = document.getElementById('uiContainer');
-    uiContainer.innerHTML = ''; // Pulisce l'UI esistente
-
-    scoreElement = createUIElement('score', `SCORE ${score.toString().padStart(5, '0')}`);
-    hiScoreElement = createUIElement('hi-score', `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
-    livesElement = createUIElement('lives', `LIVES ${lives}`);
-    levelElement = createUIElement('level', `LEVEL ${level}`);
-
-    uiContainer.appendChild(scoreElement);
-    uiContainer.appendChild(hiScoreElement);
-    uiContainer.appendChild(livesElement);
-    uiContainer.appendChild(levelElement);
+    
+    // Trova gli elementi esistenti o creane di nuovi se non esistono
+    scoreElement = uiContainer.querySelector('#score') || createUIElement('score', `SCORE ${score.toString().padStart(5, '0')}`);
+    hiScoreElement = uiContainer.querySelector('#hi-score') || createUIElement('hi-score', `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
+    livesElement = uiContainer.querySelector('#lives') || createUIElement('lives', `LIVES ${lives}`);
+    levelElement = uiContainer.querySelector('#level') || createUIElement('level', `LEVEL ${level}`);
+    
+    // Se gli elementi sono nuovi, aggiungili al container
+    if (!scoreElement.parentNode) uiContainer.appendChild(scoreElement);
+    if (!hiScoreElement.parentNode) uiContainer.appendChild(hiScoreElement);
+    if (!livesElement.parentNode) uiContainer.appendChild(livesElement);
+    if (!levelElement.parentNode) uiContainer.appendChild(levelElement);
+    
+    // Aggiorna il contenuto degli elementi
+    updateUI();
 }
 
 function createUIElement(id, text) {
@@ -450,16 +442,17 @@ function createUIElement(id, text) {
     return element;
 }
 
+// Modifica funzione initGame per utilizzare l'uiContainer
 function initGame() {
-    console.log("Inizializzazione del gioco");
-    
-    // Rimuovi tutti gli elementi di gioco esistenti, tranne quelli permanenti
+    // Pulisci il gameArea mantenendo alcuni elementi speciali
     while (gameArea.firstChild) {
-        if (gameArea.firstChild.id !== 'gameOver' && 
+        if (gameArea.firstChild.id !== 'uiContainer' && 
+            gameArea.firstChild.id !== 'gameOver' && 
             gameArea.firstChild.id !== 'levelComplete' && 
             gameArea.firstChild.id !== 'temporaryMessage') {
             gameArea.removeChild(gameArea.firstChild);
-        } else {
+        } else if (gameArea.firstChild.id === 'gameOver' || 
+                  gameArea.firstChild.id === 'levelComplete') {
             gameArea.firstChild.style.display = 'none';
         }
     }
@@ -477,18 +470,17 @@ function initGame() {
     powerup = 0;
     nextLifeScore = 5000;
 
-    // Creazione degli elementi UI
-    scoreElement = createElement(10, 10, `SCORE ${score.toString().padStart(5, '0')}`);
-    hiScoreElement = createElement(200, 10, `HI-SCORE ${hiScore.toString().padStart(5, '0')}`);
-    livesElement = createElement(450, 10, `LIVES ${lives}`);
-    levelElement = createElement(300, 10, `LEVEL ${level}`);
+    // Assicurati che uiContainer esista, altrimenti crealo
+    let uiContainer = document.getElementById('uiContainer');
+    if (!uiContainer) {
+        uiContainer = document.createElement('div');
+        uiContainer.id = 'uiContainer';
+        gameArea.appendChild(uiContainer);
+    }
     
-    gameArea.appendChild(scoreElement);
-    gameArea.appendChild(hiScoreElement);
-    gameArea.appendChild(livesElement);
-    gameArea.appendChild(levelElement);
-
-    // Creazione elementi di gioco
+    // Aggiorna o crea gli elementi UI nel container
+    initUI();
+    
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     bullets = [];
     alienBullets = [];
@@ -500,21 +492,36 @@ function initGame() {
     createBarriers();
     createTouchControls();
 
-    // Inizializza l'audio context se non è già stato fatto
+    // Inizializza l'audio o ricrealo se necessario
     if (!audioContextStarted) {
         initAudioContext();
+    } else if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().catch(error => {
+            console.error("Errore durante la ripresa dell'audio context:", error);
+        });
     }
 
-    // Crea il suono del movimento degli alieni
+    // Crea il suono degli alieni
     if (audioContextStarted) {
-        alienMoveSound = createAlienMoveSound();
+        // Assicurati che non ci siano suoni in riproduzione
+        if (alienMoveSound && alienMoveSound.oscillator) {
+            try {
+                alienMoveSound.oscillator.stop();
+            } catch (e) {
+                console.warn("Impossibile fermare l'oscillator precedente:", e);
+            }
+        }
+        
+        try {
+            alienMoveSound = createAlienMoveSound();
+        } catch (e) {
+            console.error("Errore nella creazione del suono degli alieni:", e);
+        }
     }
 
     handleResize();
     resetShotsFired();
-
-    console.log("Inizializzazione del gioco completata");
-    changeGameState('playing');
+    gameState = 'playing';  // Imposta direttamente lo stato del gioco
 }
 
 // Assicurati che queste funzioni siano definite altrove nel tuo codice
@@ -673,25 +680,37 @@ function moveUfo() {
 }
 
 function updateBullets() {
-    bullets.forEach((bullet, index) => {
+    // Aggiornamento proiettili giocatore
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
         bullet.y -= 5;
+        
+        // Rimuovi proiettile se fuori schermo
         if (bullet.y < 0) {
-            gameArea.removeChild(bullet.el);
-            bullets.splice(index, 1);
+            if (bullet.el && bullet.el.parentNode) {
+                gameArea.removeChild(bullet.el);
+            }
+            bullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
         }
-    });
+    }
 
-    alienBullets.forEach((bullet, index) => {
+    // Aggiornamento proiettili alieni
+    for (let i = alienBullets.length - 1; i >= 0; i--) {
+        const bullet = alienBullets[i];
         bullet.y += 5 + level;
+        
+        // Rimuovi proiettile se fuori schermo
         if (bullet.y > 600) {
-            gameArea.removeChild(bullet.el);
-            alienBullets.splice(index, 1);
+            if (bullet.el && bullet.el.parentNode) {
+                gameArea.removeChild(bullet.el);
+            }
+            alienBullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
         }
-    });
+    }
 }
 
 function resetShotsFired() {
@@ -700,9 +719,13 @@ function resetShotsFired() {
 }
 
 function checkCollisions() {
-    bullets.forEach((bullet, bulletIndex) => {
+    // Fix collisioni con proiettili giocatore
+    for (let bulletIndex = bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
+        const bullet = bullets[bulletIndex];
+        
         // Collisione con gli invasori
-        invaders.forEach((invader, invaderIndex) => {
+        for (let invaderIndex = invaders.length - 1; invaderIndex >= 0; invaderIndex--) {
+            const invader = invaders[invaderIndex];
             if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
                 gameArea.removeChild(invader.el);
                 gameArea.removeChild(bullet.el);
@@ -723,13 +746,19 @@ function checkCollisions() {
                 invaders.splice(invaderIndex, 1);
                 bullets.splice(bulletIndex, 1);
                 explosionSound();
+                // Interrompi il ciclo per questo proiettile dato che è stato rimosso
+                break;
             }
-        });
+        }
+        
+        // Se il proiettile è stato rimosso, passa al prossimo
+        if (bulletIndex >= bullets.length) continue;
+        const bullet2 = bullets[bulletIndex];
 
         // Collisione con UFO
-        if (ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
+        if (ufo.active && Math.abs(bullet2.x - ufo.x) < 20 && Math.abs(bullet2.y - ufo.y) < 20) {
             gameArea.removeChild(ufo.el);
-            gameArea.removeChild(bullet.el);
+            gameArea.removeChild(bullet2.el);
             bullets.splice(bulletIndex, 1);
             ufo.active = false;
             let ufoScore = ufoScores[ufoScoreIndex];
@@ -738,29 +767,39 @@ function checkCollisions() {
             updateUI();
             explosionSound();
             showTemporaryMessage(`UFO colpito! +${ufoScore} punti`);
+            continue;
         }
 
+        // Se il proiettile è stato rimosso, passa al prossimo
+        if (bulletIndex >= bullets.length) continue;
+        const bullet3 = bullets[bulletIndex];
+
         // Collisione con barriere
-        barriers.forEach((barrier, barrierIndex) => {
+        for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
+            const barrier = barriers[barrierIndex];
             const barrierRect = barrier.getBoundingClientRect();
-            const bulletRect = bullet.el.getBoundingClientRect();
+            const bulletRect = bullet3.el.getBoundingClientRect();
             if (bulletRect.left < barrierRect.right &&
                 bulletRect.right > barrierRect.left &&
                 bulletRect.top < barrierRect.bottom &&
                 bulletRect.bottom > barrierRect.top) {
-                gameArea.removeChild(bullet.el);
+                gameArea.removeChild(bullet3.el);
                 bullets.splice(bulletIndex, 1);
                 barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
                 if (parseFloat(barrier.style.opacity) <= 0) {
                     gameArea.removeChild(barrier);
                     barriers.splice(barrierIndex, 1);
                 }
+                // Interrompi il ciclo per questo proiettile dato che è stato rimosso
+                break;
             }
-        });
-    });
+        }
+    }
 
     // Collisione proiettili alieni con giocatore e barriere
-    alienBullets.forEach((bullet, bulletIndex) => {
+    for (let bulletIndex = alienBullets.length - 1; bulletIndex >= 0; bulletIndex--) {
+        const bullet = alienBullets[bulletIndex];
+        
         // Collisione con giocatore
         if (Math.abs(bullet.x - player.x) < 20 && Math.abs(bullet.y - player.y) < 20) {
             gameArea.removeChild(bullet.el);
@@ -769,13 +808,17 @@ function checkCollisions() {
             updateUI();
             playerExplosionSound();
             if (lives <= 0) {
-                console.log("Vite esaurite, chiamata a gameOver");
                 gameOver();
             }
+            continue;
         }
 
+        // Se il proiettile è stato rimosso, passa al prossimo
+        if (bulletIndex >= alienBullets.length) continue;
+        
         // Collisione con barriere
-        barriers.forEach((barrier, barrierIndex) => {
+        for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
+            const barrier = barriers[barrierIndex];
             const barrierRect = barrier.getBoundingClientRect();
             const bulletRect = bullet.el.getBoundingClientRect();
             if (bulletRect.left < barrierRect.right &&
@@ -789,16 +832,19 @@ function checkCollisions() {
                     gameArea.removeChild(barrier);
                     barriers.splice(barrierIndex, 1);
                 }
+                break;
             }
-        });
-    });
+        }
+    }
 
     // Controllo se gli invasori hanno raggiunto il fondo
-    invaders.forEach(invader => {
+    for (let i = 0; i < invaders.length; i++) {
+        const invader = invaders[i];
         if (invader.y > 530) {
             gameOver();
+            return;
         }
-    });
+    }
 
     // Controllo se tutti gli invasori sono stati eliminati
     if (invaders.length === 0) {
@@ -830,7 +876,6 @@ function gameLoop() {
         checkScore();
     gameLoopId = requestAnimationFrame(gameLoop);
     } else {
-        console.log("Game loop terminato");
         cancelAnimationFrame(gameLoopId);
     }
 }
@@ -852,10 +897,7 @@ function stopGame() {
 
 // Funzione per incrementare la frequenza di sparo e gestire il power-up
 function checkScore() {
-    console.log(`Checking score: ${score}, powerup: ${powerup}, nextLifeScore: ${nextLifeScore}`); // Debug
-    
     if (score >= 1000 * (powerup + 1)) {
-        console.log('Power-up triggered!'); // Debug
         bulletsFrequency += 1 * level;
         powerup += 1;
         powerupSound();
@@ -863,7 +905,6 @@ function checkScore() {
     }
     
     if (score >= nextLifeScore) {
-        console.log('Extra life triggered!'); // Debug
         lives += 1;
         updateUI();
         nextLifeScore += 5000;
@@ -904,7 +945,6 @@ document.addEventListener('keyup', (e) => {
 });
 
 function gameOver() {
-    console.log("Inizio gameOver");
     gameActive = false;
     cancelAnimationFrame(gameLoopId);
     
@@ -920,19 +960,16 @@ function gameOver() {
         alienMoveSound.oscillator.stop();
     }
     
-    console.log("Fine gameOver");
-    showGameOver(score);  // Chiamiamo direttamente showGameOver
+    showGameOver(score);
 }
 
 
 function restartGame() {
-    console.log("Riavvio del gioco");
     initGame();
     changeGameState('playing');
 }
 
 function showGameOver(finalScore) {
-    console.log("Mostra schermata Game Over");
     let gameOverElement = document.getElementById('gameOver');
     if (!gameOverElement) {
         gameOverElement = document.createElement('div');
@@ -964,13 +1001,10 @@ function showGameOver(finalScore) {
     function onContinueClick() {
         promptForName(finalScore);
     }
-
-    console.log("Schermata Game Over visualizzata");
 }
 
 
 function levelComplete() {
-    console.log(`Inizio levelComplete, livello attuale: ${level}`);
     gameActive = false;
     cancelAnimationFrame(gameLoopId);
 
@@ -981,22 +1015,16 @@ function levelComplete() {
     }
 
     level++;
-    console.log(`Passaggio al livello ${level}`);
-
-    // Mostra la schermata di livello completato
     showLevelComplete();
 
     if (alienMoveSound && alienMoveSound.oscillator) {
         alienMoveSound.oscillator.stop();
     }
 
-    console.log("Fine levelComplete");
-
     changeGameState('levelComplete');
 }
 
 function showLevelComplete() {
-    console.log("Mostra schermata Livello Completato");
     let levelCompleteElement = document.getElementById('levelComplete');
     if (!levelCompleteElement) {
         levelCompleteElement = document.createElement('div');
@@ -1025,46 +1053,61 @@ function showLevelComplete() {
 }
 
 function startNextLevel() {
-    console.log("Inizio startNextLevel, livello:", level);
-
-    const touchControlsContainer = document.getElementById('touchControlsContainer');
-
-    // Nascondi la schermata di livello completato
     const levelCompleteElement = document.getElementById('levelComplete');
     if (levelCompleteElement) {
         levelCompleteElement.style.display = 'none';
     }
 
-    // Pulizia e reinizializzazione
-    cleanupGameArea(touchControlsContainer);
+    // Preserva il container dell'UI
+    const uiContainer = document.getElementById('uiContainer');
+    
+    // Mantieni riferimento ai controlli touch
+    const touchControlsContainer = document.getElementById('touchControlsContainer');
+
+    // Pulisci l'area di gioco preservando gli elementi chiave
+    cleanupGameArea(uiContainer, touchControlsContainer);
+    
+    // Ripristina le variabili di gioco per il nuovo livello
     resetGameVariables();
-
-    // Creazione nuovi elementi di gioco
+    
+    // Ricrea gli elementi di gioco
     createGameElements(touchControlsContainer);
-
-    // Aggiornamento UI e avvio del gioco
+    
+    // Aggiorna l'UI per il nuovo livello
     updateUI();
-    //updateUIElements();
-    startGameLoop();
-
-    // Assicurati che il gioco sia attivo
+    
+    // Avvia suono degli alieni
+    if (audioContextStarted) {
+        alienMoveSound = createAlienMoveSound();
+    }
+    
+    // Aggiorna l'audio context se necessario
+    if (!audioContextStarted) {
+        initAudioContext();
+    }
+    
+    // Inizia il gioco
     gameActive = true;
-
-    console.log("Fine startNextLevel, livello:", level);
+    gameLoop();
 }
 
-function cleanupGameArea(touchControlsContainer) {
-    console.log("Pulizia area di gioco");
-    const elementsToKeep = [touchControlsContainer, scoreElement, livesElement, levelElement].filter(Boolean);
+function cleanupGameArea(uiContainer, touchControlsContainer) {
+    // Include il container UI e gli elementi UI tra quelli da mantenere
+    const elementsToKeep = [uiContainer, touchControlsContainer].filter(Boolean);
+    
+    // Rimuovi tutti gli elementi tranne quelli da mantenere
     Array.from(gameArea.children).forEach(child => {
-        if (!elementsToKeep.includes(child)) {
+        if (!elementsToKeep.includes(child) && 
+            child.id !== 'gameOver' && 
+            child.id !== 'levelComplete' && 
+            child.id !== 'temporaryMessage' &&
+            child.id !== 'uiContainer') {
             gameArea.removeChild(child);
         }
     });
 }
 
 function resetGameVariables() {
-    console.log("Reset variabili di gioco");
     bullets = [];
     alienBullets = [];
     invaders = [];
@@ -1078,17 +1121,11 @@ function resetGameVariables() {
 }
 
 function createGameElements(touchControlsContainer) {
-    console.log("Creazione elementi di gioco");
     player = { x: 300, y: 550, el: createElement(300, 550, '🚀') };
     gameArea.appendChild(player.el);
     
-    console.log("Creazione invasori");
     createInvaders();
-    
-    console.log("Creazione barriere");
     createBarriers();
-    
-    console.log("Creazione controlli touch");
     createTouchControls();
 
     if (touchControlsContainer && !gameArea.contains(touchControlsContainer)) {
@@ -1096,16 +1133,7 @@ function createGameElements(touchControlsContainer) {
     }
 }
 
-// function updateUIElements() {
-//     console.log("Aggiornamento elementi UI");
-//     updateUI();
-//     scoreElement.style.display = 'block';
-//     livesElement.style.display = 'block';
-//     levelElement.style.display = 'block';
-// }
-
 function startGameLoop() {
-    console.log("Avvio loop di gioco");
     gameActive = true;
     requestAnimationFrame(gameLoop);
 }
@@ -1126,7 +1154,6 @@ window.addEventListener('orientationchange', () => setTimeout(handleResize, 100)
 //showIntroScreen();
 
 window.addEventListener('load', () => {
-    console.log("Window loaded");
     handleResize();
     showIntroScreen(); // Chiamiamo direttamente showIntroScreen invece di changeGameState
 });

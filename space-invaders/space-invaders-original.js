@@ -116,8 +116,6 @@ function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function showTemporaryMessage(message, duration = 2000) {
     console.log(`Showing message: ${message}`); // Debug
     
-    temporaryMessageElement.style.border = '2px solid red'; // Debug visivo
-
     if (!temporaryMessageElement) {
         temporaryMessageElement = document.createElement('div');
         temporaryMessageElement.id = 'temporaryMessage';
