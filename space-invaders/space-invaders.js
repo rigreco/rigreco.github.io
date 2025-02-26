@@ -541,11 +541,20 @@ function createElement(x, y, content, className = 'sprite') {
 }
 
 function updateUI() {
-    scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
-    hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
-    livesElement.textContent = `LIVES ${lives}`;
-    levelElement.textContent = `LEVEL ${level}`;
+    if (scoreElement) scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
+    if (hiScoreElement) hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
+    if (livesElement) livesElement.textContent = `LIVES ${lives}`;
+    if (levelElement) levelElement.textContent = `LEVEL ${level}`;
 }
+
+// Aggiungi questa funzione
+function updateHiScore() {
+    if (score > hiScore) {
+        hiScore = score;
+        updateUI();
+    }
+}
+
 function createInvaders() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < 11; j++) {
@@ -564,10 +573,34 @@ function createInvaders() {
 }
 
 function createBarriers() {
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 3; j++) {
-            for (let k = 0; k < 5; k++) {
-                barriers.push(createElement(i * 150 + 75 + k * 10, 500 + j * 10, '▇', 'barrier'));
+    // Struttura più simile all'originale Cosmic Invaders, con forma distintiva
+    const barrierPositions = [75, 225, 375, 525]; // Posizioni X dei 4 ripari
+    
+    for (let barrierIndex = 0; barrierIndex < 4; barrierIndex++) {
+        const baseX = barrierPositions[barrierIndex];
+        const baseY = 480;
+        
+        // Prima e seconda riga (rettangolo completo)
+        for (let j = 0; j < 2; j++) {
+            for (let i = 0; i < 5; i++) {
+                barriers.push({
+                    x: baseX + i * 10 - 20,
+                    y: baseY + j * 10,
+                    hp: 4,
+                    el: createElement(baseX + i * 10 - 20, baseY + j * 10, '▇', 'barrier')
+                });
+            }
+        }
+        
+        // Terza riga (inferiore con incavo centrale)
+        for (let i = 0; i < 5; i++) {
+            if (i !== 2) { // Salta la posizione centrale per creare l'incavo nella parte inferiore
+                barriers.push({
+                    x: baseX + i * 10 - 20,
+                    y: baseY + 2 * 10,
+                    hp: 4, 
+                    el: createElement(baseX + i * 10 - 20, baseY + 2 * 10, '▇', 'barrier')
+                });
             }
         }
     }
@@ -587,8 +620,6 @@ function updateHiScore() {
         updateUI();
     }
 }
-
-
 
 function handleResize() {
     clearTimeout(resizeTimeout);
@@ -621,29 +652,56 @@ function moveInvaders() {
     const invaderCount = invaders.length;
 
     // Calcola il nuovo intervallo di movimento basato sul numero di invasori rimasti
+    // Più realistico come nell'originale - la velocità aumenta drasticamente quando restano pochi alieni
     alienMoveInterval = Math.max(
         minAlienMoveInterval,
-        1000 - (55 - invaderCount) * 15
+        1000 - (55 - invaderCount) * 20
     );
     
     if (currentTime - lastMoveTime > alienMoveInterval) {
         playAlienMoveSound(); // Riproduci il suono ad ogni movimento
         
         let shouldChangeDirection = false;
+        let furthestDownInvader = 0;
+        
+        // Trova l'invasore più in basso
         invaders.forEach(invader => {
-            invader.x += invaderDirection * 10;
-            if (invader.x < 10 || invader.x > 560) {
+            if (invader.y > furthestDownInvader) {
+                furthestDownInvader = invader.y;
+            }
+        });
+        
+        // Determina se gli alieni sono ai bordi
+        invaders.forEach(invader => {
+            if ((invaderDirection > 0 && invader.x > 560) || (invaderDirection < 0 && invader.x < 10)) {
                 shouldChangeDirection = true;
             }
-            invader.el.style.left = `${invader.x}px`;
         });
-
+        
         if (shouldChangeDirection) {
+            // Cambia direzione e muovi verso il basso come nell'originale
             invaderDirection *= -1;
+            
+            // Aumenta la difficoltà in base al livello - più veloce e più in basso
+            const downMoveAmount = Math.min(20 + level * 2, 40);
+            
             invaders.forEach(invader => {
-                invader.y += 20;
+                invader.y += downMoveAmount;
                 invader.el.style.top = `${invader.y}px`;
             });
+        } else {
+            // Movimento laterale standard
+            const moveAmount = Math.min(5 + level, 15); // Movimento laterale più veloce nei livelli alti
+            
+            invaders.forEach(invader => {
+                invader.x += invaderDirection * moveAmount;
+                invader.el.style.left = `${invader.x}px`;
+            });
+        }
+
+        // Aumenta la velocità quando gli alieni si avvicinano alla parte bassa dello schermo
+        if (furthestDownInvader > 350) {
+            alienMoveInterval = Math.max(alienMoveInterval - 100, minAlienMoveInterval);
         }
 
         lastMoveTime = currentTime;
@@ -665,19 +723,34 @@ function alienShoot() {
 }
 
 function moveUfo() {
-    if (!ufo.active && Math.random() < 0.002) {
+    // Apparizione casuale dell'UFO - più rara nei livelli bassi, più frequente nei livelli alti
+    const ufoAppearanceChance = 0.001 + (level * 0.0005);
+    
+    if (!ufo.active && Math.random() < ufoAppearanceChance) {
         ufo.active = true;
-        ufo.x = -30;
-        ufo.el = createElement(ufo.x, ufo.y, '🛸', 'sprite');
+        // Imposta la direzione casuale: da sinistra a destra o viceversa
+        ufo.direction = Math.random() < 0.5 ? 1 : -1;
+        ufo.x = ufo.direction > 0 ? -30 : 630;
+        ufo.el = createElement(ufo.x, ufo.y, '🛸', 'sprite ufo-sprite');
         ufo.el.id = 'ufo';
+        
+        // Assegna un punteggio casuale ma fisso per questa apparizione dell'UFO
+        ufo.score = ufoScores[Math.floor(Math.random() * ufoScores.length)];
     }
 
     if (ufo.active) {
-        ufo.x += 2 + level * 0.5;
+        // Velocità basata sul livello
+        const ufoSpeed = 2 + Math.min(level * 0.5, 3);
+        ufo.x += ufo.direction * ufoSpeed;
         ufo.el.style.left = `${ufo.x}px`;
-        ufoSound();
+        
+        // Suono UFO con una minore frequenza per non saturare l'audio
+        if (Math.random() < 0.2) {
+            ufoSound();
+        }
 
-        if (ufo.x > 600) {
+        // Rimuovi l'UFO quando esce dallo schermo
+        if ((ufo.direction > 0 && ufo.x > 630) || (ufo.direction < 0 && ufo.x < -30)) {
             gameArea.removeChild(ufo.el);
             ufo.active = false;
         }
@@ -766,7 +839,8 @@ function checkCollisions() {
             gameArea.removeChild(bullet2.el);
             bullets.splice(bulletIndex, 1);
             ufo.active = false;
-            let ufoScore = ufoScores[ufoScoreIndex];
+            // Usa il punteggio memorizzato per questo UFO specifico
+            const ufoScore = ufo.score || 100; // Default 100 se non definito
             score += ufoScore;
             updateHiScore();
             updateUI();
@@ -779,26 +853,33 @@ function checkCollisions() {
         if (bulletIndex >= bullets.length) continue;
         const bullet3 = bullets[bulletIndex];
 
-        // Collisione con barriere
+        // Collisione con barriere - versione migliorata per colpire solo un blocchetto alla volta
+        let barrierHit = false;
         for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
             const barrier = barriers[barrierIndex];
-            const barrierRect = barrier.getBoundingClientRect();
-            const bulletRect = bullet3.el.getBoundingClientRect();
-            if (bulletRect.left < barrierRect.right &&
-                bulletRect.right > barrierRect.left &&
-                bulletRect.top < barrierRect.bottom &&
-                bulletRect.bottom > barrierRect.top) {
+            // Riduco la zona di collisione per renderla più precisa, solo 10px anziché 15px
+            if (Math.abs(bullet3.x - barrier.x) < 10 && Math.abs(bullet3.y - barrier.y) < 10) {
                 gameArea.removeChild(bullet3.el);
                 bullets.splice(bulletIndex, 1);
-                barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
-                if (parseFloat(barrier.style.opacity) <= 0) {
-                    gameArea.removeChild(barrier);
+                
+                // Riduci i punti vita della barriera
+                barrier.hp -= 1;
+                
+                // Aggiorna l'aspetto della barriera in base ai punti vita rimanenti
+                if (barrier.hp <= 0) {
+                    gameArea.removeChild(barrier.el);
                     barriers.splice(barrierIndex, 1);
+                } else {
+                    // Cambia l'opacità in base ai punti vita
+                    barrier.el.style.opacity = barrier.hp / 4;
                 }
-                // Interrompi il ciclo per questo proiettile dato che è stato rimosso
-                break;
+                barrierHit = true;
+                break; // Esci immediatamente dopo aver colpito una barriera
             }
         }
+        
+        // Se abbiamo colpito una barriera, passiamo al prossimo proiettile
+        if (barrierHit) continue;
     }
 
     // Collisione proiettili alieni con giocatore e barriere
@@ -821,25 +902,32 @@ function checkCollisions() {
         // Se il proiettile è stato rimosso, passa al prossimo
         if (bulletIndex >= alienBullets.length) continue;
         
-        // Collisione con barriere
+        // Collisione con barriere - versione migliorata per colpire solo un blocchetto alla volta
+        let barrierHit = false;
         for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
             const barrier = barriers[barrierIndex];
-            const barrierRect = barrier.getBoundingClientRect();
-            const bulletRect = bullet.el.getBoundingClientRect();
-            if (bulletRect.left < barrierRect.right &&
-                bulletRect.right > barrierRect.left &&
-                bulletRect.top < barrierRect.bottom &&
-                bulletRect.bottom > barrierRect.top) {
+            // Riduco la zona di collisione per renderla più precisa, solo 10px anziché 15px
+            if (Math.abs(bullet.x - barrier.x) < 10 && Math.abs(bullet.y - barrier.y) < 10) {
                 gameArea.removeChild(bullet.el);
                 alienBullets.splice(bulletIndex, 1);
-                barrier.style.opacity = parseFloat(barrier.style.opacity || 1) - 0.25;
-                if (parseFloat(barrier.style.opacity) <= 0) {
-                    gameArea.removeChild(barrier);
+                
+                // Danneggia la barriera
+                barrier.hp -= 1;
+                
+                if (barrier.hp <= 0) {
+                    gameArea.removeChild(barrier.el);
                     barriers.splice(barrierIndex, 1);
+                } else {
+                    // Opacità proporzionale ai punti vita
+                    barrier.el.style.opacity = barrier.hp / 4;
                 }
-                break;
+                barrierHit = true;
+                break; // Esci immediatamente dopo aver colpito una barriera
             }
         }
+        
+        // Se abbiamo colpito una barriera, passiamo al prossimo proiettile
+        if (barrierHit) continue;
     }
 
     // Controllo se gli invasori hanno raggiunto il fondo
