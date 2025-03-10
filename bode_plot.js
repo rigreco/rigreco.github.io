@@ -99,6 +99,11 @@ window.calculateBode = function() {
             throw new Error("I campi non possono essere vuoti");
         }
         
+        // Validazione dell'input con regex per permettere solo numeri, virgole e spazi
+        if (!/^[\d\.\,\s\-\+]+$/.test(numInput) || !/^[\d\.\,\s\-\+]+$/.test(denInput)) {
+            throw new Error("I coefficienti devono contenere solo numeri, virgole, spazi e segni + o -");
+        }
+        
         let num = numInput.split(',').map(n => n.trim()).map(Number);
         let den = denInput.split(',').map(n => n.trim()).map(Number);
         
@@ -118,13 +123,19 @@ window.calculateBode = function() {
         const zeros = findRoots(num);
         const poles = findRoots(den);
         
-        // Visualizza i risultati
-        document.getElementById('zeros').innerHTML = 'Zeri: ' + zeros.join(', ');
-        document.getElementById('poles').innerHTML = 'Poli: ' + poles.join(', ');
+        // Visualizza i risultati in modo sicuro usando textContent invece di innerHTML
+        const zerosElement = document.getElementById('zeros');
+        const polesElement = document.getElementById('poles');
         
-        // Visualizza la funzione di trasferimento
-        document.getElementById('function-num').innerHTML = formatPolynomial(num);
-        document.getElementById('function-den').innerHTML = formatPolynomial(den);
+        if (zerosElement) zerosElement.textContent = 'Zeri: ' + zeros.join(', ');
+        if (polesElement) polesElement.textContent = 'Poli: ' + poles.join(', ');
+        
+        // Visualizza la funzione di trasferimento in modo sicuro
+        const functionNumElement = document.getElementById('function-num');
+        const functionDenElement = document.getElementById('function-den');
+        
+        if (functionNumElement) functionNumElement.textContent = formatPolynomial(num);
+        if (functionDenElement) functionDenElement.textContent = formatPolynomial(den);
 
         // Genera le frequenze
         let w = [];
@@ -146,16 +157,30 @@ window.calculateBode = function() {
 };
 
 function parseComplex(s) {
+    // Validazione dell'input per la funzione parseComplex
     if (typeof s === 'number') return { real: s, imag: 0 };
     
-    const match = s.match(/^([-+]?\d*\.?\d+)\s*([+-]\s*\d*\.?\d+)j$/);
-    if (match) {
+    if (typeof s !== 'string') {
+        console.error("parseComplex: input must be a string or number");
+        return { real: 0, imag: 0 };
+    }
+    
+    // Validazione più rigorosa dell'input con regex
+    const complexPattern = /^([-+]?\d*\.?\d+)\s*([+-]\s*\d*\.?\d+)j$/;
+    const realPattern = /^[-+]?\d*\.?\d+$/;
+    
+    if (complexPattern.test(s)) {
+        const match = s.match(complexPattern);
         return {
             real: parseFloat(match[1]),
             imag: parseFloat(match[2].replace(/\s/g, ''))
         };
+    } else if (realPattern.test(s)) {
+        return { real: parseFloat(s), imag: 0 };
+    } else {
+        console.error("parseComplex: invalid complex number format:", s);
+        return { real: 0, imag: 0 };
     }
-    return { real: parseFloat(s), imag: 0 };
 }
 
 function plotBode(canvasId, w, data, yLabel) {

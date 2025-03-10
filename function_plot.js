@@ -134,11 +134,43 @@ function evaluateFunction(x, functionString) {
         throw new Error('Funzione non valida');
     }
 
+    // Validazione dell'input per permettere solo caratteri matematici sicuri
+    if (!/^[a-zA-Z0-9\s\+\-\*\/\^\(\)\.\,\_\[\]]*$/.test(functionString)) {
+        throw new Error('Input non valido. Sono permessi solo caratteri per espressioni matematiche.');
+    }
+
     try {
-        // Utilizzo sicuro di math.js per valutare l'espressione
-        // Sostituisce l'uso non sicuro di Function()
+        // Crea un ambiente math.js sicuro con funzioni limitate
+        const limitedEval = math.create();
+        limitedEval.import({
+            // Importa solo funzioni matematiche sicure
+            'number': math.number,
+            'add': math.add,
+            'subtract': math.subtract,
+            'multiply': math.multiply,
+            'divide': math.divide,
+            'pow': math.pow,
+            'sqrt': math.sqrt,
+            'abs': math.abs,
+            'exp': math.exp,
+            'log': math.log,
+            'log10': math.log10,
+            'sin': math.sin,
+            'cos': math.cos, 
+            'tan': math.tan,
+            'asin': math.asin,
+            'acos': math.acos,
+            'atan': math.atan,
+            'sinh': math.sinh,
+            'cosh': math.cosh,
+            'tanh': math.tanh,
+            'pi': math.pi,
+            'e': math.e
+        }, { override: true });
+
+        // Valuta l'espressione con l'ambiente limitato
         const scope = { x: x };
-        return math.evaluate(functionString, scope);
+        return limitedEval.evaluate(functionString, scope);
     } catch (e) {
         console.error('Errore nella valutazione della funzione:', e);
         return NaN;
