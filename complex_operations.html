@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operazioni con Numeri Complessi - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #complex-calculator {
+            width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .input-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .complex-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .complex-input h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .number-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .number-inputs input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .operations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .operations button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .operations button:hover {
+            background-color: #388E3C;
+        }
+
+        .special-operations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .special-operations button {
+            padding: 8px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .special-operations button:hover {
+            background-color: #1565C0;
+        }
+        
+        #complex-result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        #complex-plot {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .input-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Didattica & Progetti</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+                <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+                <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+                <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
+                <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
+                <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>Operazioni con Numeri Complessi</h1>
+        
+        <p>Questa pagina consente di visualizzare graficamente le operazioni tra numeri complessi nel piano di Gauss.</p>
+        
+        <div id="complex-calculator">
+            <div class="input-container">
+                <div class="complex-input">
+                    <h3>Numero Complesso 1 (z₁)</h3>
+                    <div class="number-inputs">
+                        <input type="number" id="real1" placeholder="Parte reale" value="1">
+                        <span>+</span>
+                        <input type="number" id="imag1" placeholder="Parte immaginaria" value="1">
+                        <span>i</span>
+                    </div>
+                    <div>Forma polare: <span id="polar1">√2 ∠ 45°</span></div>
+                </div>
+                
+                <div class="complex-input">
+                    <h3>Numero Complesso 2 (z₂)</h3>
+                    <div class="number-inputs">
+                        <input type="number" id="real2" placeholder="Parte reale" value="2">
+                        <span>+</span>
+                        <input type="number" id="imag2" placeholder="Parte immaginaria" value="-1">
+                        <span>i</span>
+                    </div>
+                    <div>Forma polare: <span id="polar2">√5 ∠ -26.6°</span></div>
+                </div>
+            </div>
+            
+            <h3>Operazioni Standard</h3>
+            <div class="operations">
+                <button id="add-button">Somma (z₁ + z₂)</button>
+                <button id="subtract-button">Differenza (z₁ - z₂)</button>
+                <button id="multiply-button">Prodotto (z₁ × z₂)</button>
+                <button id="divide-button">Divisione (z₁ ÷ z₂)</button>
+            </div>
+            
+            <h3>Operazioni Speciali su z₁</h3>
+            <div class="special-operations">
+                <button id="multiply-j">Moltiplica per j (z₁ × j)</button>
+                <button id="multiply-negative-j">Moltiplica per -j (z₁ × -j)</button>
+                <button id="multiply-j-squared">Moltiplica per j² = -1 (z₁ × -1)</button>
+                <button id="multiply-negative-j-squared">Moltiplica per -j² = 1 (z₁ × 1)</button>
+            </div>
+            
+            <div id="complex-result">
+                <h3>Risultato:</h3>
+                <p id="result-algebraic">Esegui un'operazione per vedere il risultato.</p>
+                <p id="result-polar"></p>
+            </div>
+            
+            <div id="complex-plot">
+                <!-- Canvas per il grafico generato da JavaScript -->
+            </div>
+        </div>
+        
+        <div class="math-table">
+            <h3>Approfondimenti sui Numeri Complessi</h3>
+            <p>Puoi trovare maggiori informazioni sui numeri complessi nella <a href="Numeri_complessi.html">pagina dedicata</a>.</p>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+            
+            lucide.createIcons();
+        });
+    </script>
+    <script src="complex_operations.js"></script>
+</body>
+</html>

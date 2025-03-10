@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numeri Complessi - Didattica & Progetti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .subsection {
+      padding-left: 25px;
+    }
+    .complex-figure {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .complex-figure svg {
+      max-width: 100%;
+      height: auto;
+    }
+    /* Aggiungo stile per gli elenchi puntati nelle celle della tabella */
+    .math-table td ul {
+      margin-left: 20px; /* Margine sinistro per staccare gli elenchi dal bordo */
+      padding-left: 10px; /* Padding aggiuntivo per migliorare la leggibilità */
+    }
+    .math-table td li {
+      margin-bottom: 5px; /* Spazio tra gli elementi dell'elenco */
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
+        <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
+        <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Numeri Complessi</h2>
+    
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Numeri Complessi: Rappresentazione e Operazioni</th>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">1. Introduzione ai Numeri Complessi</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          Un numero complesso è un numero che può essere espresso nella forma $z = a + bi$, dove $a$ e $b$ sono numeri reali e $i$ è l'unità immaginaria che soddisfa l'equazione $i^2 = -1$.
+          <br><br>
+          Nell'espressione $z = a + bi$:
+          <ul>
+            <li>$a$ è la parte reale di $z$, indicata con $\text{Re}(z)$</li>
+            <li>$b$ è la parte immaginaria di $z$, indicata con $\text{Im}(z)$</li>
+          </ul>
+          <br>
+          L'insieme dei numeri complessi viene indicato con $\mathbb{C}$.
+        </td>
+      </tr>
+      <tr>
+        <td>Piano Complesso</td>
+        <td>
+          I numeri complessi possono essere rappresentati geometricamente nel piano complesso (o piano di Argand-Gauss):
+          <ul>
+            <li>L'asse orizzontale rappresenta la parte reale</li>
+            <li>L'asse verticale rappresenta la parte immaginaria</li>
+            <li>Ogni punto $(a, b)$ nel piano corrisponde al numero complesso $a + bi$</li>
+          </ul>
+          <div class="complex-figure">
+            <svg width="300" height="300" viewBox="-150 -150 300 300">
+              <!-- Assi cartesiani -->
+              <line x1="-140" y1="0" x2="140" y2="0" stroke="black" stroke-width="1" />
+              <line x1="0" y1="-140" x2="0" y2="140" stroke="black" stroke-width="1" />
+              
+              <!-- Etichette degli assi -->
+              <text x="145" y="15">Re</text>
+              <text x="10" y="-135">Im</text>
+              
+              <!-- Punto esempio -->
+              <circle cx="70" cy="-50" r="4" fill="red" />
+              <line x1="0" y1="0" x2="70" y2="-50" stroke="red" stroke-width="1.5" />
+              <line x1="70" y1="0" x2="70" y2="-50" stroke="blue" stroke-dasharray="4" stroke-width="1" />
+              <line x1="0" y1="-50" x2="70" y2="-50" stroke="blue" stroke-dasharray="4" stroke-width="1" />
+              
+              <!-- Etichette coordinate -->
+              <text x="75" y="-55">z = a+bi</text>
+              <text x="70" y="15">a</text>
+              <text x="-20" y="-50">b</text>
+            </svg>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">2. Rappresentazioni dei Numeri Complessi</td>
+      </tr>
+      <tr>
+        <td>Forma Algebrica</td>
+        <td>
+          È la rappresentazione standard: $z = a + bi$
+          <br>
+          Esempio: $z = 3 + 4i$
+        </td>
+      </tr>
+      <tr>
+        <td>Forma Trigonometrica<br>(o Polare)</td>
+        <td>
+          Un numero complesso può anche essere rappresentato come:
+          <br><br>
+          $z = r(\cos\theta + i\sin\theta)$
+          <br><br>
+          dove:
+          <ul>
+            <li>$r = |z| = \sqrt{a^2 + b^2}$ è il modulo di $z$ (la distanza dall'origine)</li>
+            <li>$\theta = \arg(z) = \arctan\left(\frac{b}{a}\right)$ è l'argomento di $z$ (l'angolo rispetto all'asse reale positivo)</li>
+          </ul>
+          <br>
+          Nota: l'argomento $\theta$ è determinato univocamente solo quando si specifica il quadrante in cui si trova $z$.
+        </td>
+      </tr>
+      <tr>
+        <td>Forma Esponenziale</td>
+        <td>
+          Utilizzando la formula di Eulero $e^{i\theta} = \cos\theta + i\sin\theta$, possiamo scrivere:
+          <br><br>
+          $z = re^{i\theta}$
+          <br><br>
+          Questa rappresentazione è particolarmente utile nelle operazioni di moltiplicazione, divisione e potenza dei numeri complessi.
+        </td>
+      </tr>
+      <tr>
+        <td>Conversioni</td>
+        <td>
+          <strong>Da forma algebrica a polare:</strong>
+          <br>
+          $r = \sqrt{a^2 + b^2}$
+          <br>
+          $\theta = \arctan\left(\frac{b}{a}\right)$ (con attenzione ai quadranti)
+          <br><br>
+          <strong>Da forma polare a algebrica:</strong>
+          <br>
+          $a = r\cos\theta$
+          <br>
+          $b = r\sin\theta$
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">3. Operazioni con i Numeri Complessi</td>
+      </tr>
+      <tr>
+        <td>Addizione e<br>Sottrazione</td>
+        <td>
+          Con $z_1 = a + bi$ e $z_2 = c + di$:
+          <br><br>
+          <strong>Addizione:</strong> $z_1 + z_2 = (a + c) + (b + d)i$
+          <br><br>
+          <strong>Sottrazione:</strong> $z_1 - z_2 = (a - c) + (b - d)i$
+          <br><br>
+          Geometricamente, l'addizione di numeri complessi segue la regola del parallelogramma, proprio come l'addizione di vettori nel piano.
+        </td>
+      </tr>
+      <tr>
+        <td>Moltiplicazione</td>
+        <td>
+          <strong>In forma algebrica:</strong>
+          <br>
+          $z_1 \cdot z_2 = (a + bi)(c + di) = ac + adi + bci + bdi^2 = (ac - bd) + (ad + bc)i$
+          <br><br>
+          <strong>In forma polare:</strong>
+          <br>
+          Se $z_1 = r_1(\cos\theta_1 + i\sin\theta_1)$ e $z_2 = r_2(\cos\theta_2 + i\sin\theta_2)$, allora:
+          <br>
+          $z_1 \cdot z_2 = r_1r_2[\cos(\theta_1 + \theta_2) + i\sin(\theta_1 + \theta_2)]$
+          <br><br>
+          <strong>In forma esponenziale:</strong>
+          <br>
+          Se $z_1 = r_1e^{i\theta_1}$ e $z_2 = r_2e^{i\theta_2}$, allora:
+          <br>
+          $z_1 \cdot z_2 = r_1r_2e^{i(\theta_1 + \theta_2)}$
+        </td>
+      </tr>
+      <tr>
+        <td>Divisione</td>
+        <td>
+          <strong>In forma algebrica:</strong>
+          <br>
+          $\frac{z_1}{z_2} = \frac{a + bi}{c + di} = \frac{(a + bi)(c - di)}{(c + di)(c - di)} = \frac{ac + bd + (bc - ad)i}{c^2 + d^2}$
+          <br><br>
+          <strong>In forma polare:</strong>
+          <br>
+          $\frac{z_1}{z_2} = \frac{r_1}{r_2}[\cos(\theta_1 - \theta_2) + i\sin(\theta_1 - \theta_2)]$
+          <br><br>
+          <strong>In forma esponenziale:</strong>
+          <br>
+          $\frac{z_1}{z_2} = \frac{r_1}{r_2}e^{i(\theta_1 - \theta_2)}$
+        </td>
+      </tr>
+      <tr>
+        <td>Complesso Coniugato</td>
+        <td>
+          Il complesso coniugato di $z = a + bi$ è $\overline{z} = a - bi$
+          <br><br>
+          Proprietà:
+          <ul>
+            <li>$z \cdot \overline{z} = |z|^2 = a^2 + b^2$</li>
+            <li>$\overline{z_1 + z_2} = \overline{z_1} + \overline{z_2}$</li>
+            <li>$\overline{z_1 \cdot z_2} = \overline{z_1} \cdot \overline{z_2}$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">4. Potenze e Radici</td>
+      </tr>
+      <tr>
+        <td>Formula di De Moivre</td>
+        <td>
+          Se $z = r(\cos\theta + i\sin\theta)$, allora per ogni numero naturale $n$:
+          <br><br>
+          $z^n = r^n(\cos(n\theta) + i\sin(n\theta))$
+          <br><br>
+          In forma esponenziale:
+          <br>
+          $z^n = (re^{i\theta})^n = r^n e^{in\theta}$
+        </td>
+      </tr>
+      <tr>
+        <td>Radici n-esime</td>
+        <td>
+          Le $n$ radici n-esime di un numero complesso $z = r(\cos\theta + i\sin\theta)$ sono:
+          <br><br>
+          $\sqrt[n]{z}_k = \sqrt[n]{r}\left(\cos\left(\frac{\theta + 2\pi k}{n}\right) + i\sin\left(\frac{\theta + 2\pi k}{n}\right)\right)$
+          <br><br>
+          dove $k = 0, 1, 2, ..., n-1$
+          <br><br>
+          In forma esponenziale:
+          <br>
+          $\sqrt[n]{z}_k = \sqrt[n]{r} \cdot e^{i\frac{\theta + 2\pi k}{n}}$
+          <br><br>
+          Questi $n$ numeri complessi sono equidistanti tra loro e formano i vertici di un poligono regolare di $n$ lati nel piano complesso.
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">5. Applicazioni dei Numeri Complessi</td>
+      </tr>
+      <tr>
+        <td>Ingegneria Elettrica</td>
+        <td>
+          In ingegneria elettrica, i numeri complessi sono utilizzati per rappresentare l'impedenza, che generalizza il concetto di resistenza elettrica per circuiti in corrente alternata:
+          <br><br>
+          $Z = R + jX$
+          <br><br>
+          dove:
+          <ul>
+            <li>$Z$ è l'impedenza complessa</li>
+            <li>$R$ è la resistenza (parte reale)</li>
+            <li>$X$ è la reattanza (parte immaginaria)</li>
+            <li>$j$ è il simbolo utilizzato in ingegneria per l'unità immaginaria (equivalente a $i$)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Diagrammi di Bode</td>
+        <td>
+          I diagrammi di Bode, utilizzati nell'analisi dei sistemi di controllo, rappresentano il comportamento in frequenza di un sistema usando la matematica dei numeri complessi.
+          <br><br>
+          La funzione di trasferimento $H(s)$ viene valutata per $s = j\omega$ (dove $\omega$ è la frequenza), risultando in un numero complesso per ogni frequenza.
+          <br><br>
+          <a href="bode_plot.html">Vai ai diagrammi di Bode</a> per un'applicazione interattiva.
+        </td>
+      </tr>
+      <tr>
+        <td>Altre Applicazioni</td>
+        <td>
+          <ul>
+            <li>Analisi dei segnali</li>
+            <li>Trasformata di Fourier</li>
+            <li>Meccanica quantistica</li>
+            <li>Fluidodinamica</li>
+            <li>Computer grafica</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+  </main>
+  
+  <footer> 
+    <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+  </footer>
+  <script>
+    // Script per Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+</body>
+</html>
