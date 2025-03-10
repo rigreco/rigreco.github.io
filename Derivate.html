@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Derivate - Didattica & Progetti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .subsection {
+      padding-left: 25px;
+    }
+    .derivative-figure {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .derivative-figure svg {
+      max-width: 100%;
+      height: auto;
+    }
+    /* Stile per gli elenchi puntati nelle celle della tabella */
+    .math-table td ul {
+      margin-left: 20px;
+      padding-left: 10px;
+    }
+    .math-table td li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
+        <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
+        <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Derivate</h2>
+    
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Teoria delle Derivate</th>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">1. Definizione di Derivata</td>
+      </tr>
+      <tr>
+        <td>Definizione formale</td>
+        <td>
+          La derivata di una funzione $f(x)$ nel punto $x = x_0$ è definita come il limite del rapporto incrementale quando l'incremento tende a zero:
+          <br><br>
+          $$f'(x_0) = \lim_{h \to 0} \frac{f(x_0 + h) - f(x_0)}{h}$$
+          <br>
+          oppure in modo equivalente:
+          <br><br>
+          $$f'(x_0) = \lim_{x \to x_0} \frac{f(x) - f(x_0)}{x - x_0}$$
+          <br>
+          Se questo limite esiste ed è finito, si dice che $f(x)$ è derivabile in $x_0$.
+        </td>
+      </tr>
+      <tr>
+        <td>Notazioni alternative</td>
+        <td>
+          La derivata di una funzione $f(x)$ può essere indicata in diversi modi:
+          <ul>
+            <li>$f'(x)$ - Notazione di Lagrange</li>
+            <li>$\frac{df}{dx}$ o $\frac{d}{dx}f(x)$ - Notazione di Leibniz</li>
+            <li>$\dot{f}$ - Notazione di Newton (usata soprattutto in fisica)</li>
+            <li>$Df(x)$ - Notazione di operatore</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">2. Significato Geometrico</td>
+      </tr>
+      <tr>
+        <td>Interpretazione geometrica</td>
+        <td>
+          Geometricamente, la derivata $f'(x_0)$ rappresenta la pendenza della retta tangente al grafico della funzione $f(x)$ nel punto $(x_0, f(x_0))$.
+          <br><br>
+          Il rapporto incrementale $\frac{f(x) - f(x_0)}{x - x_0}$ rappresenta invece la pendenza della retta secante passante per i punti $(x_0, f(x_0))$ e $(x, f(x))$.
+          <br><br>
+          Quando $x$ tende a $x_0$, la retta secante tende alla retta tangente.
+          
+          <div class="derivative-figure">
+            <svg width="400" height="300" viewBox="0 0 400 300">
+              <!-- Assi cartesiani -->
+              <line x1="50" y1="250" x2="350" y2="250" stroke="black" stroke-width="1" />
+              <line x1="50" y1="50" x2="50" y2="250" stroke="black" stroke-width="1" />
+              
+              <!-- Etichette assi -->
+              <text x="340" y="270">x</text>
+              <text x="30" y="60">y</text>
+              
+              <!-- Curva di esempio (parabola) -->
+              <path d="M 50 250 Q 200 50 350 250" stroke="blue" stroke-width="2" fill="none" />
+              
+              <!-- Punto P0 -->
+              <circle cx="175" cy="149" r="4" fill="red" />
+              <text x="165" y="140">P₀</text>
+              
+              <!-- Punto P -->
+              <circle cx="225" cy="149" r="4" fill="green" />
+              <text x="230" y="140">P</text>
+              
+              <!-- Retta secante -->
+              <line x1="175" y1="149" x2="225" y2="149" stroke="green" stroke-width="1.5" stroke-dasharray="4" />
+              
+              <!-- Retta tangente -->
+              <line x1="125" y1="190" x2="225" y2="109" stroke="red" stroke-width="1.5" />
+              
+              <!-- Etichette -->
+              <text x="250" y="149">Secante</text>
+              <text x="250" y="109">Tangente</text>
+              
+              <!-- Coordinate -->
+              <text x="155" y="170">(x₀,f(x₀))</text>
+              <text x="225" y="170">(x,f(x))</text>
+            </svg>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Interpretazione fisica</td>
+        <td>
+          In fisica, la derivata rappresenta il tasso di variazione di una grandezza rispetto a un'altra:
+          <ul>
+            <li>La derivata della posizione rispetto al tempo è la velocità: $v(t) = \frac{ds}{dt}$</li>
+            <li>La derivata della velocità rispetto al tempo è l'accelerazione: $a(t) = \frac{dv}{dt} = \frac{d^2s}{dt^2}$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">3. Regole di Derivazione</td>
+      </tr>
+      <tr>
+        <td>Derivate delle funzioni elementari</td>
+        <td>
+          <ul>
+            <li>$\frac{d}{dx}(c) = 0$ (costante)</li>
+            <li>$\frac{d}{dx}(x) = 1$ (funzione identità)</li>
+            <li>$\frac{d}{dx}(x^n) = n \cdot x^{n-1}$ (potenza)</li>
+            <li>$\frac{d}{dx}(e^x) = e^x$ (esponenziale)</li>
+            <li>$\frac{d}{dx}(\ln x) = \frac{1}{x}$ (logaritmo naturale)</li>
+            <li>$\frac{d}{dx}(\sin x) = \cos x$ (seno)</li>
+            <li>$\frac{d}{dx}(\cos x) = -\sin x$ (coseno)</li>
+            <li>$\frac{d}{dx}(\tan x) = \frac{1}{\cos^2 x} = 1 + \tan^2 x$ (tangente)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Regole per le operazioni</td>
+        <td>
+          <p>Se $f$ e $g$ sono funzioni derivabili e $c$ è una costante:</p>
+          <ul>
+            <li><strong>Regola della somma:</strong> $\frac{d}{dx}(f(x) \pm g(x)) = f'(x) \pm g'(x)$</li>
+            <li><strong>Regola del prodotto:</strong> $\frac{d}{dx}(f(x) \cdot g(x)) = f'(x) \cdot g(x) + f(x) \cdot g'(x)$</li>
+            <li><strong>Regola del quoziente:</strong> $\frac{d}{dx}\left(\frac{f(x)}{g(x)}\right) = \frac{f'(x) \cdot g(x) - f(x) \cdot g'(x)}{[g(x)]^2}$</li>
+            <li><strong>Regola della catena:</strong> $\frac{d}{dx}f(g(x)) = f'(g(x)) \cdot g'(x)$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">4. Derivate di Ordine Superiore</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          <p>La derivata seconda di $f(x)$ è la derivata della derivata prima:</p>
+          $$f''(x) = \frac{d}{dx}\left(f'(x)\right) = \frac{d^2f}{dx^2}$$
+          <p>Procedendo allo stesso modo, si possono definire le derivate di ordine superiore:</p>
+          $$f^{(n)}(x) = \frac{d^nf}{dx^n}$$
+        </td>
+      </tr>
+      <tr>
+        <td>Significato geometrico</td>
+        <td>
+          <p>La derivata seconda fornisce informazioni sulla concavità della funzione:</p>
+          <ul>
+            <li>Se $f''(x) > 0$ in un intervallo, la funzione è concava verso l'alto in quell'intervallo</li>
+            <li>Se $f''(x) < 0$ in un intervallo, la funzione è concava verso il basso in quell'intervallo</li>
+          </ul>
+          <p>I punti in cui $f''(x) = 0$ possono essere punti di flesso.</p>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">5. Applicazioni delle Derivate</td>
+      </tr>
+      <tr>
+        <td>Studio di funzione</td>
+        <td>
+          Le derivate sono essenziali nello studio di funzione per determinare:
+          <ul>
+            <li>Crescenza e decrescenza ($f'(x) > 0$ o $f'(x) < 0$)</li>
+            <li>Punti stazionari (massimi, minimi e flessi a tangente orizzontale) dove $f'(x) = 0$</li>
+            <li>Concavità ($f''(x) > 0$ o $f''(x) < 0$)</li>
+            <li>Punti di flesso dove $f''(x) = 0$ e $f''(x)$ cambia segno</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Problemi di ottimizzazione</td>
+        <td>
+          Le derivate permettono di trovare valori massimi e minimi di una funzione, fondamentali per risolvere problemi di ottimizzazione in matematica, fisica, economia e ingegneria.
+          <br><br>
+          Per trovare i punti critici, si risolve l'equazione $f'(x) = 0$ e si studia il segno della derivata prima o seconda per determinare se si tratta di massimi o minimi.
+        </td>
+      </tr>
+      <tr>
+        <td>Approssimazione lineare</td>
+        <td>
+          La derivata può essere utilizzata per approssimare una funzione in un intorno di un punto con una funzione lineare (formula di Taylor del primo ordine):
+          <br><br>
+          $$f(x) \approx f(x_0) + f'(x_0)(x - x_0)$$
+          <br>
+          Questa è l'equazione della retta tangente al grafico di $f$ nel punto $(x_0, f(x_0))$.
+        </td>
+      </tr>
+    </table>
+
+    <div class="math-table">
+      <h3>Applicazione interattiva</h3>
+      <p>Puoi utilizzare la <a href="function_derivative.html">calcolatrice di derivate</a> per visualizzare graficamente la derivata di diverse funzioni.</p>
+    </div>
+  </main>
+  
+  <footer> 
+    <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+  </footer>
+  <script>
+    // Script per Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+</body>
+</html>
