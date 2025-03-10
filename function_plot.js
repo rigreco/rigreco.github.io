@@ -134,22 +134,15 @@ function evaluateFunction(x, functionString) {
         throw new Error('Funzione non valida');
     }
 
-    let expr = functionString
-        .replace(/\^/g, '**')
-        .replace(/(\d+|x)x/g, '$1*x')
-        .replace(/x/g, `(${x})`);
-    
-    let [numerator, denominator] = expr.split('/').map(part => part.trim());
-    denominator = denominator || '1';
-    
-    let numValue = Function('return ' + numerator)();
-    let denValue = Function('return ' + denominator)();
-    
-    if (Math.abs(denValue) < 1e-10) {
-        return Infinity; // Indica una discontinuità
+    try {
+        // Utilizzo sicuro di math.js per valutare l'espressione
+        // Sostituisce l'uso non sicuro di Function()
+        const scope = { x: x };
+        return math.evaluate(functionString, scope);
+    } catch (e) {
+        console.error('Errore nella valutazione della funzione:', e);
+        return NaN;
     }
-    
-    return numValue / denValue;
 }
 
 function adjustZoom(zoomFactor) {
