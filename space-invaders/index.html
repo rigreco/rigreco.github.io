@@ -31,34 +31,12 @@
             border: 1px solid white;
             overflow: hidden;
             background-color: black;
+            transform-origin: center center;
+            margin: 0 auto;
         }
         .sprite {
             position: absolute;
             font-size: 20px;
-        }
-        #score, #hi-score, #lives, #level {
-            position: absolute;
-            font-size: 16px;
-            padding: 5px;
-            background-color: rgba(0, 0, 0, 0.7); /* Aggiungi uno sfondo semi-trasparente per migliorare la visibilità */
-            border-radius: 5px; /* Angoli arrotondati */
-        }
-        #score {
-            top: 5px;
-            left: 5px;
-        }
-        #hi-score {
-            top: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        #lives {
-            bottom: 5px;
-            left: 5px;
-        }
-        #level {
-            bottom: 5px;
-            right: 5px;
         }
         .barrier {
             position: absolute;
@@ -113,10 +91,6 @@
             font-weight: bold !important;
             border: 2px solid white !important;  /* Bordo bianco per contrasto */
         }
-        #gameArea {
-            position: relative !important;
-            overflow: visible !important;  /* Cambiato da hidden a visible */
-        }
 
         #touchControlsContainer {
             position: fixed;
@@ -128,28 +102,23 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 20px;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
             z-index: 1000;
+            box-sizing: border-box;
+            touch-action: manipulation;
         }
-        .touch-control {
-            width: 80px;
-            height: 80px;
-            background-color: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            color: white;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        #shootControl {
-            width: 120px;
-        }
-        @media (min-width: 1024px) {
+        
+        @media (max-height: 600px) {
+            .touch-control {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 18px !important;
+            }
+            #shootControl {
+                width: 90px !important;
+            }
             #touchControlsContainer {
-                display: none !important;
+                height: 60px;
             }
         }
         /* Nuovo supporto per Forced Colors Mode */
