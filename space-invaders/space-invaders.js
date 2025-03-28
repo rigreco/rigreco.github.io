@@ -56,6 +56,77 @@ const alienSoundFrequencies = [55, 58, 62, 65];
 // Gestione del ridimensionamento
 let resizeTimeout;
 
+// Variabile per mantenere coerenza dello scaling
+let lastAppliedScale = null;
+
+function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        
+        // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
+        // Calcola il rapporto di aspetto del gioco e della finestra
+        const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità
+        const windowAspectRatio = window.innerWidth / window.innerHeight;
+        
+        let scale;
+        
+        // Adatta in base al rapporto di aspetto
+        if (windowAspectRatio < gameAspectRatio) {
+            // Se la finestra è più stretta, adatta alla larghezza
+            scale = window.innerWidth / 600 * 0.95; // 95% della larghezza per un piccolo margine
+        } else {
+            // Se la finestra è più larga, adatta all'altezza
+            scale = window.innerHeight / 600 * 0.95; // 95% dell'altezza per un piccolo margine
+        }
+        
+        // Se abbiamo già applicato scaling, usa lo stesso scale a meno che non ci sia una differenza significativa
+        if (lastAppliedScale !== null && Math.abs(lastAppliedScale - scale) < 0.1) {
+            scale = lastAppliedScale;
+        } else {
+            lastAppliedScale = scale;
+        }
+        
+        // Imposta la posizione iniziale e lo stile per centrare correttamente
+        // Anche per la schermata intro/menu utilizziamo lo stesso posizionamento del gioco
+        gameArea.style.position = 'absolute';
+        gameArea.style.top = '50%';
+        gameArea.style.left = '50%';
+        gameArea.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        gameArea.style.transformOrigin = 'center center';
+        gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
+        
+        console.log("Applicato scale:", scale, "Stato gioco:", gameState);
+        
+        // Gestione dei controlli touch
+        const touchControlsContainer = document.getElementById('touchControlsContainer');
+        if (touchControlsContainer) {
+            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+            
+            // Adatta la dimensione dei controlli touch in base allo schermo
+            const controlSize = Math.min(window.innerWidth / 6, 80);
+            const shootControlSize = Math.min(window.innerWidth / 5, 120);
+            
+            document.querySelectorAll('.touch-control').forEach(control => {
+                if (control.id === 'shootControl') {
+                    control.style.width = `${shootControlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                } else {
+                    control.style.width = `${controlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                }
+            });
+        }
+        
+        // Assicurati che il messaggio temporaneo mantenga la sua posizione corretta
+        if (temporaryMessageElement) {
+            temporaryMessageElement.style.top = '10%';
+            temporaryMessageElement.style.left = '50%';
+            temporaryMessageElement.style.transform = 'translateX(-50%)';
+        }
+    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
+}
+
 // Inizializza l'AudioContext - modificato per una migliore affidabilità
 function initAudioContext() {
     try {
@@ -178,7 +249,7 @@ function gameOverSound() { playSound(55, 2, 'triangle'); }
 function alienShootSound() { playSound(440, 0.1, 'sine'); }
 function ufoSound() { playSound(660, 0.1, 'sine'); }
 function levelCompleteSound() { playSound(1320, 1, 'sine'); }
-function powerupSound() { playSound(1320, 1, 'sine'); }
+function powerupSound() { playSound(880, 0.5, 'sine'); } // Cambiato per differenziarlo da levelCompleteSound
 function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
@@ -287,11 +358,19 @@ function showHighScores() {
 }
 
 function checkHighScore(score) {
-    const lowestHighScore = highScores[highScores.length - 1].score;
-    if (score > lowestHighScore) {
+    // Se non ci sono high scores o la lista è vuota, qualsiasi punteggio è valido
+    if (!highScores || highScores.length === 0) {
         return true;
     }
-    return false;
+    
+    // Se ci sono meno di 3 high scores, qualsiasi punteggio è valido
+    if (highScores.length < 3) {
+        return true;
+    }
+    
+    // Altrimenti, verifica se il punteggio è maggiore del più basso nella lista
+    const lowestHighScore = highScores[highScores.length - 1].score;
+    return score > lowestHighScore;
 }
 
 function addHighScore(name, score) {
@@ -301,6 +380,9 @@ function addHighScore(name, score) {
     highScores.push({ name, score });
     highScores.sort((a, b) => b.score - a.score);
     highScores = highScores.slice(0, 3);  // Mantieni solo i primi 3
+    
+    // Salva gli high score nel localStorage
+    saveHighScores();
 }
 
 // Modifica la funzione promptForName
@@ -333,15 +415,21 @@ function createElement(x, y, content, className = 'sprite') {
 
 // Aggiungi questo script al tuo JavaScript
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/space-invaders/sw.js')
-        .then(registration => {
-          console.log('Service Worker registrato con successo:', registration);
-        })
-        .catch(error => {
-          console.log('Registrazione Service Worker fallita:', error);
+    // Verifica se stiamo eseguendo da HTTP/HTTPS
+    if (window.location.protocol.includes('http')) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('Service Worker registrato con successo:', registration);
+                })
+                .catch(error => {
+                    console.log('Registrazione Service Worker fallita:', error);
+                });
         });
-    });
+    } else {
+        console.log('Service Worker non registrato: il protocollo deve essere HTTP o HTTPS. Stai utilizzando ' + window.location.protocol);
+    }
+    
     window.addEventListener('error', function(e) {
         if (e.target.tagName === 'LINK' && e.target.rel === 'icon') {
             console.warn('Failed to load favicon. This is not critical for game functionality.');
@@ -353,6 +441,27 @@ if ('serviceWorker' in navigator) {
 // Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        // Prima rimuovi eventuali event listeners esistenti
+        const existingLeftControl = document.getElementById('leftControl');
+        const existingRightControl = document.getElementById('rightControl');
+        const existingShootControl = document.getElementById('shootControl');
+        
+        if (existingLeftControl) {
+            // Clona e sostituisci per rimuovere tutti gli event listeners
+            const newLeftControl = existingLeftControl.cloneNode(true);
+            existingLeftControl.parentNode.replaceChild(newLeftControl, existingLeftControl);
+        }
+        
+        if (existingRightControl) {
+            const newRightControl = existingRightControl.cloneNode(true);
+            existingRightControl.parentNode.replaceChild(newRightControl, existingRightControl);
+        }
+        
+        if (existingShootControl) {
+            const newShootControl = existingShootControl.cloneNode(true);
+            existingShootControl.parentNode.replaceChild(newShootControl, existingShootControl);
+        }
+        
         if (!document.getElementById('touchControlsContainer')) {
             const touchControlsContainer = document.createElement('div');
             touchControlsContainer.id = 'touchControlsContainer';
@@ -573,15 +682,8 @@ function initGame() {
 }
 
 // Assicurati che queste funzioni siano definite altrove nel tuo codice
-function createElement(x, y, content, className = 'sprite') {
-    const el = document.createElement('div');
-    el.className = className;
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
-    el.textContent = content;
-    gameArea.appendChild(el);
-    return el;
-}
+// La funzione createElement() è già definita in precedenza nel codice
+// e verrà utilizzata da qui in avanti
 
 function updateUI() {
     if (scoreElement) scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
@@ -668,23 +770,68 @@ function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         const gameAreaRect = gameArea.getBoundingClientRect();
-        const scale = Math.min(
-            window.innerWidth / gameAreaRect.width,
-            window.innerHeight / gameAreaRect.height
-        );
-        gameArea.style.transform = `scale(${scale})`;
-
+        
+        // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
+        // Calcola il rapporto di aspetto del gioco e della finestra
+        const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità
+        const windowAspectRatio = window.innerWidth / window.innerHeight;
+        
+        let scale;
+        
+        // Adatta in base al rapporto di aspetto
+        if (windowAspectRatio < gameAspectRatio) {
+            // Se la finestra è più stretta, adatta alla larghezza
+            scale = window.innerWidth / 600 * 0.95; // 95% della larghezza per un piccolo margine
+        } else {
+            // Se la finestra è più larga, adatta all'altezza
+            scale = window.innerHeight / 600 * 0.95; // 95% dell'altezza per un piccolo margine
+        }
+        
+        // Se abbiamo già applicato scaling, usa lo stesso scale a meno che non ci sia una differenza significativa
+        if (lastAppliedScale !== null && Math.abs(lastAppliedScale - scale) < 0.1) {
+            scale = lastAppliedScale;
+        } else {
+            lastAppliedScale = scale;
+        }
+        
+        // Imposta la posizione iniziale e lo stile per centrare correttamente
+        // Anche per la schermata intro/menu utilizziamo lo stesso posizionamento del gioco
+        gameArea.style.position = 'absolute';
+        gameArea.style.top = '50%';
+        gameArea.style.left = '50%';
+        gameArea.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        gameArea.style.transformOrigin = 'center center';
+        gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
+        
+        console.log("Applicato scale:", scale, "Stato gioco:", gameState);
+        
+        // Gestione dei controlli touch
         const touchControlsContainer = document.getElementById('touchControlsContainer');
         if (touchControlsContainer) {
             touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+            
+            // Adatta la dimensione dei controlli touch in base allo schermo
+            const controlSize = Math.min(window.innerWidth / 6, 80);
+            const shootControlSize = Math.min(window.innerWidth / 5, 120);
+            
+            document.querySelectorAll('.touch-control').forEach(control => {
+                if (control.id === 'shootControl') {
+                    control.style.width = `${shootControlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                } else {
+                    control.style.width = `${controlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                }
+            });
+        }
+        
+        // Assicurati che il messaggio temporaneo mantenga la sua posizione corretta
+        if (temporaryMessageElement) {
+            temporaryMessageElement.style.top = '10%';
+            temporaryMessageElement.style.left = '50%';
+            temporaryMessageElement.style.transform = 'translateX(-50%)';
         }
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
-    // Assicurati che temporaryMessageElement mantenga la sua posizione
-    if (temporaryMessageElement) {
-        temporaryMessageElement.style.top = '10%';
-        temporaryMessageElement.style.left = '50%';
-        temporaryMessageElement.style.transform = 'translateX(-50%)';
-    }
 }
 
 // Inizializza il gioco
@@ -847,6 +994,7 @@ function resetShotsFired() {
 function checkCollisions() {
     // Fix collisioni con proiettili giocatore
     for (let bulletIndex = bullets.length - 1; bulletIndex >= 0; bulletIndex--) {
+        let bulletRemoved = false;
         const bullet = bullets[bulletIndex];
         
         // Collisione con gli invasori
@@ -872,19 +1020,19 @@ function checkCollisions() {
                 invaders.splice(invaderIndex, 1);
                 bullets.splice(bulletIndex, 1);
                 explosionSound();
+                bulletRemoved = true;
                 // Interrompi il ciclo per questo proiettile dato che è stato rimosso
                 break;
             }
         }
         
         // Se il proiettile è stato rimosso, passa al prossimo
-        if (bulletIndex >= bullets.length) continue;
-        const bullet2 = bullets[bulletIndex];
+        if (bulletRemoved) continue;
 
         // Collisione con UFO
-        if (ufo.active && Math.abs(bullet2.x - ufo.x) < 20 && Math.abs(bullet2.y - ufo.y) < 20) {
+        if (ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
             gameArea.removeChild(ufo.el);
-            gameArea.removeChild(bullet2.el);
+            gameArea.removeChild(bullet.el);
             bullets.splice(bulletIndex, 1);
             ufo.active = false;
             // Usa il punteggio memorizzato per questo UFO specifico
@@ -897,20 +1045,16 @@ function checkCollisions() {
             continue;
         }
 
-        // Se il proiettile è stato rimosso, passa al prossimo
-        if (bulletIndex >= bullets.length) continue;
-        const bullet3 = bullets[bulletIndex];
-
         // Collisione con barriere - versione migliorata per colpire solo un blocchetto alla volta
         let barrierHit = false;
         for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
             const barrier = barriers[barrierIndex];
             // Riduco la zona di collisione per renderla più precisa, solo 10px anziché 15px
-            if (Math.abs(bullet3.x - barrier.x) < 10 && Math.abs(bullet3.y - barrier.y) < 10) {
-                gameArea.removeChild(bullet3.el);
+            if (Math.abs(bullet.x - barrier.x) < 10 && Math.abs(bullet.y - barrier.y) < 10) {
+                gameArea.removeChild(bullet.el);
                 bullets.splice(bulletIndex, 1);
                 
-                // Riduci i punti vita della barriera
+                // Danneggia la barriera
                 barrier.hp -= 1;
                 
                 // Aggiorna l'aspetto della barriera in base ai punti vita rimanenti
@@ -932,6 +1076,7 @@ function checkCollisions() {
 
     // Collisione proiettili alieni con giocatore e barriere
     for (let bulletIndex = alienBullets.length - 1; bulletIndex >= 0; bulletIndex--) {
+        let bulletRemoved = false;
         const bullet = alienBullets[bulletIndex];
         
         // Collisione con giocatore
@@ -944,11 +1089,12 @@ function checkCollisions() {
             if (lives <= 0) {
                 gameOver();
             }
+            bulletRemoved = true;
             continue;
         }
 
         // Se il proiettile è stato rimosso, passa al prossimo
-        if (bulletIndex >= alienBullets.length) continue;
+        if (bulletRemoved) continue;
         
         // Collisione con barriere - versione migliorata per colpire solo un blocchetto alla volta
         let barrierHit = false;
@@ -1015,7 +1161,10 @@ function gameLoop() {
         updateBullets();
         checkCollisions();
         checkScore();
-    gameLoopId = requestAnimationFrame(gameLoop);
+    } 
+    
+    if (gameActive) {
+        gameLoopId = requestAnimationFrame(gameLoop);
     } else {
         cancelAnimationFrame(gameLoopId);
     }
@@ -1304,6 +1453,37 @@ window.addEventListener('orientationchange', () => setTimeout(handleResize, 100)
 //showIntroScreen();
 
 window.addEventListener('load', () => {
+    // Carica gli high score salvati
+    loadHighScores();
+    // Aggiorna l'high score corrente in base ai valori caricati
+    if (highScores && highScores.length > 0) {
+        hiScore = Math.max(...highScores.map(score => score.score));
+    }
+    
     handleResize();
     showIntroScreen(); // Chiamiamo direttamente showIntroScreen invece di changeGameState
 });
+
+// Carica gli high score dal localStorage all'avvio
+function loadHighScores() {
+    const savedScores = localStorage.getItem('spaceInvadersHighScores');
+    if (savedScores) {
+        try {
+            highScores = JSON.parse(savedScores);
+            console.log('High scores caricati:', highScores);
+        } catch (e) {
+            console.error('Errore nel parsing degli high scores:', e);
+            // Mantieni i valori predefiniti in caso di errore
+        }
+    }
+}
+
+// Salva gli high score nel localStorage
+function saveHighScores() {
+    try {
+        localStorage.setItem('spaceInvadersHighScores', JSON.stringify(highScores));
+        console.log('High scores salvati');
+    } catch (e) {
+        console.error('Errore nel salvataggio degli high scores:', e);
+    }
+}

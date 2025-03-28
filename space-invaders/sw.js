@@ -1,13 +1,14 @@
 // sw.js
 
 const CACHE_NAME = 'space-invaders-v3';
+// Utilizzo path relativi invece di assoluti per maggiore portabilità
 const urlsToCache = [
-  '/space-invaders/',
-  '/space-invaders/index.html',
-  '/space-invaders/space-invaders.js',
-  '/space-invaders/icon.png',
-  '/space-invaders/favicon.ico',
-  '/space-invaders/manifest.json'
+  './',
+  './index.html',
+  './space-invaders.js',
+  './icon.png',
+  './favicon.ico',
+  './manifest.json'
   // Aggiungi qui altri file che vuoi mettere in cache
 ];
 
@@ -71,7 +72,7 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => {
         // Fallback per richieste offline
         if (event.request.url.indexOf('.html') > -1) {
-          return caches.match('/space-invaders/index.html');
+          return caches.match('./index.html');
         }
       })
   );
