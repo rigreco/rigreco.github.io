@@ -17,9 +17,13 @@
                 <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
                 <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
                 <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
-                <li><a href="bode_plot.html"><i data-lucide="trending-up"></i> Diagrammi di Bode</a></li>
-                <li><a href="function_plot.html"><i data-lucide="line-chart"></i> Grafico Funzione</a></li>
-                <li><a href="function_derivative.html"><i data-lucide="git-branch"></i> Derivata Funzione</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+                    <div class="dropdown-content">
+                        <a href="space-invaders/index.html"><i data-lucide="target"></i> Space Invaders</a>
+                    </div>
+                </li>
+                <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
             </ul>
         </nav>
     </header>
@@ -44,7 +48,31 @@
     </main>
 
     <footer>
-        <p>&copy; 2024 Didattica & Progetti - rigreco.github.io</p>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Didattica & Progetti</h4>
+                <p>&copy; 2025 rigreco.github.io</p>
+                <p><a href="sitemap.html">Mappa del sito</a></p>
+            </div>
+            <div class="footer-section">
+                <h4>Sezioni</h4>
+                <ul>
+                    <li><a href="matematica.html">Matematica</a></li>
+                    <li><a href="progetti.html">Progetti</a></li>
+                    <li><a href="space-invaders/index.html">Arcade</a></li>
+                    <li><a href="apple2.html">Apple II</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Strumenti</h4>
+                <ul>
+                    <li><a href="function_plot.html">Grafico Funzioni</a></li>
+                    <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+                    <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+                    <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+                </ul>
+            </div>
+        </div>
     </footer>
 
     <script src="function_plot.js"></script>
