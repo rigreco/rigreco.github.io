@@ -59,11 +59,10 @@ let resizeTimeout;
 // Variabile per mantenere coerenza dello scaling
 let lastAppliedScale = null;
 
+// Funzione per gestire il ridimensionamento della finestra
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        const gameAreaRect = gameArea.getBoundingClientRect();
-        
         // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
         // Calcola il rapporto di aspetto del gioco e della finestra
         const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità
@@ -769,8 +768,6 @@ function updateHiScore() {
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        const gameAreaRect = gameArea.getBoundingClientRect();
-        
         // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
         // Calcola il rapporto di aspetto del gioco e della finestra
         const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità

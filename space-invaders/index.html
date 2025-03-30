@@ -23,6 +23,8 @@
             background: #000;
             color: white;
             font-family: monospace;
+            overscroll-behavior: none; /* Previene il pull-to-refresh su mobile */
+            touch-action: manipulation; /* Migliora la risposta ai tocchi */
         }
         #gameArea {
             position: relative;
@@ -108,6 +110,27 @@
             touch-action: manipulation;
         }
         
+        .touch-control {
+            background-color: rgba(100, 100, 100, 0.7);
+            border: 2px solid white;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 70px;
+            height: 70px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        
+        #shootControl {
+            background-color: rgba(255, 50, 50, 0.7);
+            width: 100px;
+        }
+        
         @media (max-height: 600px) {
             .touch-control {
                 width: 60px !important;
@@ -149,7 +172,7 @@
             color: white;
             font-family: 'Press Start 2P', cursive;
         }
-        #startButton, #backToIntroButton {
+        #startButton, #backToIntroButton, #highScoresButton, #continueButton, #nextLevelButton, #restartButton {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 18px;
@@ -158,7 +181,14 @@
             color: white;
             border: none;
             border-radius: 5px;
+            transition: background-color 0.3s;
         }
+        
+        #startButton:hover, #backToIntroButton:hover, #highScoresButton:hover, 
+        #continueButton:hover, #nextLevelButton:hover, #restartButton:hover {
+            background-color: #45a049;
+        }
+        
         #uiContainer {
             position: absolute;
             top: 0;
