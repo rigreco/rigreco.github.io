@@ -474,47 +474,38 @@ function showIntroScreen() {
         const playText = document.getElementById('playText');
         const plaText = document.getElementById('pla-text');
         const yLetter = document.getElementById('y-letter');
-        const containerWidth = gameArea.clientWidth;
-        
-        // Ottieni la posizione esatta della Y per un posizionamento preciso dell'alieno
-        const yRect = yLetter.getBoundingClientRect();
-        const gameAreaRect = gameArea.getBoundingClientRect();
-        
-        // Posizionamento preciso dell'alieno: esattamente allineato con la Y
-        const yPositionInGameArea = {
-            // L'alieno dovrebbe essere esattamente allineato alla Y, non sotto
-            top: yRect.top - gameAreaRect.top,
-            left: yRect.left - gameAreaRect.left
-        };
         
         // Creiamo l'alieno
         const alien = document.createElement('div');
         alien.style.position = 'absolute';
-        alien.style.fontSize = '28px'; // Manteniamo l'alieno più grande del testo PLAY
-        alien.style.transition = 'left 2.5s ease-in-out, top 2s ease-in-out'; // Movimento ancora più lento
-        alien.style.display = 'flex'; // Uso flexbox per allineare alieno e lettera orizzontalmente
-        alien.style.alignItems = 'center'; // Allinea verticalmente al centro
-        alien.style.whiteSpace = 'nowrap'; // Impedisce a testo e alieno di andare su righe diverse
+        alien.style.fontSize = '28px';
+        alien.style.transition = 'left 2.5s ease-in-out, top 2s ease-in-out';
+        alien.style.display = 'flex';
+        alien.style.alignItems = 'center';
+        alien.style.whiteSpace = 'nowrap';
+        alien.style.zIndex = '1000';
         
         // Contenuto iniziale: solo l'alieno
         alien.innerHTML = '👾';
         
-        // Posizione iniziale: arriva da destra alla stessa altezza della Y
-        alien.style.left = `${containerWidth}px`;
-        // Posiziona più in alto rispetto alla Y per allinearlo meglio
-        alien.style.top = `${yPositionInGameArea.top - 12}px`;
+        // Invece di usare getBoundingClientRect, utilizzeremo valori fissi con percentuali
+        // relative alle dimensioni del gameArea, che saranno sempre proporzionali
+
+        // Posizione iniziale dell'alieno (fuori dallo schermo a destra)
+        alien.style.left = '600px'; // Fuori a destra
+        alien.style.top = '145px';  // Stessa altezza della scritta PLAY
         gameArea.appendChild(alien);
         
         // Fase 1: L'alieno arriva accanto alla Y (più lento)
         setTimeout(() => {
-            alien.style.left = `${yPositionInGameArea.left + 10}px`; // Posiziona l'alieno accanto alla Y, non sopra
-        }, 1500); // Tempo più lungo prima di iniziare
+            // Posiziona l'alieno accanto alla Y - posizione fissa nel gameArea
+            alien.style.left = '315px'; // Posizione calibrata esattamente accanto alla Y
+        }, 1500);
         
         // Fase 2: La Y scompare e l'alieno trasporta la Y rovesciata
         setTimeout(() => {
             yLetter.style.visibility = 'hidden';
             // Cambio il contenuto dell'alieno per mostrare che trasporta la Y rovesciata A SINISTRA
-            // Utilizzo un flexbox invertito per avere prima la Y poi l'alieno
             alien.style.flexDirection = 'row-reverse'; // Inverte l'ordine: Y a sinistra, alieno a destra
             
             // La Y trasportata ha la stessa dimensione della scritta PLA
@@ -522,14 +513,14 @@ function showIntroScreen() {
             
             // Muovi l'alieno a destra con la Y rovesciata
             setTimeout(() => {
-                alien.style.left = `${containerWidth}px`;
+                alien.style.left = '600px'; // Fuori a destra
             }, 800);
-        }, 4000); // Più tempo per l'interazione
+        }, 4000);
         
         // Fase 3: L'alieno riappare da destra con la Y dritta
         setTimeout(() => {
             // Muovi l'alieno da destra verso la scritta PLA
-            alien.style.left = `${containerWidth}px`;
+            alien.style.left = '600px'; // Fuori a destra
             
             // Cambio il contenuto dell'alieno per mostrare che trasporta la Y dritta A SINISTRA
             alien.style.flexDirection = 'row-reverse'; // Mantiene l'ordine invertito: Y a sinistra, alieno a destra
@@ -540,11 +531,11 @@ function showIntroScreen() {
             // Rendi visibile l'alieno se necessario
             alien.style.visibility = 'visible';
             
-            // Muovi l'alieno verso la scritta PLA (una posizione ancora più a sinistra)
+            // Muovi l'alieno verso la scritta PLA
             setTimeout(() => {
-                alien.style.left = `${plaText.getBoundingClientRect().right - gameAreaRect.left - 5}px`; // Ridotto di 10px (da +5 a -5)
+                alien.style.left = '315px'; // Posizione calibrata alla fine di "PLA"
             }, 800);
-        }, 8000); // Più tempo tra le fasi
+        }, 8000);
         
         // Fase 4: La Y corretta appare e l'alieno scompare
         setTimeout(() => {
@@ -568,7 +559,7 @@ function showIntroScreen() {
             
             // Assegna l'event listener al pulsante HIGH SCORES
             document.getElementById('highScoresButton').addEventListener('click', showHighScores);
-        }, 12000); // Più tempo per completare l'animazione
+        }, 12000);
     }
     
     // Avvia l'animazione del testo
