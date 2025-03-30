@@ -535,3 +535,20 @@ pre code {
 .tool-link:hover {
   background-color: #1565c0;
 }
+
+/* Stili per i link GeoGebra */
+.geogebra-link {
+  background-color: #f5f8ff;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #2196f3;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.small-note {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 8px;
+  font-style: italic;
+}
