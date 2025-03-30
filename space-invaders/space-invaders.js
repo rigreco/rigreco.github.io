@@ -462,9 +462,9 @@ function createTouchControls() {
         // Container per il joystick virtuale (a sinistra)
         const joystickContainer = document.createElement('div');
         joystickContainer.id = 'joystickContainer';
-        joystickContainer.style.width = '120px';
-        joystickContainer.style.height = '120px';
-        joystickContainer.style.borderRadius = '60px';
+        joystickContainer.style.width = '140px'; // Aumentato per avere più spazio di movimento
+        joystickContainer.style.height = '140px'; // Aumentato per avere più area sensibile
+        joystickContainer.style.borderRadius = '70px';
         joystickContainer.style.backgroundColor = 'rgba(100, 100, 100, 0.3)';
         joystickContainer.style.border = '2px solid rgba(255, 255, 255, 0.5)';
         joystickContainer.style.position = 'relative';
@@ -473,14 +473,15 @@ function createTouchControls() {
         // Il "bastoncino" del joystick
         const joystickStick = document.createElement('div');
         joystickStick.id = 'joystickStick';
-        joystickStick.style.width = '50px';
-        joystickStick.style.height = '50px';
-        joystickStick.style.borderRadius = '25px';
+        joystickStick.style.width = '60px'; // Aumentato per migliorare visibilità
+        joystickStick.style.height = '60px'; // Aumentato per migliorare visibilità
+        joystickStick.style.borderRadius = '30px';
         joystickStick.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        joystickStick.style.border = '2px solid white';
         joystickStick.style.position = 'absolute';
-        joystickStick.style.top = '35px';  // Centrato verticalmente (120-50)/2
-        joystickStick.style.left = '35px'; // Centrato orizzontalmente (120-50)/2
-        joystickStick.style.transition = 'transform 0.1s ease-out';
+        joystickStick.style.top = '40px';  // Centrato verticalmente (140-60)/2
+        joystickStick.style.left = '40px'; // Centrato orizzontalmente (140-60)/2
+        joystickStick.style.transition = 'transform 0.08s ease-out'; // Animazione più rapida per maggiore reattività
         joystickStick.style.pointerEvents = 'none'; // Il bastoncino non riceve eventi touch
         
         joystickContainer.appendChild(joystickStick);
@@ -504,8 +505,8 @@ function createTouchControls() {
         shootControl.style.display = 'flex';
         shootControl.style.justifyContent = 'center';
         shootControl.style.alignItems = 'center';
-        shootControl.style.width = '100px';
-        shootControl.style.height = '100px';
+        shootControl.style.width = '110px';
+        shootControl.style.height = '110px';
         shootControl.style.userSelect = 'none';
         shootControl.style.pointerEvents = 'auto'; // Questo elemento riceve eventi touch
         
@@ -515,41 +516,61 @@ function createTouchControls() {
         touchControlsContainer.appendChild(joystickContainer);
         touchControlsContainer.appendChild(shootControlContainer);
         
-        // Implementazione della logica del joystick
+        // Implementazione della logica del joystick - MIGLIORATA
         let joystickActive = false;
         let joystickStartX = 0;
-        let joystickCenterX = 60; // Centro del joystick (metà della larghezza)
-        let joystickMaxDistance = 35; // Distanza massima dal centro
+        let joystickCenterX = 70; // Centro del joystick (metà della larghezza)
+        let joystickMaxDistance = 45; // Distanza massima dal centro - aumentata
         
-        // Funzione per aggiornare la posizione del bastoncino del joystick
-        function updateJoystickPosition(x) {
-            const deltaX = x - joystickStartX;
+        // Funzione per aggiornare la posizione del bastoncino del joystick - VERSIONE MIGLIORATA
+        function updateJoystickPosition(touchX) {
+            // Converte la posizione del tocco in coordinate relative al contenitore del joystick
+            const joystickBounds = joystickContainer.getBoundingClientRect();
+            const relativeX = touchX - joystickBounds.left;
+            
+            // Calcola lo spostamento rispetto al centro
+            const deltaX = relativeX - joystickCenterX;
+            
             // Limita lo spostamento alla distanza massima
             const limitedDeltaX = Math.max(-joystickMaxDistance, Math.min(joystickMaxDistance, deltaX));
             
             // Imposta la posizione del bastoncino
             joystickStick.style.transform = `translateX(${limitedDeltaX}px)`;
             
+            // Calcola la percentuale di movimento (da -1 a 1)
+            const movementRatio = limitedDeltaX / joystickMaxDistance;
+            
+            // Applica una risposta più naturale con una curva esponenziale
+            // Questo rende il controllo più preciso vicino al centro e più rapido verso gli estremi
+            const exponentialResponse = Math.sign(movementRatio) * Math.pow(Math.abs(movementRatio), 0.8);
+            
             // Imposta le variabili di movimento in base alla posizione del joystick
-            if (limitedDeltaX < -10) {
+            // Zona morta più piccola (5%) per maggiore sensibilità
+            if (exponentialResponse < -0.05) {
                 isMovingLeft = true;
                 isMovingRight = false;
-            } else if (limitedDeltaX > 10) {
+                // Velocità proporzionale allo spostamento
+                player.moveSpeed = Math.max(3, Math.abs(exponentialResponse) * 12);
+            } else if (exponentialResponse > 0.05) {
                 isMovingLeft = false;
                 isMovingRight = true;
+                // Velocità proporzionale allo spostamento
+                player.moveSpeed = Math.max(3, Math.abs(exponentialResponse) * 12);
             } else {
                 // Zona morta centrale per evitare micro-movimenti indesiderati
                 isMovingLeft = false;
                 isMovingRight = false;
+                player.moveSpeed = 5; // Velocità di default
             }
         }
         
-        // Event listeners per il joystick
+        // Event listeners per il joystick - MIGLIORATI
         joystickContainer.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
             joystickActive = true;
-            joystickStartX = touch.clientX;
+            
+            // Usa la prima posizione di tocco
+            const touch = e.touches[0];
             
             // Aggiorna immediatamente la posizione per feedback immediato
             updateJoystickPosition(touch.clientX);
@@ -568,15 +589,57 @@ function createTouchControls() {
             joystickStick.style.transform = 'translateX(0)';
             isMovingLeft = false;
             isMovingRight = false;
+            player.moveSpeed = 5; // Reimposta la velocità predefinita
         };
         
         joystickContainer.addEventListener('touchend', resetJoystick);
         joystickContainer.addEventListener('touchcancel', resetJoystick);
         
+        // Aggiungiamo anche il supporto per tocchi ovunque nel joystick
+        // Questo permette di spostare il controllo direttamente nella posizione toccata
+        joystickContainer.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const joystickBounds = joystickContainer.getBoundingClientRect();
+            const relativeX = touch.clientX - joystickBounds.left;
+            
+            // Aggiorna direttamente la posizione in base al punto toccato
+            updateJoystickPosition(touch.clientX);
+        });
+        
         // Event listener per il pulsante di sparo
         shootControl.addEventListener('touchstart', (e) => {
             e.preventDefault();
             shoot();
+        });
+        
+        // Rendere il pulsante di sparo ripetuto se tenuto premuto
+        let shootInterval = null;
+        
+        shootControl.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shoot();
+            
+            // Pulisci eventuali intervalli esistenti
+            if (shootInterval) clearInterval(shootInterval);
+            
+            // Imposta un nuovo intervallo per sparare continuamente
+            shootInterval = setInterval(() => {
+                shoot();
+            }, 300); // Sparo ogni 300ms se tenuto premuto
+        });
+        
+        shootControl.addEventListener('touchend', () => {
+            if (shootInterval) {
+                clearInterval(shootInterval);
+                shootInterval = null;
+            }
+        });
+        
+        shootControl.addEventListener('touchcancel', () => {
+            if (shootInterval) {
+                clearInterval(shootInterval);
+                shootInterval = null;
+            }
         });
         
         // Adatta dimensioni dei controlli in base allo schermo
@@ -587,15 +650,15 @@ function createTouchControls() {
             
             // Dimensioni del joystick basate sulla dimensione dello schermo
             const joystickSize = isLandscape ? 
-                Math.min(screenHeight * 0.3, 120) : 
-                Math.min(screenWidth * 0.25, 120);
+                Math.min(screenHeight * 0.35, 160) : 
+                Math.min(screenWidth * 0.28, 160);
             
             joystickContainer.style.width = `${joystickSize}px`;
             joystickContainer.style.height = `${joystickSize}px`;
             joystickContainer.style.borderRadius = `${joystickSize/2}px`;
             
             // Dimensioni del bastoncino
-            const stickSize = joystickSize * 0.4;
+            const stickSize = joystickSize * 0.42;
             joystickStick.style.width = `${stickSize}px`;
             joystickStick.style.height = `${stickSize}px`;
             joystickStick.style.borderRadius = `${stickSize/2}px`;
@@ -604,12 +667,12 @@ function createTouchControls() {
             
             // Aggiorna il valore di riferimento per il joystick
             joystickCenterX = joystickSize / 2;
-            joystickMaxDistance = joystickSize * 0.3;
+            joystickMaxDistance = joystickSize * 0.36;
             
             // Dimensioni del pulsante di sparo
             const shootSize = isLandscape ? 
-                Math.min(screenHeight * 0.35, 130) : 
-                Math.min(screenWidth * 0.3, 130);
+                Math.min(screenHeight * 0.38, 140) : 
+                Math.min(screenWidth * 0.32, 140);
             
             shootControl.style.width = `${shootSize}px`;
             shootControl.style.height = `${shootSize}px`;
