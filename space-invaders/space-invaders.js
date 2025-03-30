@@ -300,21 +300,279 @@ function showTemporaryMessage(message, duration = 2000) {
 function showIntroScreen() {
     console.log("Showing intro screen");
     gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
+    
+    // Verifica se l'utente sta tornando dalla schermata High Score
+    const isReturningFromHighScore = document.getElementById('highScoreScreen') !== null;
+    
+    // Usa il font pixellato PrintChar21 per un look più retrò arcade anni '80
+    const fontStyle = "'PrintChar21', monospace";
+    
+    // Aggiungi riferimento al foglio di stile del font
+    if (!document.querySelector('link[href*="PrintChar21"]')) {
+        const fontLink = document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = '../webfonts/PrintChar21/stylesheet40.css';
+        document.head.appendChild(fontLink);
+    }
+    
     gameArea.innerHTML = `
-        <div id="introScreen" style="color: white; text-align: center; padding-top: 100px;">
-            <h1>SPACE INVADERS</h1>
-            <div id="introHiScore">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
-            <div>*SCORE ADVANCE TABLE*</div>
-            <div>🛸 = ? MYSTERY</div>
-            <div>👾 = 30 POINTS</div>
-            <div>👽 = 20 POINTS</div>
-            <div>👻 = 10 POINTS</div>
-            <button id="startButton" style="margin-top: 20px;">PLAY</button>
-            <button id="highScoresButton" style="margin-top: 20px;">HIGH SCORES</button>
+        <div id="introScreen" style="color: white; text-align: center; padding-top: 30px;">
+            <div id="introHiScore" style="position: absolute; top: 10px; left: 0; right: 0; text-align: center; font-family: ${fontStyle};">HI-SCORE ${hiScore.toString().padStart(5, '0')}</div>
+            <div id="playText" style="margin: 30px 0 15px; cursor: pointer; display: inline-block; padding: 8px 30px; font-family: ${fontStyle};">
+                <span id="pla-text">PLA</span><span id="y-letter" style="display: inline-block; transform: ${isReturningFromHighScore ? 'scaleY(1)' : 'scaleY(-1)'};">Y</span>
+            </div>
+            <h1 style="font-family: ${fontStyle};">SPACE INVADERS</h1>
+            <div id="scoreTable" style="display: flex; flex-direction: column; align-items: center; margin-top: 10px; font-family: ${fontStyle};"></div>
+            <div id="buttons" style="margin-top: 20px; visibility: ${isReturningFromHighScore ? 'visible' : 'hidden'};">
+                <button id="highScoresButton" class="arcade-button" style="margin-top: 15px; margin-bottom: 20px; font-family: ${fontStyle};">HIGH SCORES</button>
+            </div>
         </div>
     `;
-    document.getElementById('startButton').addEventListener('click', startGameFromIntro);
-    document.getElementById('highScoresButton').addEventListener('click', showHighScores);
+    
+    // Stile uniforme per i pulsanti arcade
+    const style = document.createElement('style');
+    style.textContent = `
+        .arcade-button {
+            font-family: 'PrintChar21', monospace;
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 8px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        .arcade-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px white;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Array dei testi con icone e punteggi
+    const scoreTexts = [
+        { icon: "🛸", points: "? MYSTERY" },
+        { icon: "👾", points: "30 POINTS" },
+        { icon: "👽", points: "20 POINTS" },
+        { icon: "👻", points: "10 POINTS" }
+    ];
+    
+    const scoreTable = document.getElementById('scoreTable');
+    
+    // Crea il titolo della tabella che è già completamente visibile
+    const titleLine = document.createElement('div');
+    titleLine.textContent = "*SCORE ADVANCE TABLE*";
+    titleLine.style.marginBottom = "10px";
+    titleLine.style.fontWeight = "bold";
+    scoreTable.appendChild(titleLine);
+    
+    // Crea righe allineate
+    scoreTexts.forEach((score, index) => {
+        const textLine = document.createElement('div');
+        textLine.id = `score-line-${index}`;
+        textLine.style.width = "200px"; // Larghezza fissa per allineamento
+        textLine.style.display = "flex"; // Utilizziamo flexbox per allineamento
+        textLine.style.alignItems = "center"; // Allinea verticalmente
+        textLine.style.justifyContent = "flex-start"; // Allinea a sinistra
+        textLine.style.height = '1.5em'; // Altezza fissa per evitare salti
+        textLine.style.margin = "3px 0"; // Margine verticale tra le righe
+        
+        // Contenitore per l'icona che è già visibile
+        const iconContainer = document.createElement('span');
+        iconContainer.style.display = "inline-block";
+        iconContainer.style.width = "25px"; // Larghezza fissa per l'icona
+        iconContainer.style.textAlign = "right"; // Allinea a destra
+        iconContainer.style.paddingRight = "5px"; // Spazio tra icona e "="
+        iconContainer.innerHTML = `${score.icon}`;
+        
+        // Contenitore per il simbolo "=" che sarà animato o mostrato subito
+        const equalContainer = document.createElement('span');
+        equalContainer.id = `equal-text-${index}`;
+        equalContainer.style.width = "15px"; // Larghezza fissa per il simbolo "="
+        equalContainer.style.textAlign = "center"; // Allinea al centro
+        
+        // Se torniamo da High Score, mostra già il testo "="
+        if (isReturningFromHighScore) {
+            equalContainer.textContent = "=";
+        }
+        
+        // Contenitore per il testo dei punti che sarà animato o mostrato subito
+        const pointsContainer = document.createElement('span');
+        pointsContainer.id = `points-text-${index}`;
+        pointsContainer.style.textAlign = "left"; // Allinea a sinistra
+        pointsContainer.style.paddingLeft = "5px"; // Spazio tra "=" e punti
+        
+        // Se torniamo da High Score, mostra già il testo completo
+        if (isReturningFromHighScore) {
+            pointsContainer.textContent = score.points;
+        }
+        
+        // Aggiungi i contenitori alla riga
+        textLine.appendChild(iconContainer);
+        textLine.appendChild(equalContainer);
+        textLine.appendChild(pointsContainer);
+        
+        // Aggiungi la riga alla tabella
+        scoreTable.appendChild(textLine);
+    });
+    
+    // Trasforma immediatamente il "PLAY" in pulsante se stiamo tornando dalla schermata High Score
+    if (isReturningFromHighScore) {
+        const playText = document.getElementById('playText');
+        playText.style.border = '2px solid white';
+        playText.style.backgroundColor = 'rgba(50, 50, 50, 0.5)';
+        playText.style.textShadow = '0 0 10px white';
+        playText.classList.add('arcade-button');
+        playText.addEventListener('click', startGameFromIntro);
+        document.getElementById('highScoresButton').addEventListener('click', showHighScores);
+        return; // Esci immediatamente senza mostrare le animazioni
+    }
+    
+    // Funzione per animare sia il simbolo "=" che la parte dei punteggi carattere per carattere
+    let lineIndex = 0;
+    let isTypingEqual = true; // Flag per indicare se stiamo componendo il simbolo "=" o i punti
+    
+    function typeText() {
+        if (lineIndex < scoreTexts.length) {
+            if (isTypingEqual) {
+                // Animazione del simbolo "="
+                const equalSpan = document.getElementById(`equal-text-${lineIndex}`);
+                equalSpan.textContent = "=";
+                isTypingEqual = false;
+                setTimeout(typeText, 150); // Rallentato: da 100ms a 150ms prima di passare ai punti
+            } else {
+                // Animazione della parte dei punti
+                const pointsSpan = document.getElementById(`points-text-${lineIndex}`);
+                const pointsText = scoreTexts[lineIndex].points;
+                
+                if (!pointsSpan.textContent) {
+                    // Prima lettera
+                    pointsSpan.textContent = pointsText.charAt(0);
+                    setTimeout(typeText, 150); // Rallentato: da 100ms a 150ms per la prossima lettera
+                } else if (pointsSpan.textContent.length < pointsText.length) {
+                    // Aggiungi la lettera successiva
+                    pointsSpan.textContent = pointsText.substring(0, pointsSpan.textContent.length + 1);
+                    setTimeout(typeText, 150); // Rallentato: da 100ms a 150ms per la prossima lettera
+                } else {
+                    // Completato questo punto, passa alla riga successiva
+                    lineIndex++;
+                    isTypingEqual = true; // Torna a comporre il simbolo "=" per la prossima riga
+                    setTimeout(typeText, 400); // Rallentato: da 300ms a 400ms tra le righe
+                }
+            }
+        } else {
+            // Una volta terminata l'animazione dei punteggi, avvia l'animazione dell'alieno con la Y
+            startAlienYAnimation();
+        }
+    }
+    
+    // Funzione dell'animazione dell'alieno con la Y
+    function startAlienYAnimation() {
+        const playText = document.getElementById('playText');
+        const plaText = document.getElementById('pla-text');
+        const yLetter = document.getElementById('y-letter');
+        const containerWidth = gameArea.clientWidth;
+        
+        // Ottieni la posizione esatta della Y per un posizionamento preciso dell'alieno
+        const yRect = yLetter.getBoundingClientRect();
+        const gameAreaRect = gameArea.getBoundingClientRect();
+        
+        // Posizionamento preciso dell'alieno: esattamente allineato con la Y
+        const yPositionInGameArea = {
+            // L'alieno dovrebbe essere esattamente allineato alla Y, non sotto
+            top: yRect.top - gameAreaRect.top,
+            left: yRect.left - gameAreaRect.left
+        };
+        
+        // Creiamo l'alieno
+        const alien = document.createElement('div');
+        alien.style.position = 'absolute';
+        alien.style.fontSize = '28px'; // Manteniamo l'alieno più grande del testo PLAY
+        alien.style.transition = 'left 2.5s ease-in-out, top 2s ease-in-out'; // Movimento ancora più lento
+        alien.style.display = 'flex'; // Uso flexbox per allineare alieno e lettera orizzontalmente
+        alien.style.alignItems = 'center'; // Allinea verticalmente al centro
+        alien.style.whiteSpace = 'nowrap'; // Impedisce a testo e alieno di andare su righe diverse
+        
+        // Contenuto iniziale: solo l'alieno
+        alien.innerHTML = '👾';
+        
+        // Posizione iniziale: arriva da destra alla stessa altezza della Y
+        alien.style.left = `${containerWidth}px`;
+        // Posiziona più in alto rispetto alla Y per allinearlo meglio
+        alien.style.top = `${yPositionInGameArea.top - 12}px`;
+        gameArea.appendChild(alien);
+        
+        // Fase 1: L'alieno arriva accanto alla Y (più lento)
+        setTimeout(() => {
+            alien.style.left = `${yPositionInGameArea.left + 10}px`; // Posiziona l'alieno accanto alla Y, non sopra
+        }, 1500); // Tempo più lungo prima di iniziare
+        
+        // Fase 2: La Y scompare e l'alieno trasporta la Y rovesciata
+        setTimeout(() => {
+            yLetter.style.visibility = 'hidden';
+            // Cambio il contenuto dell'alieno per mostrare che trasporta la Y rovesciata A SINISTRA
+            // Utilizzo un flexbox invertito per avere prima la Y poi l'alieno
+            alien.style.flexDirection = 'row-reverse'; // Inverte l'ordine: Y a sinistra, alieno a destra
+            
+            // La Y trasportata ha la stessa dimensione della scritta PLA
+            alien.innerHTML = '👾<span style="display: inline-block; transform: scaleY(-1); font-family: \'PrintChar21\', monospace; margin-right: 5px; font-size: 1em;">Y</span>';
+            
+            // Muovi l'alieno a destra con la Y rovesciata
+            setTimeout(() => {
+                alien.style.left = `${containerWidth}px`;
+            }, 800);
+        }, 4000); // Più tempo per l'interazione
+        
+        // Fase 3: L'alieno riappare da destra con la Y dritta
+        setTimeout(() => {
+            // Muovi l'alieno da destra verso la scritta PLA
+            alien.style.left = `${containerWidth}px`;
+            
+            // Cambio il contenuto dell'alieno per mostrare che trasporta la Y dritta A SINISTRA
+            alien.style.flexDirection = 'row-reverse'; // Mantiene l'ordine invertito: Y a sinistra, alieno a destra
+            
+            // La Y trasportata ha la stessa dimensione della scritta PLA
+            alien.innerHTML = '👾<span style="display: inline-block; font-family: \'PrintChar21\', monospace; margin-right: 5px; font-size: 1em;">Y</span>';
+            
+            // Rendi visibile l'alieno se necessario
+            alien.style.visibility = 'visible';
+            
+            // Muovi l'alieno verso la scritta PLA (una posizione ancora più a sinistra)
+            setTimeout(() => {
+                alien.style.left = `${plaText.getBoundingClientRect().right - gameAreaRect.left - 5}px`; // Ridotto di 10px (da +5 a -5)
+            }, 800);
+        }, 8000); // Più tempo tra le fasi
+        
+        // Fase 4: La Y corretta appare e l'alieno scompare
+        setTimeout(() => {
+            // Rendi nuovamente visibile la Y, ma questa volta non capovolta
+            yLetter.style.transform = 'scaleY(1)';
+            yLetter.style.visibility = 'visible';
+            
+            // Fai scomparire l'alieno
+            alien.style.visibility = 'hidden';
+            
+            // Trasforma la scritta PLAY in un pulsante aggiungendo il bordo
+            playText.style.border = '2px solid white';
+            playText.style.backgroundColor = 'rgba(50, 50, 50, 0.5)';
+            playText.style.textShadow = '0 0 10px white';
+            
+            // Mostra i pulsanti dopo che l'animazione è completata
+            document.getElementById('buttons').style.visibility = 'visible';
+            
+            // Aggiungi l'event listener alla scritta PLAY
+            playText.addEventListener('click', startGameFromIntro);
+            
+            // Assegna l'event listener al pulsante HIGH SCORES
+            document.getElementById('highScoresButton').addEventListener('click', showHighScores);
+        }, 12000); // Più tempo per completare l'animazione
+    }
+    
+    // Avvia l'animazione del testo
+    typeText();
     
     // Inizializza l'AudioContext quando viene mostrata la schermata iniziale
     initAudioContext();
@@ -345,13 +603,17 @@ function startGameFromIntro() {
 function showHighScores() {
     console.log("Showing high scores");
     gameState = 'highScores';
+    
+    // Usa il font pixellato PrintChar21 per un look più retrò arcade anni '80
+    const fontStyle = "'PrintChar21', monospace";
+    
     gameArea.innerHTML = `
-        <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px;">
+        <div id="highScoreScreen" style="color: white; text-align: center; padding-top: 100px; font-family: ${fontStyle};">
             <h2>HIGH SCORES</h2>
             ${highScores.map((score, index) => `
                 <div>${(index + 1).toString().padStart(2, '0')}. ${score.name.padEnd(3, ' ')} ${score.score.toString().padStart(5, '0')}</div>
             `).join('')}
-            <button id="backToIntroButton" style="margin-top: 20px;">BACK</button>
+            <button id="backToIntroButton" class="arcade-button" style="margin-top: 20px; font-family: ${fontStyle};">BACK</button>
         </div>
     `;
     document.getElementById('backToIntroButton').addEventListener('click', showIntroScreen);
@@ -930,7 +1192,7 @@ function createBarriers() {
                 barriers.push({
                     x: baseX + i * 10 - 20,
                     y: baseY + 2 * 10,
-                    hp: 4, 
+                    hp: 4,
                     el: createElement(baseX + i * 10 - 20, baseY + 2 * 10, '▇', 'barrier')
                 });
             }
@@ -1516,11 +1778,13 @@ function showLevelComplete() {
         levelCompleteElement.style.position = 'absolute';
         levelCompleteElement.style.top = '50%';
         levelCompleteElement.style.left = '50%';
+        
         levelCompleteElement.style.transform = 'translate(-50%, -50%)';
         levelCompleteElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
         levelCompleteElement.style.padding = '20px';
         levelCompleteElement.style.borderRadius = '10px';
         levelCompleteElement.style.textAlign = 'center';
+        levelCompleteElement.style.color = 'white';
         gameArea.appendChild(levelCompleteElement);
     }
     levelCompleteElement.innerHTML = `
@@ -1551,7 +1815,7 @@ function startNextLevel() {
     // Pulisci l'area di gioco preservando gli elementi chiave
     cleanupGameArea(uiContainer, touchControlsContainer);
     
-    // Ripristina le variabili di gioco per il nuovo livello
+    // Ripristinale variabili di gioco per il nuovo livello
     resetGameVariables();
     
     // Ricrea gli elementi di gioco
@@ -1576,7 +1840,7 @@ function startNextLevel() {
 }
 
 function cleanupGameArea(uiContainer, touchControlsContainer) {
-    // Include il container UI e gli elementi UI tra quelli da mantenere
+    // Include il container UI e gli elementi UI tra quelli damantenere
     const elementsToKeep = [uiContainer, touchControlsContainer].filter(Boolean);
     
     // Rimuovi tutti gli elementi tranne quelli da mantenere
@@ -1595,7 +1859,7 @@ function resetGameVariables() {
     bullets = [];
     alienBullets = [];
     invaders = [];
-    barriers = [];
+       barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
@@ -1640,7 +1904,7 @@ window.addEventListener('orientationchange', () => setTimeout(handleResize, 100)
 window.addEventListener('load', () => {
     // Carica gli high score salvati
     loadHighScores();
-    // Aggiorna l'high score corrente in base ai valori caricati
+    //// Aggiorna l'high score corrente in base ai valori caricati
     if (highScores && highScores.length > 0) {
         hiScore = Math.max(...highScores.map(score => score.score));
     }
@@ -1657,7 +1921,7 @@ function loadHighScores() {
             highScores = JSON.parse(savedScores);
             console.log('High scores caricati:', highScores);
         } catch (e) {
-            console.error('Errore nel parsing degli high scores:', e);
+            console.error('Errore nelparsing degli high scores:', e);
             // Mantieni i valori predefiniti in caso di errore
         }
     }
