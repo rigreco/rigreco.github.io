@@ -437,111 +437,200 @@ if ('serviceWorker' in navigator) {
     }, true);
 }
 
-// Aggiungi questa funzione per creare i controlli touch
 function createTouchControls() {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        // Prima rimuovi eventuali event listeners esistenti
-        const existingLeftControl = document.getElementById('leftControl');
-        const existingRightControl = document.getElementById('rightControl');
-        const existingShootControl = document.getElementById('shootControl');
-        
-        if (existingLeftControl) {
-            // Clona e sostituisci per rimuovere tutti gli event listeners
-            const newLeftControl = existingLeftControl.cloneNode(true);
-            existingLeftControl.parentNode.replaceChild(newLeftControl, existingLeftControl);
+        // Rimuoviamo i controlli touch esistenti
+        const existingTouchControls = document.getElementById('touchControlsContainer');
+        if (existingTouchControls) {
+            existingTouchControls.remove();
         }
         
-        if (existingRightControl) {
-            const newRightControl = existingRightControl.cloneNode(true);
-            existingRightControl.parentNode.replaceChild(newRightControl, existingRightControl);
+        // Creiamo il container principale per i controlli touch
+        const touchControlsContainer = document.createElement('div');
+        touchControlsContainer.id = 'touchControlsContainer';
+        touchControlsContainer.style.position = 'absolute';
+        touchControlsContainer.style.bottom = '20px';
+        touchControlsContainer.style.left = '0';
+        touchControlsContainer.style.width = '100%';
+        touchControlsContainer.style.display = 'flex';
+        touchControlsContainer.style.justifyContent = 'space-between';
+        touchControlsContainer.style.padding = '0 20px';
+        touchControlsContainer.style.pointerEvents = 'none'; // Per non interferire con il gioco
+        touchControlsContainer.style.zIndex = '1000';
+        gameArea.appendChild(touchControlsContainer);
+
+        // Container per il joystick virtuale (a sinistra)
+        const joystickContainer = document.createElement('div');
+        joystickContainer.id = 'joystickContainer';
+        joystickContainer.style.width = '120px';
+        joystickContainer.style.height = '120px';
+        joystickContainer.style.borderRadius = '60px';
+        joystickContainer.style.backgroundColor = 'rgba(100, 100, 100, 0.3)';
+        joystickContainer.style.border = '2px solid rgba(255, 255, 255, 0.5)';
+        joystickContainer.style.position = 'relative';
+        joystickContainer.style.pointerEvents = 'auto'; // Questo elemento riceve eventi touch
+        
+        // Il "bastoncino" del joystick
+        const joystickStick = document.createElement('div');
+        joystickStick.id = 'joystickStick';
+        joystickStick.style.width = '50px';
+        joystickStick.style.height = '50px';
+        joystickStick.style.borderRadius = '25px';
+        joystickStick.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        joystickStick.style.position = 'absolute';
+        joystickStick.style.top = '35px';  // Centrato verticalmente (120-50)/2
+        joystickStick.style.left = '35px'; // Centrato orizzontalmente (120-50)/2
+        joystickStick.style.transition = 'transform 0.1s ease-out';
+        joystickStick.style.pointerEvents = 'none'; // Il bastoncino non riceve eventi touch
+        
+        joystickContainer.appendChild(joystickStick);
+        
+        // Container per il pulsante di sparo (a destra)
+        const shootControlContainer = document.createElement('div');
+        shootControlContainer.id = 'shootControlContainer';
+        shootControlContainer.style.display = 'flex';
+        shootControlContainer.style.justifyContent = 'flex-end';
+        shootControlContainer.style.pointerEvents = 'none';
+        
+        const shootControl = document.createElement('div');
+        shootControl.id = 'shootControl';
+        shootControl.className = 'touch-control';
+        shootControl.textContent = 'Spara';
+        shootControl.style.backgroundColor = 'rgba(255, 50, 50, 0.7)';
+        shootControl.style.border = '2px solid white';
+        shootControl.style.borderRadius = '50%';
+        shootControl.style.color = 'white';
+        shootControl.style.fontSize = '20px';
+        shootControl.style.display = 'flex';
+        shootControl.style.justifyContent = 'center';
+        shootControl.style.alignItems = 'center';
+        shootControl.style.width = '100px';
+        shootControl.style.height = '100px';
+        shootControl.style.userSelect = 'none';
+        shootControl.style.pointerEvents = 'auto'; // Questo elemento riceve eventi touch
+        
+        shootControlContainer.appendChild(shootControl);
+        
+        // Aggiungi i container principali al container dei controlli touch
+        touchControlsContainer.appendChild(joystickContainer);
+        touchControlsContainer.appendChild(shootControlContainer);
+        
+        // Implementazione della logica del joystick
+        let joystickActive = false;
+        let joystickStartX = 0;
+        let joystickCenterX = 60; // Centro del joystick (metà della larghezza)
+        let joystickMaxDistance = 35; // Distanza massima dal centro
+        
+        // Funzione per aggiornare la posizione del bastoncino del joystick
+        function updateJoystickPosition(x) {
+            const deltaX = x - joystickStartX;
+            // Limita lo spostamento alla distanza massima
+            const limitedDeltaX = Math.max(-joystickMaxDistance, Math.min(joystickMaxDistance, deltaX));
+            
+            // Imposta la posizione del bastoncino
+            joystickStick.style.transform = `translateX(${limitedDeltaX}px)`;
+            
+            // Imposta le variabili di movimento in base alla posizione del joystick
+            if (limitedDeltaX < -10) {
+                isMovingLeft = true;
+                isMovingRight = false;
+            } else if (limitedDeltaX > 10) {
+                isMovingLeft = false;
+                isMovingRight = true;
+            } else {
+                // Zona morta centrale per evitare micro-movimenti indesiderati
+                isMovingLeft = false;
+                isMovingRight = false;
+            }
         }
         
-        if (existingShootControl) {
-            const newShootControl = existingShootControl.cloneNode(true);
-            existingShootControl.parentNode.replaceChild(newShootControl, existingShootControl);
-        }
-        
-        if (!document.getElementById('touchControlsContainer')) {
-            const touchControlsContainer = document.createElement('div');
-            touchControlsContainer.id = 'touchControlsContainer';
-            touchControlsContainer.style.position = 'absolute';
-            touchControlsContainer.style.bottom = '20px';
-            touchControlsContainer.style.left = '0';
-            touchControlsContainer.style.width = '100%';
-            touchControlsContainer.style.display = 'flex';
-            touchControlsContainer.style.justifyContent = 'space-between';
-            touchControlsContainer.style.padding = '0 20px';
-
-            // Container per i controlli direzionali (a sinistra)
-            const directionalControlsContainer = document.createElement('div');
-            directionalControlsContainer.id = 'directionalControlsContainer';
-            directionalControlsContainer.style.display = 'flex';
-            directionalControlsContainer.style.justifyContent = 'flex-start';
-            directionalControlsContainer.style.gap = '10px';
-
-            const leftControl = document.createElement('div');
-            leftControl.id = 'leftControl';
-            leftControl.className = 'touch-control';
-            leftControl.textContent = '←';
-
-            const rightControl = document.createElement('div');
-            rightControl.id = 'rightControl';
-            rightControl.className = 'touch-control';
-            rightControl.textContent = '→';
-
-            directionalControlsContainer.appendChild(leftControl);
-            directionalControlsContainer.appendChild(rightControl);
-
-            // Container per il controllo di sparo (a destra)
-            const shootControlContainer = document.createElement('div');
-            shootControlContainer.id = 'shootControlContainer';
-            shootControlContainer.style.display = 'flex';
-            shootControlContainer.style.justifyContent = 'flex-end';
-
-            const shootControl = document.createElement('div');
-            shootControl.id = 'shootControl';
-            shootControl.className = 'touch-control';
-            shootControl.textContent = 'Spara';
-
-            shootControlContainer.appendChild(shootControl);
-
-            // Aggiungi i container principali al container dei controlli touch
-            touchControlsContainer.appendChild(directionalControlsContainer);
-            touchControlsContainer.appendChild(shootControlContainer);
-
-            gameArea.appendChild(touchControlsContainer);
-        }
-        // Event listeners per i controlli touch
-        const leftControl = document.getElementById('leftControl');
-        const rightControl = document.getElementById('rightControl');
-        const shootControl = document.getElementById('shootControl');
-        
-        leftControl.addEventListener('touchstart', (e) => {
+        // Event listeners per il joystick
+        joystickContainer.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            isMovingLeft = true;
+            const touch = e.touches[0];
+            joystickActive = true;
+            joystickStartX = touch.clientX;
+            
+            // Aggiorna immediatamente la posizione per feedback immediato
+            updateJoystickPosition(touch.clientX);
         });
-        leftControl.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        
+        joystickContainer.addEventListener('touchmove', (e) => {
+            if (joystickActive) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                updateJoystickPosition(touch.clientX);
+            }
+        });
+        
+        const resetJoystick = () => {
+            joystickActive = false;
+            joystickStick.style.transform = 'translateX(0)';
             isMovingLeft = false;
-        });
-        
-        rightControl.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isMovingRight = true;
-        });
-        rightControl.addEventListener('touchend', (e) => {
-            e.preventDefault();
             isMovingRight = false;
-        });
+        };
         
+        joystickContainer.addEventListener('touchend', resetJoystick);
+        joystickContainer.addEventListener('touchcancel', resetJoystick);
+        
+        // Event listener per il pulsante di sparo
         shootControl.addEventListener('touchstart', (e) => {
             e.preventDefault();
             shoot();
         });
+        
+        // Adatta dimensioni dei controlli in base allo schermo
+        const resizeControls = () => {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const isLandscape = screenWidth > screenHeight;
+            
+            // Dimensioni del joystick basate sulla dimensione dello schermo
+            const joystickSize = isLandscape ? 
+                Math.min(screenHeight * 0.3, 120) : 
+                Math.min(screenWidth * 0.25, 120);
+            
+            joystickContainer.style.width = `${joystickSize}px`;
+            joystickContainer.style.height = `${joystickSize}px`;
+            joystickContainer.style.borderRadius = `${joystickSize/2}px`;
+            
+            // Dimensioni del bastoncino
+            const stickSize = joystickSize * 0.4;
+            joystickStick.style.width = `${stickSize}px`;
+            joystickStick.style.height = `${stickSize}px`;
+            joystickStick.style.borderRadius = `${stickSize/2}px`;
+            joystickStick.style.top = `${(joystickSize-stickSize)/2}px`;
+            joystickStick.style.left = `${(joystickSize-stickSize)/2}px`;
+            
+            // Aggiorna il valore di riferimento per il joystick
+            joystickCenterX = joystickSize / 2;
+            joystickMaxDistance = joystickSize * 0.3;
+            
+            // Dimensioni del pulsante di sparo
+            const shootSize = isLandscape ? 
+                Math.min(screenHeight * 0.35, 130) : 
+                Math.min(screenWidth * 0.3, 130);
+            
+            shootControl.style.width = `${shootSize}px`;
+            shootControl.style.height = `${shootSize}px`;
+            shootControl.style.fontSize = `${shootSize * 0.18}px`;
+        };
+        
+        // Chiamata iniziale per impostare le dimensioni
+        resizeControls();
+        
+        // Aggiungi event listener per il ridimensionamento
+        window.addEventListener('resize', resizeControls);
+        window.addEventListener('orientationchange', () => setTimeout(resizeControls, 100));
+        
+        return { 
+            container: touchControlsContainer,
+            resize: resizeControls
+        };
     }
+    return null;
 }
 
-/// ***------********* */
 // Menu di gioco
 function changeGameState(newState) {
     if (gameState === newState) return;
