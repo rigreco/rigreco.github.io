@@ -472,6 +472,13 @@ function createTouchControls() {
             touchControlsContainer.style.justifyContent = 'space-between';
             touchControlsContainer.style.padding = '0 20px';
 
+            // Container per i controlli direzionali (a sinistra)
+            const directionalControlsContainer = document.createElement('div');
+            directionalControlsContainer.id = 'directionalControlsContainer';
+            directionalControlsContainer.style.display = 'flex';
+            directionalControlsContainer.style.justifyContent = 'flex-start';
+            directionalControlsContainer.style.gap = '10px';
+
             const leftControl = document.createElement('div');
             leftControl.id = 'leftControl';
             leftControl.className = 'touch-control';
@@ -482,14 +489,25 @@ function createTouchControls() {
             rightControl.className = 'touch-control';
             rightControl.textContent = '→';
 
+            directionalControlsContainer.appendChild(leftControl);
+            directionalControlsContainer.appendChild(rightControl);
+
+            // Container per il controllo di sparo (a destra)
+            const shootControlContainer = document.createElement('div');
+            shootControlContainer.id = 'shootControlContainer';
+            shootControlContainer.style.display = 'flex';
+            shootControlContainer.style.justifyContent = 'flex-end';
+
             const shootControl = document.createElement('div');
             shootControl.id = 'shootControl';
             shootControl.className = 'touch-control';
             shootControl.textContent = 'Spara';
 
-            touchControlsContainer.appendChild(leftControl);
-            touchControlsContainer.appendChild(shootControl);
-            touchControlsContainer.appendChild(rightControl);
+            shootControlContainer.appendChild(shootControl);
+
+            // Aggiungi i container principali al container dei controlli touch
+            touchControlsContainer.appendChild(directionalControlsContainer);
+            touchControlsContainer.appendChild(shootControlContainer);
 
             gameArea.appendChild(touchControlsContainer);
         }
