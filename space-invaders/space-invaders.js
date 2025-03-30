@@ -30,6 +30,7 @@ let touchStartX = 0;
 let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
+let shootInterval = null; // Variabile per gestire lo sparo continuo nei controlli touch
 
 // Punteggi e statistiche
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
@@ -449,18 +450,18 @@ function createTouchControls() {
         const touchControlsContainer = document.createElement('div');
         touchControlsContainer.id = 'touchControlsContainer';
         
-        // Importante: modifichiamo lo stile per rimuovere lo sfondo e la banda scura
+        // Posizionamento migliorato per evitare sovrapposizioni con il gioco
         touchControlsContainer.style.position = 'absolute';
-        touchControlsContainer.style.bottom = '20px';
+        touchControlsContainer.style.bottom = '5px';  // Distanza ridotta dal fondo
         touchControlsContainer.style.left = '0';
         touchControlsContainer.style.width = '100%';
         touchControlsContainer.style.display = 'flex';
         touchControlsContainer.style.justifyContent = 'space-between';
-        touchControlsContainer.style.padding = '0 20px';
-        touchControlsContainer.style.pointerEvents = 'none'; // Per non interferire con il gioco
+        touchControlsContainer.style.padding = '0 10px'; // Padding ridotto
+        touchControlsContainer.style.pointerEvents = 'none';
         touchControlsContainer.style.zIndex = '1000';
-        // Rimuoviamo lo sfondo scuro per eliminare la banda che ostruisce il gioco
         touchControlsContainer.style.backgroundColor = 'transparent'; 
+        touchControlsContainer.style.boxSizing = 'border-box';
         gameArea.appendChild(touchControlsContainer);
 
         // Container per il joystick virtuale (a sinistra)
@@ -485,7 +486,8 @@ function createTouchControls() {
         joystickStick.style.position = 'absolute';
         joystickStick.style.top = '40px';
         joystickStick.style.left = '40px';
-        joystickStick.style.transition = 'transform 0.08s ease-out';
+        // Aggiungiamo una transizione più veloce per ridurre il ritardo percepito
+        joystickStick.style.transition = 'transform 0.05s linear';
         joystickStick.style.pointerEvents = 'none';
         
         joystickContainer.appendChild(joystickStick);
@@ -531,8 +533,10 @@ function createTouchControls() {
         
         function updateJoystickPosition(touchX) {
             // Converte la posizione del tocco in coordinate relative al contenitore del joystick
+            // e applica lo scaling inverso per compensare il transform:scale applicato al gameArea
             const joystickBounds = joystickContainer.getBoundingClientRect();
-            const relativeX = touchX - joystickBounds.left;
+            const scale = lastAppliedScale || 1;
+            const relativeX = (touchX - joystickBounds.left) / scale;
             
             // Calcola lo spostamento rispetto al centro
             const deltaX = relativeX - joystickCenterX;
@@ -607,40 +611,52 @@ function createTouchControls() {
             updateJoystickPosition(touch.clientX);
         });
         
-        // Event listener per il pulsante di sparo
+        // Event listeners per il pulsante di sparo
         shootControl.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            shoot();
-        });
-        
-        // Rendere il pulsante di sparo ripetuto se tenuto premuto
-        let shootInterval = null;
-        
-        shootControl.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+            e.stopPropagation(); // Impedisce la propagazione dell'evento
+            
+            // Cambia colore per dare feedback visivo
+            shootControl.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+            
+            // Spara subito
             shoot();
             
             // Pulisci eventuali intervalli esistenti
             if (shootInterval) clearInterval(shootInterval);
             
-            // Imposta un nuovo intervallo per sparare continuamente
+            // Imposta un nuovo intervallo per sparare continuamente con frequenza maggiore
             shootInterval = setInterval(() => {
                 shoot();
-            }, 300); // Sparo ogni 300ms se tenuto premuto
+            }, 250); // Sparo più frequente (250ms invece di 300ms)
         });
         
-        shootControl.addEventListener('touchend', () => {
+        shootControl.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Impedisce la propagazione dell'evento
+            
+            // Ripristina il colore originale
+            shootControl.style.backgroundColor = 'rgba(255, 50, 50, 0.7)';
+            
             if (shootInterval) {
                 clearInterval(shootInterval);
                 shootInterval = null;
             }
         });
         
-        shootControl.addEventListener('touchcancel', () => {
+        shootControl.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Impedisce la propagazione dell'evento
             if (shootInterval) {
                 clearInterval(shootInterval);
                 shootInterval = null;
             }
+        });
+        
+        // Previene esplicitamente che i tocchi sul pulsante di sparo influenzino il joystick
+        shootControl.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Impedisce la propagazione dell'evento
         });
         
         // Adatta dimensioni dei controlli in base allo schermo
