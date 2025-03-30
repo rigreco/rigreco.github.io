@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Didattica & Progetti - Limiti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .subsection {
+      padding-left: 25px;
+    }
+    .theorem-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid #2196f3;
+      padding: 15px;
+      margin: 20px auto;
+      width: 90%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .definition-box {
+      background-color: #e8f4f8;
+      border-left: 4px solid #4caf50;
+      padding: 15px;
+      margin: 20px auto;
+      width: 90%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .example-box {
+      background-color: #fff3e0;
+      border-left: 4px solid #ff9800;
+      padding: 15px;
+      margin: 20px auto;
+      width: 90%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .formula-container {
+      text-align: center;
+      margin: 15px 0;
+    }
+    ul {
+      padding-left: 30px;
+      margin: 10px 0;
+    }
+    li {
+      margin-bottom: 5px;
+      padding-left: 10px;
+      list-style-position: outside;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+          <div class="dropdown-content">
+            <a href="space-invaders/index.html"><i data-lucide="target"></i> Cosmic Invaders</a>
+          </div>
+        </li>
+        <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Limiti di funzioni</h2>
+    
+    <div class="definition-box">
+      <h3>Definizione di limite</h3>
+      <p>Dato $f: A \to \mathbb{R}$ con $A \subseteq \mathbb{R}$, e dato $x_0$ punto di accumulazione per $A$, si dice che $f$ ha limite $L$ per $x$ che tende a $x_0$ se:</p>
+      <div class="formula-container">
+        $$\forall \varepsilon > 0 \quad \exists \delta > 0 : \forall x \in A, \quad 0 < |x - x_0| < \delta \Rightarrow |f(x) - L| < \varepsilon$$
+      </div>
+      <p>In notazione si scrive: $\lim_{x \to x_0} f(x) = L$</p>
+    </div>
+
+    <div class="definition-box">
+      <h3>Limiti laterali</h3>
+      <p><strong>Limite destro:</strong> Si dice che $f$ ha limite destro $L$ per $x$ che tende a $x_0$ se:</p>
+      <div class="formula-container">
+        $$\forall \varepsilon > 0 \quad \exists \delta > 0 : \forall x \in A, \quad x_0 < x < x_0 + \delta \Rightarrow |f(x) - L| < \varepsilon$$
+      </div>
+      <p>In notazione si scrive: $\lim_{x \to x_0^+} f(x) = L$</p>
+      
+      <p><strong>Limite sinistro:</strong> Si dice che $f$ ha limite sinistro $L$ per $x$ che tende a $x_0$ se:</p>
+      <div class="formula-container">
+        $$\forall \varepsilon > 0 \quad \exists \delta > 0 : \forall x \in A, \quad x_0 - \delta < x < x_0 \Rightarrow |f(x) - L| < \varepsilon$$
+      </div>
+      <p>In notazione si scrive: $\lim_{x \to x_0^-} f(x) = L$</p>
+    </div>
+
+    <div class="theorem-box">
+      <h3>Teorema dell'unicità del limite</h3>
+      <p>Se esiste il limite di una funzione $f(x)$ per $x$ che tende a $x_0$, allora tale limite è unico.</p>
+    </div>
+
+    <div class="theorem-box">
+      <h3>Teorema della permanenza del segno</h3>
+      <p>Se $\lim_{x \to x_0} f(x) = L$ e $L > 0$ (rispettivamente $L < 0$), allora esiste un intorno di $x_0$ in cui $f(x) > 0$ (rispettivamente $f(x) < 0$).</p>
+    </div>
+
+    <div class="theorem-box">
+      <h3>Teorema del confronto (o dei due carabinieri)</h3>
+      <p>Siano $f(x)$, $g(x)$ e $h(x)$ tre funzioni definite in un intorno di $x_0$ eccetto al più in $x_0$. Se:</p>
+      <ul>
+        <li>$g(x) \leq f(x) \leq h(x)$ per ogni $x$ dell'intorno privato di $x_0$</li>
+        <li>$\lim_{x \to x_0} g(x) = \lim_{x \to x_0} h(x) = L$</li>
+      </ul>
+      <p>Allora esiste anche $\lim_{x \to x_0} f(x) = L$.</p>
+    </div>
+
+    <h3>Teoremi sui limiti delle funzioni</h3>
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Teoremi algebrici sui limiti</th>
+      </tr>
+      <tr>
+        <td>Limite della somma</td>
+        <td>
+          Se $\lim_{x \to x_0} f(x) = L$ e $\lim_{x \to x_0} g(x) = M$, allora:
+          $$\lim_{x \to x_0} [f(x) + g(x)] = L + M$$
+        </td>
+      </tr>
+      <tr>
+        <td>Limite del prodotto</td>
+        <td>
+          Se $\lim_{x \to x_0} f(x) = L$ e $\lim_{x \to x_0} g(x) = M$, allora:
+          $$\lim_{x \to x_0} [f(x) \cdot g(x)] = L \cdot M$$
+        </td>
+      </tr>
+      <tr>
+        <td>Limite del quoziente</td>
+        <td>
+          Se $\lim_{x \to x_0} f(x) = L$ e $\lim_{x \to x_0} g(x) = M$ con $M \neq 0$, allora:
+          $$\lim_{x \to x_0} \frac{f(x)}{g(x)} = \frac{L}{M}$$
+        </td>
+      </tr>
+      <tr>
+        <td>Limite della potenza</td>
+        <td>
+          Se $\lim_{x \to x_0} f(x) = L$, allora:
+          $$\lim_{x \to x_0} [f(x)]^n = L^n \quad (n \in \mathbb{N})$$
+        </td>
+      </tr>
+      <tr>
+        <td>Limite della composizione</td>
+        <td>
+          Se $\lim_{x \to x_0} g(x) = L$ e $f$ è continua in $L$, allora:
+          $$\lim_{x \to x_0} f(g(x)) = f(L)$$
+        </td>
+      </tr>
+    </table>
+
+    <h3>Limiti notevoli</h3>
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Limiti notevoli fondamentali</th>
+      </tr>
+      <tr>
+        <td>Funzione seno</td>
+        <td>
+          $$\lim_{x \to 0} \frac{\sin x}{x} = 1$$
+        </td>
+      </tr>
+      <tr>
+        <td>Funzione coseno</td>
+        <td>
+          $$\lim_{x \to 0} \frac{1-\cos x}{x^2} = \frac{1}{2}$$
+        </td>
+      </tr>
+      <tr>
+        <td>Funzione esponenziale</td>
+        <td>
+          $$\lim_{x \to 0} \frac{e^x-1}{x} = 1$$
+        </td>
+      </tr>
+      <tr>
+        <td>Funzione logaritmica</td>
+        <td>
+          $$\lim_{x \to 0} \frac{\ln(1+x)}{x} = 1$$
+        </td>
+      </tr>
+      <tr>
+        <td>Definizione di $e$</td>
+        <td>
+          $$\lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n = e$$
+        </td>
+      </tr>
+    </table>
+
+    <div class="example-box">
+      <h3>Esempio: Calcolo di un limite</h3>
+      <p>Calcolare il limite: $\lim_{x \to 0} \frac{1-\cos x}{x^2}$</p>
+      <p><strong>Svolgimento:</strong></p>
+      <p>Utilizziamo il limite notevole $\lim_{x \to 0} \frac{1-\cos x}{x^2} = \frac{1}{2}$</p>
+      <p>Quindi: $\lim_{x \to 0} \frac{1-\cos x}{x^2} = \frac{1}{2}$</p>
+    </div>
+
+    <div class="example-box">
+      <h3>Esempio: Forme indeterminate</h3>
+      <p>Calcolare il limite: $\lim_{x \to 0} \frac{\sin 3x}{x}$</p>
+      <p><strong>Svolgimento:</strong></p>
+      <p>Scriviamo:
+        $$\lim_{x \to 0} \frac{\sin 3x}{x} = \lim_{x \to 0} \frac{\sin 3x}{3x} \cdot 3 = \lim_{x \to 0} \frac{\sin 3x}{3x} \cdot 3 = 1 \cdot 3 = 3$$
+      </p>
+      <p>dove abbiamo usato il limite notevole $\lim_{x \to 0} \frac{\sin x}{x} = 1$ con la sostituzione $t = 3x$.</p>
+    </div>
+
+    <div class="theorem-box">
+      <h3>Forme indeterminate</h3>
+      <p>Le principali forme indeterminate sono:</p>
+      <ul>
+        <li>$\frac{0}{0}$ - Rapporto di infinitesimi</li>
+        <li>$\frac{\infty}{\infty}$ - Rapporto di infiniti</li>
+        <li>$0 \cdot \infty$ - Prodotto di infinitesimo per infinito</li>
+        <li>$\infty - \infty$ - Differenza di infiniti</li>
+        <li>$0^0, 1^{\infty}, \infty^0$ - Forme indeterminate esponenziali</li>
+      </ul>
+      <p>Per risolvere queste forme indeterminate si utilizzano tecniche come:</p>
+      <ul>
+        <li>Scomposizione in fattori</li>
+        <li>Razionalizzazione</li>
+        <li>Teorema di de l'Hôpital</li>
+        <li>Sostituzione con limiti notevoli</li>
+        <li>Sviluppi asintotici e di Taylor</li>
+      </ul>
+    </div>
+
+    <div class="definition-box">
+      <h3>Teorema di de l'Hôpital</h3>
+      <p>Se $\lim_{x \to x_0} f(x) = \lim_{x \to x_0} g(x) = 0$ o $\lim_{x \to x_0} f(x) = \lim_{x \to x_0} g(x) = \pm\infty$, e se $g'(x) \neq 0$ in un intorno di $x_0$ privato di $x_0$, allora:</p>
+      <div class="formula-container">
+        $$\lim_{x \to x_0} \frac{f(x)}{g(x)} = \lim_{x \to x_0} \frac{f'(x)}{g'(x)}$$
+      </div>
+      <p>a condizione che il limite del rapporto delle derivate esista o sia $\pm\infty$.</p>
+    </div>
+  </main>
+  
+  <footer> 
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>Didattica & Progetti</h4>
+        <p>&copy; 2025 rigreco.github.io</p>
+        <p><a href="sitemap.html">Mappa del sito</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Sezioni</h4>
+        <ul>
+          <li><a href="matematica.html">Matematica</a></li>
+          <li><a href="progetti.html">Progetti</a></li>
+          <li><a href="space-invaders/index.html">Arcade</a></li>
+          <li><a href="apple2.html">Apple II</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Strumenti</h4>
+        <ul>
+          <li><a href="function_plot.html">Grafico Funzioni</a></li>
+          <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+          <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+          <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Script per Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+</body>
+</html>
