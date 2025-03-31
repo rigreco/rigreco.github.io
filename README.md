@@ -12,7 +12,6 @@ Repository per il sito web didattico https://rigreco.github.io
 - `/*.html`: Pagine principali
 - `/space-invaders/`: Gioco Space Invaders
 - `/images/`: Asset grafici
-- `/webfonts/`: Font speciali (Apple II)
 
 ## Tecnologie
 - HTML5/CSS3/JavaScript
