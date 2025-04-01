@@ -724,8 +724,7 @@ function promptForName(score) {
     input3.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') processName();
     });
-}showHighScores();
-
+}
 
 //********************************** */
 
@@ -1971,13 +1970,22 @@ window.addEventListener('orientationchange', () => setTimeout(handleResize, 100)
 window.addEventListener('load', () => {
     // Carica gli high score salvati
     loadHighScores();
-    //// Aggiorna l'high score corrente in base ai valori caricati
+    // Aggiorna l'high score corrente in base ai valori caricati
     if (highScores && highScores.length > 0) {
         hiScore = Math.max(...highScores.map(score => score.score));
     }
     
+    // Imposta lo stato iniziale
+    gameState = 'intro';
+    
+    // Gestisci il ridimensionamento iniziale
     handleResize();
-    showIntroScreen(); // Chiamiamo direttamente showIntroScreen invece di changeGameState
+    
+    // Mostra la schermata introduttiva dopo un breve delay per assicurarsi 
+    // che tutto sia caricato correttamente
+    setTimeout(() => {
+        showIntroScreen();
+    }, 100);
 });
 
 // Carica gli high score dal localStorage all'avvio
