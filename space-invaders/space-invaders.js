@@ -255,45 +255,50 @@ function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
 // Funzione migliorata per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
-    // Se l'elemento esiste già, lo rimuoviamo per crearne uno nuovo
-    const existingMsg = document.getElementById('temporaryMessage');
-    if (existingMsg) {
-        existingMsg.remove();
+    // Utilizza l'elemento globale se esiste, altrimenti ne crea uno nuovo
+    if (!temporaryMessageElement || !temporaryMessageElement.parentNode) {
+        temporaryMessageElement = document.createElement('div');
+        temporaryMessageElement.id = 'temporaryMessage';
+        temporaryMessageElement.className = 'message';
+        
+        // Stili di base
+        temporaryMessageElement.style.position = 'absolute';
+        temporaryMessageElement.style.top = '200px';
+        temporaryMessageElement.style.left = '50%';
+        temporaryMessageElement.style.transform = 'translateX(-50%)';
+        temporaryMessageElement.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
+        temporaryMessageElement.style.color = 'white';
+        temporaryMessageElement.style.padding = '15px 30px';
+        temporaryMessageElement.style.borderRadius = '5px';
+        temporaryMessageElement.style.fontSize = '24px';
+        temporaryMessageElement.style.textAlign = 'center';
+        temporaryMessageElement.style.zIndex = '10000';
+        temporaryMessageElement.style.fontWeight = 'bold';
+        temporaryMessageElement.style.border = '2px solid white';
+        temporaryMessageElement.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+        
+        gameArea.appendChild(temporaryMessageElement);
     }
     
-    // Creiamo un nuovo elemento per il messaggio
-    const messageElement = document.createElement('div');
-    messageElement.id = 'temporaryMessage';
-    messageElement.className = 'message';
-    messageElement.textContent = message;
+    // Aggiorna il contenuto
+    temporaryMessageElement.textContent = message;
     
-    // Aggiungiamo stile inline per garantire la visibilità
-    messageElement.style.position = 'absolute';
-    messageElement.style.top = '200px';
-    messageElement.style.left = '50%';
-    messageElement.style.transform = 'translateX(-50%)';
-    messageElement.style.backgroundColor = 'rgba(255, 0, 0, 0.8)';
-    messageElement.style.color = 'white';
-    messageElement.style.padding = '15px 30px';
-    messageElement.style.borderRadius = '5px';
-    messageElement.style.fontSize = '24px';
-    messageElement.style.textAlign = 'center';
-    messageElement.style.zIndex = '10000';
-    messageElement.style.fontWeight = 'bold';
-    messageElement.style.border = '2px solid white';
-    messageElement.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    // Assicurati che sia visibile
+    temporaryMessageElement.style.display = 'block';
     
-    // Aggiungiamo l'elemento al gameArea
-    gameArea.appendChild(messageElement);
+    // Resetta eventuali timer precedenti
+    if (temporaryMessageElement.timeoutId) {
+        clearTimeout(temporaryMessageElement.timeoutId);
+    }
     
-    // Impostiamo un timer per rimuovere il messaggio
-    setTimeout(() => {
-        if (messageElement.parentNode) {
-            messageElement.parentNode.removeChild(messageElement);
+    // Imposta un nuovo timer
+    temporaryMessageElement.timeoutId = setTimeout(() => {
+        if (temporaryMessageElement) {
+            temporaryMessageElement.style.display = 'none';
         }
     }, duration);
     
-    return messageElement;
+    return temporaryMessageElement;
 }
 
 //*************************** */
@@ -640,17 +645,87 @@ function addHighScore(name, score) {
 
 // Modifica la funzione promptForName
 function promptForName(score) {
-    let name = prompt(`New high score: ${score}! Enter your initials (3 letters):`);
+    // Creiamo un overlay di sfondo semitrasparente
+    const overlay = document.createElement('div');
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    overlay.style.zIndex = '2000';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
     
-    name = name ? name.slice(0, 3).toUpperCase() : 'AAA';
+    // Creiamo il box del prompt
+    const promptBox = document.createElement('div');
+    promptBox.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+    promptBox.style.border = '2px solid white';
+    promptBox.style.padding = '20px';
+    promptBox.style.borderRadius = '10px';
+    promptBox.style.textAlign = 'center';
+    promptBox.style.color = 'white';
+    promptBox.style.fontFamily = "'PrintChar21', monospace";
+    promptBox.style.maxWidth = '80%';
     
-    while (name.length < 3) {
-        name += 'A';
+    // Creiamo il contenuto del prompt
+    promptBox.innerHTML = `
+        <h2>NEW HIGH SCORE: ${score}!</h2>
+        <p>Enter your initials (3 letters):</p>
+        <div id="name-input" style="display: flex; justify-content: center; margin: 20px 0;">
+            <input type="text" id="initial1" maxlength="1" style="width: 40px; height: 40px; font-size: 24px; text-align: center; margin: 0 5px; background: black; color: white; border: 1px solid white; text-transform: uppercase;" />
+            <input type="text" id="initial2" maxlength="1" style="width: 40px; height: 40px; font-size: 24px; text-align: center; margin: 0 5px; background: black; color: white; border: 1px solid white; text-transform: uppercase;" />
+            <input type="text" id="initial3" maxlength="1" style="width: 40px; height: 40px; font-size: 24px; text-align: center; margin: 0 5px; background: black; color: white; border: 1px solid white; text-transform: uppercase;" />
+        </div>
+        <button id="submit-name" class="arcade-button" style="margin-top: 20px;">SUBMIT</button>
+    `;
+    
+    overlay.appendChild(promptBox);
+    gameArea.appendChild(overlay);
+    
+    // Ottieni riferimenti agli input e al pulsante
+    const input1 = document.getElementById('initial1');
+    const input2 = document.getElementById('initial2');
+    const input3 = document.getElementById('initial3');
+    const submitButton = document.getElementById('submit-name');
+    
+    // Focus sul primo input
+    setTimeout(() => input1.focus(), 100);
+    
+    // Gestione degli input
+    input1.addEventListener('input', () => {
+        if (input1.value.length === 1) input2.focus();
+    });
+    
+    input2.addEventListener('input', () => {
+        if (input2.value.length === 1) input3.focus();
+    });
+    
+    // Funzione per processare il nome
+    function processName() {
+        const initial1 = (input1.value || 'A').toUpperCase();
+        const initial2 = (input2.value || 'A').toUpperCase();
+        const initial3 = (input3.value || 'A').toUpperCase();
+        const name = initial1 + initial2 + initial3;
+        
+        // Rimuovi l'overlay
+        gameArea.removeChild(overlay);
+        
+        // Aggiungi l'high score e mostra la classifica
+        addHighScore(name, score);
+        showHighScores();
     }
     
-    addHighScore(name, score);
-    showHighScores();
-}
+    // Gestione del pulsante di invio
+    submitButton.addEventListener('click', processName);
+    
+    // Permetti di inviare con Enter
+    input3.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') processName();
+    });
+}showHighScores();
+
 
 //********************************** */
 
@@ -669,7 +744,7 @@ function createElement(x, y, content, className = 'sprite') {
 // Aggiungi questo script al tuo JavaScript
 if ('serviceWorker' in navigator) {
     // Verifica se stiamo eseguendo da HTTP/HTTPS
-    if (window.location.protocol.includes('http')) {
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
                 .then(registration => {
@@ -1612,6 +1687,7 @@ function startGame() {
     gameActive = true;
     if (gameLoopId) {
         cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
     }
     
     // Assicurati che l'audio sia inizializzato
