@@ -4,7 +4,7 @@ let livesElement;
 let levelElement;
 let hiScoreElement;
 const gameArea = document.getElementById('gameArea');
-const temporaryMessageElement = document.getElementById('temporaryMessage');
+let temporaryMessageElement = document.getElementById('temporaryMessage');
 
 // Elementi di gioco
 let player, bullets, alienBullets, invaders, barriers, ufo;
@@ -43,7 +43,7 @@ let highScores = [
 ];
 
 // Tipi di alieni e punti
-const alienTypes = ['👾', '👽', '👻'];
+const alienTypes = ['👽','👾','👻'];
 const alienPoints = [30, 20, 10];
 
 // Audio
@@ -360,8 +360,8 @@ function showIntroScreen() {
     // Array dei testi con icone e punteggi
     const scoreTexts = [
         { icon: "🛸", points: "? MYSTERY" },
-        { icon: "👾", points: "30 POINTS" },
-        { icon: "👽", points: "20 POINTS" },
+        { icon: "👽", points: "30 POINTS" },
+        { icon: "👾", points: "20 POINTS" },
         { icon: "👻", points: "10 POINTS" }
     ];
     
@@ -1217,15 +1217,23 @@ function updateHiScore() {
 function createInvaders() {
     for (let i = 0; i < 5; i++) {
         for (let j = 0; j < 11; j++) {
-            const typeIndex = Math.floor(i / 2);
+            // Nuova logica per l'indice del tipo di alieno
+            let typeIndex;
+            if (i < 1) {         // Prima riga (in alto): alieni da 30 punti
+                typeIndex = 0;
+            } else if (i < 3) {  // Seconda e terza riga: alieni da 20 punti
+                typeIndex = 1;
+            } else {             // Quarta e quinta riga (in basso): alieni da 10 punti
+                typeIndex = 2;
+            }
             const alienType = alienTypes[typeIndex];
             const points = alienPoints[typeIndex];
             invaders.push({
                 x: j * 40 + 40,
-                y: i * 40 + 40,
+                y: i * 40 + 80,
                 type: alienType,
                 points: points,
-                el: createElement(j * 40 + 40, i * 40 + 40, alienType, 'alien sprite')
+                el: createElement(j * 40 + 40, i * 40 + 80, alienType, 'alien sprite')
             });
         }
     }
@@ -1519,8 +1527,8 @@ function checkCollisions() {
                 // Aggiorna il punteggio basandosi sul tipo di invasore
                 let points;
                 switch(invader.type) {
-                    case '👾': points = 30; break;
-                    case '👽': points = 20; break;
+                    case '👽': points = 30; break;
+                    case '👾': points = 20; break;
                     case '👻': points = 10; break;
                     default: points = 10;
                 }
