@@ -866,7 +866,15 @@
             animate();
         }
         
-        // Aggiorna interfaccia
+        // Adatta il canvas alla dimensione del contenitore
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = Math.min(500, Math.floor(canvas.width * 0.5)); // Mantiene proporzione 2:1 con massimo 500px di altezza
+            drawGraph();
+        }
+        
+        // Inizializzazione
         function updateUI() {
             updateFormulas();
             updatePointInfo();
@@ -926,10 +934,13 @@
         
         // Inizializzazione
         updateUI();
+        resizeCanvas(); // Adatta il canvas alla dimensione iniziale
+        window.addEventListener('resize', resizeCanvas); // Ridimensiona quando cambia la finestra
         
         // Initialize lucide icons
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
+            resizeCanvas(); // Assicura che il canvas sia correttamente dimensionato dopo il caricamento completo
         });
     </script>
 </body>
