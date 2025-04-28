@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Significato Geometrico della Derivata - Didattica & Progetti</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        canvas { border: 1px solid #ddd; margin-top: 15px; width: 100%; max-width: 100%; }
+        .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .controls div { flex: 1; min-width: 200px; }
+        select, button, input { margin: 5px 0; padding: 6px; }
+        button { cursor: pointer; background: #3498db; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #2980b9; }
+        input[type="range"] { width: 100%; }
+        .function-display { background: #f5f5f5; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-top: 20px; }
+        .tab { padding: 8px 16px; cursor: pointer; margin-right: 5px; background: #f0f0f0; border-radius: 5px 5px 0 0; }
+        .tab.active { background: #3498db; color: white; }
+        .tab-content { border: 1px solid #ddd; border-top: none; padding: 15px; display: none; }
+        .tab-content.active { display: block; }
+        .info-box { background: #e8f4fc; border-left: 3px solid #3498db; padding: 10px; margin: 10px 0; }
+        .legend { margin-top: 10px; display: flex; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; margin-right: 15px; margin-bottom: 5px; }
+        .legend-color { width: 20px; height: 3px; margin-right: 5px; }
+        .dot-color { width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+        .zoom-controls { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Didattica & Progetti</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+                <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+                <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+                    <div class="dropdown-content">
+                        <a href="space-invaders/index.html"><i data-lucide="target"></i> Space Invaders</a>
+                    </div>
+                </li>
+                <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>Significato Geometrico della Derivata</h1>
+        <div class="content-wrapper">
+        
+        <div class="controls">
+            <div>
+                <label for="function-type">Tipo di funzione:</label>
+                <select id="function-type">
+                    <option value="sin">Sinusoide f(x) = sin(x)</option>
+                    <option value="parabola">Parabola f(x) = x²</option>
+                    <option value="cubic">Cubica f(x) = x³</option>
+                    <option value="exp">Esponenziale f(x) = e^x</option>
+                    <option value="log">Logaritmica f(x) = ln(x)</option>
+                    <option value="sqrt">Radice f(x) = √x</option>
+                </select>
+            </div>
+            <div>
+                <label><input type="checkbox" id="show-derivative" checked> Mostra Derivata</label>
+            </div>
+        </div>
+        
+        <div class="function-display">
+            <p><strong>Funzione corrente:</strong> <span id="function-formula">f(x) = sin(x)</span></p>
+            <p><strong>Derivata:</strong> <span id="derivative-formula">f'(x) = cos(x)</span></p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="base">Vista Base</div>
+            <div class="tab" data-tab="rapporto">Rapporto Incrementale</div>
+            <div class="tab" data-tab="critical">Punti Critici</div>
+        </div>
+        
+        <div class="tab-content active" id="base-tab">
+            <p>Muovi il cursore per vedere come cambia la tangente:</p>
+            <input type="range" id="x-value" min="-5" max="5" step="0.1" value="0">
+            <p id="point-values">x = 0, f(x) = 0, f'(x) = 1</p>
+        </div>
+        
+        <div class="tab-content" id="rapporto-tab">
+            <div class="info-box">
+                <p>La derivata è definita come il limite del rapporto incrementale quando Δx tende a zero:</p>
+                <p><strong>f'(x) = lim<sub>Δx→0</sub> [f(x+Δx) - f(x)]/Δx</strong></p>
+            </div>
+            
+            <p>Valore di Δx:</p>
+            <input type="range" id="delta-x" min="0.001" max="2" step="0.001" value="1">
+            <span id="delta-x-value">1.000</span>
+            
+            <p id="secant-values">Rapporto incrementale: [f(x+Δx) - f(x)]/Δx = 0</p>
+            
+            <button id="animate-limit">Anima Δx → 0</button>
+        </div>
+        
+        <div class="tab-content" id="critical-tab">
+            <div class="info-box">
+                <p><strong>Punti Critici:</strong> Punti dove f'(x) = 0 (massimi, minimi, flessi orizzontali)</p>
+                <p><strong>Punti di Non Derivabilità:</strong> Punti dove la derivata non esiste</p>
+            </div>
+            
+            <div id="critical-points"></div>
+            <div id="non-diff-points"></div>
+        </div>
+        
+        <div class="zoom-controls">
+            <button id="zoom-in">Zoom In</button>
+            <button id="zoom-out">Zoom Out</button>
+            <button id="reset-zoom">Reset</button>
+        </div>
+        
+        <canvas id="graph" width="1000" height="500"></canvas>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: blue;"></div>
+                <div>Funzione</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: green;"></div>
+                <div>Tangente</div>
+            </div>
+            <div class="legend-item" id="secant-legend" style="display: none;">
+                <div class="legend-color" style="background-color: purple;"></div>
+                <div>Secante</div>
+            </div>
+            <div class="legend-item" id="derivative-legend">
+                <div class="legend-color" style="background-color: red;"></div>
+                <div>Derivata</div>
+            </div>
+            <div class="legend-item" id="max-min-legend" style="display: none;">
+                <div class="dot-color" style="background-color: green;"></div>
+                <div>Massimi/Minimi</div>
+            </div>
+            <div class="legend-item" id="non-diff-legend" style="display: none;">
+                <div class="dot-color" style="background-color: red;"></div>
+                <div>Punti non derivabili</div>
+            </div>
+        </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Didattica & Progetti</h4>
+                <p>&copy; 2025 rigreco.github.io</p>
+                <p><a href="sitemap.html">Mappa del sito</a></p>
+            </div>
+            <div class="footer-section">
+                <h4>Sezioni</h4>
+                <ul>
+                    <li><a href="matematica.html">Matematica</a></li>
+                    <li><a href="progetti.html">Progetti</a></li>
+                    <li><a href="space-invaders/index.html">Arcade</a></li>
+                    <li><a href="apple2.html">Apple II</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Strumenti</h4>
+                <ul>
+                    <li><a href="function_plot.html">Grafico Funzioni</a></li>
+                    <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+                    <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+                    <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Elementi DOM
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const functionType = document.getElementById('function-type');
+        const showDerivative = document.getElementById('show-derivative');
+        const functionFormula = document.getElementById('function-formula');
+        const derivativeFormula = document.getElementById('derivative-formula');
+        const xSlider = document.getElementById('x-value');
+        const pointValues = document.getElementById('point-values');
+        const deltaXSlider = document.getElementById('delta-x');
+        const deltaXValue = document.getElementById('delta-x-value');
+        const secantValues = document.getElementById('secant-values');
+        const criticalPointsDiv = document.getElementById('critical-points');
+        const nonDiffPointsDiv = document.getElementById('non-diff-points');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const secantLegend = document.getElementById('secant-legend');
+        const maxMinLegend = document.getElementById('max-min-legend');
+        const nonDiffLegend = document.getElementById('non-diff-legend');
+        const zoomInButton = document.getElementById('zoom-in');
+        const zoomOutButton = document.getElementById('zoom-out');
+        const resetZoomButton = document.getElementById('reset-zoom');
+        
+        // Stato dell'applicazione
+        let xDomain = [-5, 5];
+        let yDomain = [-3, 3];
+        let currentX = 0;
+        let deltaX = 1;
+        let currentTab = 'base';
+        let animationId = null;
+        let isAnimating = false;
+        
+        // Funzioni matematiche
+        function f(x) {
+            switch(functionType.value) {
+                case 'sin': return Math.sin(x);
+                case 'parabola': return x * x;
+                case 'cubic': return x * x * x;
+                case 'exp': return Math.exp(x);
+                case 'log': return x <= 0 ? NaN : Math.log(x);
+                case 'sqrt': return x < 0 ? NaN : Math.sqrt(x);
+                default: return 0;
+            }
+        }
+        
+        function df(x) {
+            switch(functionType.value) {
+                case 'sin': return Math.cos(x);
+                case 'parabola': return 2 * x;
+                case 'cubic': return 3 * x * x;
+                case 'exp': return Math.exp(x);
+                case 'log': return x <= 0 ? NaN : 1 / x;
+                case 'sqrt': return x <= 0 ? (x === 0 ? Infinity : NaN) : 0.5 / Math.sqrt(x);
+                default: return 0;
+            }
+        }
+        
+        function ddf(x) {
+            switch(functionType.value) {
+                case 'sin': return -Math.sin(x);
+                case 'parabola': return 2;
+                case 'cubic': return 6 * x;
+                case 'exp': return Math.exp(x);
+                case 'log': return x <= 0 ? NaN : -1 / (x * x);
+                case 'sqrt': return x <= 0 ? NaN : -0.25 / Math.pow(x, 1.5);
+                default: return 0;
+            }
+        }
+        
+        // Rapporto incrementale
+        function differenceQuotient(x, deltaX) {
+            const fx = f(x);
+            const fxDelta = f(x + deltaX);
+            if (isNaN(fx) || isNaN(fxDelta)) return NaN;
+            return (fxDelta - fx) / deltaX;
+        }
+        
+        // Conversione coordinate
+        function xToCanvas(x) {
+            return (x - xDomain[0]) / (xDomain[1] - xDomain[0]) * canvas.width;
+        }
+        
+        function yToCanvas(y) {
+            return canvas.height - (y - yDomain[0]) / (yDomain[1] - yDomain[0]) * canvas.height;
+        }
+        
+        // Trova punti critici in modo ottimizzato
+        function findCriticalPoints() {
+            const criticalPoints = [];
+            const minDistance = (xDomain[1] - xDomain[0]) / 40; // Distanza minima tra punti
+            
+            // Funzioni con punti critici noti analiticamente
+            if (functionType.value === 'sin') {
+                // Massimi in π/2 + 2πn e minimi in 3π/2 + 2πn
+                for (let n = -5; n <= 5; n++) {
+                    const maxX = Math.PI/2 + 2*Math.PI*n;
+                    if (maxX >= xDomain[0] && maxX <= xDomain[1]) {
+                        criticalPoints.push({
+                            x: maxX,
+                            y: f(maxX),
+                            type: "massimo"
+                        });
+                    }
+                    
+                    const minX = 3*Math.PI/2 + 2*Math.PI*n;
+                    if (minX >= xDomain[0] && minX <= xDomain[1]) {
+                        criticalPoints.push({
+                            x: minX,
+                            y: f(minX),
+                            type: "minimo"
+                        });
+                    }
+                }
+            } else if (functionType.value === 'parabola') {
+                // Parabola ha un minimo in x=0
+                if (xDomain[0] <= 0 && xDomain[1] >= 0) {
+                    criticalPoints.push({
+                        x: 0,
+                        y: 0,
+                        type: "minimo"
+                    });
+                }
+            } else if (functionType.value === 'cubic') {
+                // Cubica ha un flesso in x=0
+                if (xDomain[0] <= 0 && xDomain[1] >= 0) {
+                    criticalPoints.push({
+                        x: 0,
+                        y: 0,
+                        type: "flesso orizzontale"
+                    });
+                }
+            } else {
+                // Per le altre funzioni, cerca numericamente
+                const precision = 0.01;
+                const step = (xDomain[1] - xDomain[0]) / 200;
+                
+                for (let x = xDomain[0]; x <= xDomain[1]; x += step) {
+                    const derivative1 = df(x);
+                    const derivative2 = df(x + step);
+                    
+                    // Controlla cambio di segno nella derivata
+                    if (derivative1 * derivative2 <= 0 && 
+                        !isNaN(derivative1) && !isNaN(derivative2) &&
+                        isFinite(derivative1) && isFinite(derivative2)) {
+                        
+                        // Bisezione per trovare il punto esatto
+                        let a = x;
+                        let b = x + step;
+                        let mid, derivative;
+                        
+                        for (let i = 0; i < 5; i++) {
+                            mid = (a + b) / 2;
+                            derivative = df(mid);
+                            
+                            if (Math.abs(derivative) < precision) {
+                                break;
+                            }
+                            
+                            if (derivative * df(a) < 0) {
+                                b = mid;
+                            } else {
+                                a = mid;
+                            }
+                        }
+                        
+                        const criticalX = mid;
+                        const criticalY = f(criticalX);
+                        
+                        // Controlla se è nel dominio visibile
+                        if (criticalX >= xDomain[0] && criticalX <= xDomain[1] && 
+                            criticalY >= yDomain[0] && criticalY <= yDomain[1] &&
+                            !isNaN(criticalY) && isFinite(criticalY)) {
+                            
+                            // Classifica il punto
+                            const secondDerivative = ddf(criticalX);
+                            let type;
+                            
+                            if (secondDerivative > precision) {
+                                type = "minimo";
+                            } else if (secondDerivative < -precision) {
+                                type = "massimo";
+                            } else {
+                                // Verifica cambio di concavità
+                                const secondDeriv1 = ddf(criticalX - step);
+                                const secondDeriv2 = ddf(criticalX + step);
+                                if (secondDeriv1 * secondDeriv2 < 0) {
+                                    type = "flesso orizzontale";
+                                } else {
+                                    continue; // Salta punto non significativo
+                                }
+                            }
+                            
+                            // Verifica distanza dagli altri punti
+                            let tooClose = false;
+                            for (let point of criticalPoints) {
+                                if (Math.abs(point.x - criticalX) < minDistance) {
+                                    tooClose = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!tooClose) {
+                                criticalPoints.push({
+                                    x: criticalX,
+                                    y: criticalY,
+                                    type: type
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return criticalPoints;
+        }
+        
+        // Trova punti di non derivabilità
+        function findNonDifferentiablePoints() {
+            const nonDiffPoints = [];
+            
+            // Punti di non derivabilità noti
+            if (functionType.value === 'sqrt') {
+                if (xDomain[0] <= 0 && xDomain[1] >= 0) {
+                    nonDiffPoints.push({
+                        x: 0,
+                        y: 0,
+                        type: "Punto con derivata infinita"
+                    });
+                }
+            } else if (functionType.value === 'log') {
+                if (xDomain[0] <= 0 && xDomain[1] > 0) {
+                    nonDiffPoints.push({
+                        x: 0,
+                        y: NaN,
+                        type: "Asintoto verticale"
+                    });
+                }
+            }
+            
+            return nonDiffPoints;
+        }
+        
+        // Aggiorna formule
+        function updateFormulas() {
+            switch(functionType.value) {
+                case 'sin':
+                    functionFormula.textContent = 'f(x) = sin(x)';
+                    derivativeFormula.textContent = 'f\'(x) = cos(x)';
+                    break;
+                case 'parabola':
+                    functionFormula.textContent = 'f(x) = x²';
+                    derivativeFormula.textContent = 'f\'(x) = 2x';
+                    break;
+                case 'cubic':
+                    functionFormula.textContent = 'f(x) = x³';
+                    derivativeFormula.textContent = 'f\'(x) = 3x²';
+                    break;
+                case 'exp':
+                    functionFormula.textContent = 'f(x) = e^x';
+                    derivativeFormula.textContent = 'f\'(x) = e^x';
+                    break;
+                case 'log':
+                    functionFormula.textContent = 'f(x) = ln(x)';
+                    derivativeFormula.textContent = 'f\'(x) = 1/x';
+                    break;
+                case 'sqrt':
+                    functionFormula.textContent = 'f(x) = √x';
+                    derivativeFormula.textContent = 'f\'(x) = 1/(2√x)';
+                    break;
+            }
+        }
+        
+        // Disegna il grafico
+        function drawGraph() {
+            // Pulisci canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Disegna assi
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, yToCanvas(0));
+            ctx.lineTo(canvas.width, yToCanvas(0));
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(xToCanvas(0), 0);
+            ctx.lineTo(xToCanvas(0), canvas.height);
+            ctx.stroke();
+            
+            // Disegna griglia
+            ctx.strokeStyle = '#eee';
+            for (let x = Math.ceil(xDomain[0]); x <= Math.floor(xDomain[1]); x++) {
+                if (x === 0) continue;
+                ctx.beginPath();
+                ctx.moveTo(xToCanvas(x), 0);
+                ctx.lineTo(xToCanvas(x), canvas.height);
+                ctx.stroke();
+                
+                // Etichetta X
+                ctx.fillStyle = 'black';
+                ctx.font = '12px Arial';
+                ctx.fillText(x, xToCanvas(x) - 5, yToCanvas(0) + 15);
+            }
+            
+            for (let y = Math.ceil(yDomain[0]); y <= Math.floor(yDomain[1]); y++) {
+                if (y === 0) continue;
+                ctx.beginPath();
+                ctx.moveTo(0, yToCanvas(y));
+                ctx.lineTo(canvas.width, yToCanvas(y));
+                ctx.stroke();
+                
+                // Etichetta Y
+                ctx.fillText(y, xToCanvas(0) - 15, yToCanvas(y) + 5);
+            }
+            
+            // Disegna funzione
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            let firstPoint = true;
+            let hasDiscontinuity = false;
+            const step = (xDomain[1] - xDomain[0]) / canvas.width;
+            
+            for (let x = xDomain[0]; x <= xDomain[1]; x += step) {
+                const y = f(x);
+                
+                if (!isNaN(y) && isFinite(y) && y >= yDomain[0] && y <= yDomain[1]) {
+                    if (firstPoint || hasDiscontinuity) {
+                        ctx.moveTo(xToCanvas(x), yToCanvas(y));
+                        firstPoint = false;
+                        hasDiscontinuity = false;
+                    } else {
+                        ctx.lineTo(xToCanvas(x), yToCanvas(y));
+                    }
+                } else {
+                    hasDiscontinuity = true;
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Disegna derivata se richiesto
+            if (showDerivative.checked) {
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                
+                firstPoint = true;
+                hasDiscontinuity = false;
+                
+                for (let x = xDomain[0]; x <= xDomain[1]; x += step) {
+                    const y = df(x);
+                    
+                    if (!isNaN(y) && isFinite(y) && y >= yDomain[0] && y <= yDomain[1]) {
+                        if (firstPoint || hasDiscontinuity) {
+                            ctx.moveTo(xToCanvas(x), yToCanvas(y));
+                            firstPoint = false;
+                            hasDiscontinuity = false;
+                        } else {
+                            ctx.lineTo(xToCanvas(x), yToCanvas(y));
+                        }
+                    } else {
+                        hasDiscontinuity = true;
+                    }
+                }
+                
+                ctx.stroke();
+            }
+            
+            // Visualizzazioni specifiche per ogni tab
+            if (currentTab === 'rapporto') {
+                const fx = f(currentX);
+                const fxDelta = f(currentX + deltaX);
+                
+                if (!isNaN(fx) && !isNaN(fxDelta) && isFinite(fx) && isFinite(fxDelta)) {
+                    // Disegna triangolo del rapporto incrementale
+                    ctx.strokeStyle = 'orange';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 3]);
+                    ctx.beginPath();
+                    
+                    // Linea orizzontale da (x, f(x)) a (x+Δx, f(x))
+                    ctx.moveTo(xToCanvas(currentX), yToCanvas(fx));
+                    ctx.lineTo(xToCanvas(currentX + deltaX), yToCanvas(fx));
+                    
+                    // Linea verticale da (x+Δx, f(x)) a (x+Δx, f(x+Δx))
+                    ctx.moveTo(xToCanvas(currentX + deltaX), yToCanvas(fx));
+                    ctx.lineTo(xToCanvas(currentX + deltaX), yToCanvas(fxDelta));
+                    
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Disegna secante
+                    ctx.strokeStyle = 'purple';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    // Calcola pendenza e intercetta
+                    const slope = (fxDelta - fx) / deltaX;
+                    const b = fx - slope * currentX;
+                    
+                    // Estendi la secante
+                    const extendLeft = Math.max(xDomain[0], currentX - 1);
+                    const extendRight = Math.min(xDomain[1], currentX + deltaX + 1);
+                    
+                    ctx.moveTo(xToCanvas(extendLeft), yToCanvas(slope * extendLeft + b));
+                    ctx.lineTo(xToCanvas(extendRight), yToCanvas(slope * extendRight + b));
+                    ctx.stroke();
+                    
+                    // Punti evidenziati sulla funzione
+                    ctx.fillStyle = 'purple';
+                    ctx.beginPath();
+                    ctx.arc(xToCanvas(currentX), yToCanvas(fx), 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(xToCanvas(currentX + deltaX), yToCanvas(fxDelta), 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Etichette Δx e Δy
+                    ctx.fillStyle = 'black';
+                    ctx.font = '12px Arial';
+                    ctx.fillText("Δx", xToCanvas(currentX + deltaX/2) - 5, yToCanvas(fx) + 15);
+                    ctx.fillText("Δy", xToCanvas(currentX + deltaX) + 8, yToCanvas((fx + fxDelta)/2));
+                }
+            } else if (currentTab === 'critical') {
+                // Punti critici
+                const criticalPoints = findCriticalPoints();
+                
+                criticalPoints.forEach(point => {
+                    ctx.fillStyle = point.type === "minimo" ? 'green' : 
+                                   point.type === "massimo" ? 'green' : 'orange';
+                    ctx.beginPath();
+                    ctx.arc(xToCanvas(point.x), yToCanvas(point.y), 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Etichetta
+                    ctx.fillStyle = 'black';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(point.type, xToCanvas(point.x) + 8, yToCanvas(point.y) - 8);
+                });
+                
+                // Punti di non derivabilità
+                const nonDiffPoints = findNonDifferentiablePoints();
+                
+                nonDiffPoints.forEach(point => {
+                    if (isNaN(point.y)) {
+                        // Asintoto verticale
+                        ctx.strokeStyle = 'red';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([5, 3]);
+                        ctx.beginPath();
+                        ctx.moveTo(xToCanvas(point.x), 0);
+                        ctx.lineTo(xToCanvas(point.x), canvas.height);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        
+                        ctx.fillText("asintoto", xToCanvas(point.x) + 8, 20);
+                    } else {
+                        ctx.fillStyle = 'red';
+                        ctx.beginPath();
+                        ctx.arc(xToCanvas(point.x), yToCanvas(point.y), 5, 0, 2 * Math.PI);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = 'black';
+                        ctx.fillText(point.type, xToCanvas(point.x) + 8, yToCanvas(point.y) - 8);
+                    }
+                });
+            }
+            
+            // Disegna tangente
+            const dfValue = df(currentX);
+            if (!isNaN(dfValue) && isFinite(dfValue)) {
+                const fx = f(currentX);
+                const b = fx - dfValue * currentX;
+                
+                ctx.strokeStyle = 'green';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                const x1 = Math.max(xDomain[0], currentX - 1);
+                const x2 = Math.min(xDomain[1], currentX + 1);
+                const y1 = dfValue * x1 + b;
+                const y2 = dfValue * x2 + b;
+                
+                ctx.moveTo(xToCanvas(x1), yToCanvas(y1));
+                ctx.lineTo(xToCanvas(x2), yToCanvas(y2));
+                ctx.stroke();
+            }
+            
+            // Disegna punto sulla funzione
+            const fx = f(currentX);
+            if (!isNaN(fx) && isFinite(fx) && fx >= yDomain[0] && fx <= yDomain[1]) {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(xToCanvas(currentX), yToCanvas(fx), 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Linea di riferimento verticale
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(xToCanvas(currentX), 0);
+            ctx.lineTo(xToCanvas(currentX), canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        // Aggiorna info punto
+        function updatePointInfo() {
+            const fx = f(currentX);
+            const dfx = df(currentX);
+            
+            let fxText = isNaN(fx) ? 'non definito' : isFinite(fx) ? fx.toFixed(2) : '∞';
+            let dfxText = isNaN(dfx) ? 'non definito' : isFinite(dfx) ? dfx.toFixed(2) : '∞';
+            
+            pointValues.textContent = `x = ${currentX.toFixed(2)}, f(x) = ${fxText}, f'(x) = ${dfxText}`;
+        }
+        
+        // Aggiorna valori rapporto incrementale
+        function updateIncrementValues() {
+            deltaX = parseFloat(deltaXSlider.value);
+            deltaXValue.textContent = deltaX.toFixed(3);
+            
+            const quotient = differenceQuotient(currentX, deltaX);
+            let quotientText = isNaN(quotient) ? 'non definito' : isFinite(quotient) ? quotient.toFixed(4) : '∞';
+            
+            secantValues.textContent = `Rapporto incrementale: [f(${(currentX + deltaX).toFixed(2)}) - f(${currentX.toFixed(2)})] / ${deltaX.toFixed(3)} = ${quotientText}`;
+        }
+        
+        // Aggiorna punti critici
+        function updateCriticalPoints() {
+            const criticalPoints = findCriticalPoints();
+            
+            if (criticalPoints.length === 0) {
+                criticalPointsDiv.innerHTML = "<strong>Punti critici:</strong> Nessun punto critico trovato nell'intervallo visibile.";
+            } else {
+                let html = "<strong>Punti critici:</strong><br>";
+                criticalPoints.forEach(point => {
+                    html += `• x = ${point.x.toFixed(2)}, ${point.type} (f'(x) = 0)<br>`;
+                });
+                criticalPointsDiv.innerHTML = html;
+            }
+            
+            const nonDiffPoints = findNonDifferentiablePoints();
+            
+            if (nonDiffPoints.length === 0) {
+                nonDiffPointsDiv.innerHTML = "<strong>Punti di non derivabilità:</strong> Nessun punto di non derivabilità trovato.";
+            } else {
+                let html = "<strong>Punti di non derivabilità:</strong><br>";
+                nonDiffPoints.forEach(point => {
+                    let xText = point.x.toFixed(2);
+                    let typeText = point.type;
+                    html += `• x = ${xText}, ${typeText}<br>`;
+                });
+                nonDiffPointsDiv.innerHTML = html;
+            }
+        }
+        
+        // Funzioni di zoom
+        function zoomIn() {
+            const factor = 1.5;
+            const centerX = (xDomain[0] + xDomain[1]) / 2;
+            const centerY = (yDomain[0] + yDomain[1]) / 2;
+            
+            const newWidthX = (xDomain[1] - xDomain[0]) / factor;
+            const newWidthY = (yDomain[1] - yDomain[0]) / factor;
+            
+            xDomain = [centerX - newWidthX/2, centerX + newWidthX/2];
+            yDomain = [centerY - newWidthY/2, centerY + newWidthY/2];
+            
+            // Aggiorna il range dello slider
+            xSlider.min = xDomain[0];
+            xSlider.max = xDomain[1];
+            
+            drawGraph();
+            if (currentTab === 'critical') {
+                updateCriticalPoints();
+            }
+        }
+        
+        function zoomOut() {
+            const factor = 1.5;
+            const centerX = (xDomain[0] + xDomain[1]) / 2;
+            const centerY = (yDomain[0] + yDomain[1]) / 2;
+            
+            const newWidthX = (xDomain[1] - xDomain[0]) * factor;
+            const newWidthY = (yDomain[1] - yDomain[0]) * factor;
+            
+            xDomain = [centerX - newWidthX/2, centerX + newWidthX/2];
+            yDomain = [centerY - newWidthY/2, centerY + newWidthY/2];
+            
+            // Aggiorna il range dello slider
+            xSlider.min = xDomain[0];
+            xSlider.max = xDomain[1];
+            
+            drawGraph();
+            if (currentTab === 'critical') {
+                updateCriticalPoints();
+            }
+        }
+        
+        function resetZoom() {
+            xDomain = [-5, 5];
+            yDomain = [-3, 3];
+            
+            // Aggiorna il range dello slider
+            xSlider.min = xDomain[0];
+            xSlider.max = xDomain[1];
+            
+            drawGraph();
+            if (currentTab === 'critical') {
+                updateCriticalPoints();
+            }
+        }
+        
+        // Cambia tab
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            tabs.forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            tabContents.forEach(content => {
+                if (content.id === tabName + '-tab') {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // Aggiorna elementi specifici per tab
+            if (tabName === 'rapporto') {
+                updateIncrementValues();
+                secantLegend.style.display = 'flex';
+            } else {
+                secantLegend.style.display = 'none';
+            }
+            
+            if (tabName === 'critical') {
+                updateCriticalPoints();
+                maxMinLegend.style.display = 'flex';
+                nonDiffLegend.style.display = 'flex';
+            } else {
+                maxMinLegend.style.display = 'none';
+                nonDiffLegend.style.display = 'none';
+            }
+            
+            drawGraph();
+        }
+        
+        // Anima rapporto incrementale
+        function animateLimit() {
+            if (isAnimating) {
+                cancelAnimationFrame(animationId);
+                isAnimating = false;
+                document.getElementById('animate-limit').textContent = "Anima Δx → 0";
+                return;
+            }
+            
+            isAnimating = true;
+            document.getElementById('animate-limit').textContent = "Stop";
+            
+            let currentDeltaX = parseFloat(deltaXSlider.value);
+            
+            function animate() {
+                if (currentDeltaX > 0.001) {
+                    currentDeltaX *= 0.95;
+                    deltaXSlider.value = currentDeltaX;
+                    updateIncrementValues();
+                    drawGraph();
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    isAnimating = false;
+                    document.getElementById('animate-limit').textContent = "Anima Δx → 0";
+                }
+            }
+            
+            animate();
+        }
+        
+        // Aggiorna interfaccia
+        function updateUI() {
+            updateFormulas();
+            updatePointInfo();
+            
+            if (currentTab === 'rapporto') {
+                updateIncrementValues();
+            } else if (currentTab === 'critical') {
+                updateCriticalPoints();
+            }
+            
+            drawGraph();
+        }
+        
+        // Event listeners
+        xSlider.addEventListener('input', function() {
+            currentX = parseFloat(this.value);
+            updatePointInfo();
+            
+            if (currentTab === 'rapporto') {
+                updateIncrementValues();
+            }
+            
+            drawGraph();
+        });
+        
+        functionType.addEventListener('change', function() {
+            updateUI();
+            // Aggiorna lo slider per adattarsi alla nuova funzione
+            if (functionType.value === 'log' || functionType.value === 'sqrt') {
+                if (currentX <= 0) {
+                    currentX = 0.5;
+                    xSlider.value = currentX;
+                    updatePointInfo();
+                }
+            }
+        });
+        
+        showDerivative.addEventListener('change', drawGraph);
+        
+        deltaXSlider.addEventListener('input', function() {
+            updateIncrementValues();
+            drawGraph();
+        });
+        
+        document.getElementById('animate-limit').addEventListener('click', animateLimit);
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                switchTab(this.dataset.tab);
+            });
+        });
+        
+        // Gestori zoom
+        zoomInButton.addEventListener('click', zoomIn);
+        zoomOutButton.addEventListener('click', zoomOut);
+        resetZoomButton.addEventListener('click', resetZoom);
+        
+        // Inizializzazione
+        updateUI();
+        
+        // Initialize lucide icons
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
