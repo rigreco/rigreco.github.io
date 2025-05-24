@@ -119,7 +119,7 @@ function handleResize() {
         }
         
         // Assicurati che il messaggio temporaneo mantenga la sua posizione corretta
-        if (temporaryMessageElement) {
+        if (temporaryMessageElement && temporaryMessageElement.parentNode) { 
             temporaryMessageElement.style.top = '10%';
             temporaryMessageElement.style.left = '50%';
             temporaryMessageElement.style.transform = 'translateX(-50%)';
@@ -151,9 +151,9 @@ function initAudioContext() {
 }
 
 // Eventi per attivare l'audio al primo input dell'utente
-document.addEventListener('click', initAudioContext, { once: false });
-document.addEventListener('touchstart', initAudioContext, { once: false });
-document.addEventListener('keydown', initAudioContext, { once: false });
+document.addEventListener('click', initAudioContext, { once: true });
+document.addEventListener('touchstart', initAudioContext, { once: true });
+document.addEventListener('keydown', initAudioContext, { once: true });
 
 function playSound(frequency, duration, type = 'sine') {
     if (!audioContextStarted || !audioContext) {
@@ -1273,21 +1273,6 @@ function createBarriers() {
     }
 }
 
-function updateUI() {
-    if (scoreElement) scoreElement.textContent = `SCORE ${score.toString().padStart(5, '0')}`;
-    if (hiScoreElement) hiScoreElement.textContent = `HI-SCORE ${hiScore.toString().padStart(5, '0')}`;
-    if (livesElement) livesElement.textContent = `LIVES ${lives}`;
-    if (levelElement) levelElement.textContent = `LEVEL ${level}`;
-}
-
-// Aggiungi questa funzione
-function updateHiScore() {
-    if (score > hiScore) {
-        hiScore = score;
-        updateUI();
-    }
-}
-
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
@@ -1933,7 +1918,7 @@ function resetGameVariables() {
     bullets = [];
     alienBullets = [];
     invaders = [];
-       barriers = [];
+    barriers = [];
     ufo = { x: -30, y: 30, el: null, active: false };
     invaderDirection = 1;
     invaderSpeed = 1 + (level - 1) * 0.2;
