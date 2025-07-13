@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'space-invaders-v4';  // Incrementato numero versione
+const CACHE_NAME = 'space-invaders-v5';  // Fix per async response error
 // Utilizzo path relativi invece di assoluti per maggiore portabilità
 const urlsToCache = [
   './',
@@ -49,6 +49,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Ignora richieste non-GET o richieste esterne
+  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -70,7 +75,7 @@ self.addEventListener('fetch', (event) => {
             // Clone della risposta
             const responseToCache = response.clone();
 
-            // Aggiungi alla cache
+            // Aggiungi alla cache in modo sicuro
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
@@ -90,10 +95,9 @@ self.addEventListener('fetch', (event) => {
             } else if (url.match(/\.(js)$/i)) {
               return caches.match('./space-invaders.js');
             } else if (url.match(/\.(png|jpg|jpeg|gif|ico)$/i)) {
-              // Ritorna una placeholder image o un'immagine dalla cache
               return caches.match('./icon.png');
             }
-            // Altrimenti ritorna un errore
+            // Altrimenti ritorna un errore controllato
             return new Response('Risorsa non disponibile offline', {
               status: 503,
               statusText: 'Service Unavailable',
@@ -102,6 +106,17 @@ self.addEventListener('fetch', (event) => {
               })
             });
           });
+      })
+      .catch(error => {
+        console.error('Errore nella gestione cache:', error);
+        // Fallback response
+        return new Response('Errore del Service Worker', {
+          status: 500,
+          statusText: 'Internal Server Error',
+          headers: new Headers({
+            'Content-Type': 'text/plain'
+          })
+        });
       })
   );
 });
