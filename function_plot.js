@@ -168,9 +168,15 @@ function evaluateFunction(x, functionString) {
             'e': math.e
         }, { override: true });
 
+        // Preprocessa la stringa per gestire esponenti negativi
+        let processedString = functionString;
+        
+        // Aggiungi parentesi attorno ai numeri negativi prima dell'esponente
+        processedString = processedString.replace(/(-\d*\.?\d+)\s*\^/g, '($1)^');
+        
         // Valuta l'espressione con l'ambiente limitato
         const scope = { x: x };
-        return limitedEval.evaluate(functionString, scope);
+        return limitedEval.evaluate(processedString, scope);
     } catch (e) {
         console.error('Errore nella valutazione della funzione:', e);
         return NaN;

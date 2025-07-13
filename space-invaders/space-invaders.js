@@ -96,7 +96,7 @@ function handleResize() {
         gameArea.style.transformOrigin = 'center center';
         gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
         
-        console.log("Applicato scale:", scale, "Stato gioco:", gameState);
+        // Scale applicato: debug rimosso
         
         // Gestione dei controlli touch
         const touchControlsContainer = document.getElementById('touchControlsContainer');
@@ -139,7 +139,7 @@ function initAudioContext() {
         }
         
         audioContextStarted = true;
-        console.log('AudioContext inizializzato con stato:', audioContext.state);
+        // AudioContext inizializzato
         
         // Crea il suono degli alieni subito per assicurarsi che sia disponibile
         if (!alienMoveSound) {
@@ -303,7 +303,7 @@ function showTemporaryMessage(message, duration = 2000) {
 
 //*************************** */
 function showIntroScreen() {
-    console.log("Showing intro screen");
+    // Mostra schermata intro
     gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
     
     // Verifica se l'utente sta tornando dalla schermata High Score
@@ -575,7 +575,7 @@ function showIntroScreen() {
 }
 
 function startGameFromIntro() {
-    console.log("Starting game from intro");
+    // Avvio gioco da intro
     gameState = 'playing';
     initGame();
     startGame();
@@ -597,7 +597,7 @@ function startGameFromIntro() {
 }
 
 function showHighScores() {
-    console.log("Showing high scores");
+    // Mostra punteggi
     gameState = 'highScores';
     
     // Usa il font pixellato PrintChar21 per un look più retrò arcade anni '80
@@ -747,14 +747,14 @@ if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
                 .then(registration => {
-                    console.log('Service Worker registrato con successo:', registration);
+                    // Service Worker registrato con successo
                 })
                 .catch(error => {
-                    console.log('Registrazione Service Worker fallita:', error);
+                    console.error('Registrazione Service Worker fallita:', error);
                 });
         });
     } else {
-        console.log('Service Worker non registrato: il protocollo deve essere HTTP o HTTPS. Stai utilizzando ' + window.location.protocol);
+        // Service Worker non registrato: protocollo non HTTPS
     }
     
     window.addEventListener('error', function(e) {
@@ -1308,7 +1308,7 @@ function handleResize() {
         gameArea.style.transformOrigin = 'center center';
         gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
         
-        console.log("Applicato scale:", scale, "Stato gioco:", gameState);
+        // Scale applicato: debug rimosso
         
         // Gestione dei controlli touch
         const touchControlsContainer = document.getElementById('touchControlsContainer');
@@ -1987,9 +1987,9 @@ function loadHighScores() {
     if (savedScores) {
         try {
             highScores = JSON.parse(savedScores);
-            console.log('High scores caricati:', highScores);
+            // High scores caricati
         } catch (e) {
-            console.error('Errore nelparsing degli high scores:', e);
+            console.error('Errore nel parsing degli high scores:', e);
             // Mantieni i valori predefiniti in caso di errore
         }
     }
@@ -1999,7 +1999,7 @@ function loadHighScores() {
 function saveHighScores() {
     try {
         localStorage.setItem('spaceInvadersHighScores', JSON.stringify(highScores));
-        console.log('High scores salvati');
+        // High scores salvati
     } catch (e) {
         console.error('Errore nel salvataggio degli high scores:', e);
     }
