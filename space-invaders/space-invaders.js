@@ -183,22 +183,37 @@ function playSound(frequency, duration, type = 'sine') {
     }
 }
 
+// Funzione helper per fermare oscillatori in modo sicuro
+function stopOscillatorSafely(soundObject) {
+    if (soundObject && soundObject.oscillator) {
+        try {
+            soundObject.oscillator.stop();
+            soundObject.oscillator.disconnect();
+            if (soundObject.gainNode) {
+                soundObject.gainNode.disconnect();
+            }
+        } catch (e) {
+            // Oscillatore già fermato o disconnesso, ignora l'errore
+        }
+    }
+}
+
 // Funzione per creare il suono degli alieni
 function createAlienMoveSound() {
     if (!audioContextStarted || !audioContext) return null;
-    
+
     try {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(alienSoundFrequencies[0], audioContext.currentTime);
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         oscillator.start();
-        
+
         return { oscillator, gainNode };
     } catch (e) {
         console.error('Errore nella creazione del suono degli alieni:', e);
@@ -585,13 +600,7 @@ function startGameFromIntro() {
     
     // Forza la creazione del suono degli alieni
     if (audioContextStarted && audioContext) {
-        if (alienMoveSound && alienMoveSound.oscillator) {
-            try {
-                alienMoveSound.oscillator.stop();
-            } catch (e) {
-                console.warn("Errore nel fermare l'oscillator precedente:", e);
-            }
-        }
+        stopOscillatorSafely(alienMoveSound);
         alienMoveSound = createAlienMoveSound();
     }
 }
@@ -1175,14 +1184,8 @@ function initGame() {
     // Crea il suono degli alieni
     if (audioContextStarted && audioContext) {
         // Assicurati che non ci siano suoni in riproduzione
-        if (alienMoveSound && alienMoveSound.oscillator) {
-            try {
-                alienMoveSound.oscillator.stop();
-            } catch (e) {
-                console.warn("Impossibile fermare l'oscillator precedente:", e);
-            }
-        }
-        
+        stopOscillatorSafely(alienMoveSound);
+
         try {
             alienMoveSound = createAlienMoveSound();
         } catch (e) {
@@ -1242,11 +1245,11 @@ function createInvaders() {
 function createBarriers() {
     // Struttura più simile all'originale Cosmic Invaders, con forma distintiva
     const barrierPositions = [75, 225, 375, 525]; // Posizioni X dei 4 ripari
-    
+
     for (let barrierIndex = 0; barrierIndex < 4; barrierIndex++) {
         const baseX = barrierPositions[barrierIndex];
         const baseY = 480;
-        
+
         // Prima e seconda riga (rettangolo completo)
         for (let j = 0; j < 2; j++) {
             for (let i = 0; i < 5; i++) {
@@ -1258,7 +1261,7 @@ function createBarriers() {
                 });
             }
         }
-        
+
         // Terza riga (inferiore con incavo centrale)
         for (let i = 0; i < 5; i++) {
             if (i !== 2) { // Salta la posizione centrale per creare l'incavo nella parte inferiore
@@ -1271,72 +1274,6 @@ function createBarriers() {
             }
         }
     }
-}
-
-function handleResize() {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-        // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
-        // Calcola il rapporto di aspetto del gioco e della finestra
-        const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità
-        const windowAspectRatio = window.innerWidth / window.innerHeight;
-        
-        let scale;
-        
-        // Adatta in base al rapporto di aspetto
-        if (windowAspectRatio < gameAspectRatio) {
-            // Se la finestra è più stretta, adatta alla larghezza
-            scale = window.innerWidth / 600 * 0.95; // 95% della larghezza per un piccolo margine
-        } else {
-            // Se la finestra è più larga, adatta all'altezza
-            scale = window.innerHeight / 600 * 0.95; // 95% dell'altezza per un piccolo margine
-        }
-        
-        // Se abbiamo già applicato scaling, usa lo stesso scale a meno che non ci sia una differenza significativa
-        if (lastAppliedScale !== null && Math.abs(lastAppliedScale - scale) < 0.1) {
-            scale = lastAppliedScale;
-        } else {
-            lastAppliedScale = scale;
-        }
-        
-        // Imposta la posizione iniziale e lo stile per centrare correttamente
-        // Anche per la schermata intro/menu utilizziamo lo stesso posizionamento del gioco
-        gameArea.style.position = 'absolute';
-        gameArea.style.top = '50%';
-        gameArea.style.left = '50%';
-        gameArea.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        gameArea.style.transformOrigin = 'center center';
-        gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
-        
-        // Scale applicato: debug rimosso
-        
-        // Gestione dei controlli touch
-        const touchControlsContainer = document.getElementById('touchControlsContainer');
-        if (touchControlsContainer) {
-            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
-            
-            // Adatta la dimensione dei controlli touch in base allo schermo
-            const controlSize = Math.min(window.innerWidth / 6, 80);
-            const shootControlSize = Math.min(window.innerWidth / 5, 120);
-            
-            document.querySelectorAll('.touch-control').forEach(control => {
-                if (control.id === 'shootControl') {
-                    control.style.width = `${shootControlSize}px`;
-                    control.style.height = `${controlSize}px`;
-                } else {
-                    control.style.width = `${controlSize}px`;
-                    control.style.height = `${controlSize}px`;
-                }
-            });
-        }
-        
-        // Assicurati che il messaggio temporaneo mantenga la sua posizione corretta
-        if (temporaryMessageElement) {
-            temporaryMessageElement.style.top = '10%';
-            temporaryMessageElement.style.left = '50%';
-            temporaryMessageElement.style.transform = 'translateX(-50%)';
-        }
-    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
 
 // Inizializza il gioco
@@ -1761,10 +1698,8 @@ function gameOver() {
     
     updateHiScore();
 
-    if (alienMoveSound && alienMoveSound.oscillator) {
-        alienMoveSound.oscillator.stop();
-    }
-    
+    stopOscillatorSafely(alienMoveSound);
+
     showGameOver(score);
 }
 
@@ -1822,9 +1757,7 @@ function levelComplete() {
     level++;
     showLevelComplete();
 
-    if (alienMoveSound && alienMoveSound.oscillator) {
-        alienMoveSound.oscillator.stop();
-    }
+    stopOscillatorSafely(alienMoveSound);
 
     changeGameState('levelComplete');
 }
