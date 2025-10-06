@@ -1,4 +1,12 @@
-// Elementi UI
+// ==================== GLOBAL STATE ====================
+// Nota: Questo file usa variabili globali per semplicità del gameloop.
+// Per un refactoring futuro, considera di raggruppare in oggetti come:
+// - ui (scoreElement, livesElement, etc.)
+// - entities (player, bullets, invaders, etc.)
+// - state (score, lives, level, gameActive, etc.)
+// - config (invaderSpeed, bulletsFrequency, etc.)
+
+// UI Elements
 let scoreElement;
 let livesElement;
 let levelElement;
@@ -6,34 +14,42 @@ let hiScoreElement;
 const gameArea = document.getElementById('gameArea');
 let temporaryMessageElement = document.getElementById('temporaryMessage');
 
-// Elementi di gioco
+// Game Entities
 let player, bullets, alienBullets, invaders, barriers, ufo;
 
-// Stato del gioco
+// Game State
 let score = 0, lives = 3, level = 1, gameActive = true;
-let gameState = 'intro';
+let gameState = 'intro'; // 'intro' | 'playing' | 'gameOver' | 'levelComplete' | 'highScores'
 let hiScore = 0;
 let gameLoopId;
 
-// Configurazione del gioco
+// Game Configuration
 let invaderDirection = 1, invaderSpeed = 1;
 let powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
 let baseInvaderSpeed = 1;
 let alienMoveInterval = 1000;
 let minAlienMoveInterval = 100;
 
-// Tempistiche e controlli
+// Timing
 let lastAlienShootTime = 0;
 let lastMoveTime = 0;
 let lastMessageScore = 0;
+let resizeTimeout;
+
+// Input Controls
 let touchStartX = 0;
 let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
-let shootInterval = null; // Variabile per gestire lo sparo continuo nei controlli touch
+let shootInterval = null;
 
-// Punteggi e statistiche
+// Game Constants
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
+const alienTypes = ['👽','👾','👻'];
+const alienPoints = [30, 20, 10];
+const alienSoundFrequencies = [55, 58, 62, 65];
+
+// Statistics
 let ufoScoreIndex = 0;
 let shotsFired = 0;
 let highScores = [
@@ -42,25 +58,18 @@ let highScores = [
     { name: 'CCC', score: 0 }
 ];
 
-// Tipi di alieni e punti
-const alienTypes = ['👽','👾','👻'];
-const alienPoints = [30, 20, 10];
-
-// Audio
+// Audio System
 let audioContext = null;
 let audioContextStarted = false;
 let alienMoveSound;
 let alienSoundSequence = [0, 1, 2, 3];
 let currentSequenceIndex = 0;
-const alienSoundFrequencies = [55, 58, 62, 65];
 
-// Gestione del ridimensionamento
-let resizeTimeout;
-
-// Variabile per mantenere coerenza dello scaling
+// Rendering
 let lastAppliedScale = null;
 
-// Funzione per gestire il ridimensionamento della finestra
+// ==================== RENDERING & LAYOUT ====================
+
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
@@ -126,6 +135,8 @@ function handleResize() {
         }
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
+
+// ==================== AUDIO SYSTEM ====================
 
 // Inizializza l'AudioContext - modificato per una migliore affidabilità
 function initAudioContext() {
@@ -268,7 +279,8 @@ function powerupSound() { playSound(880, 0.5, 'sine'); } // Cambiato per differe
 function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
-// Funzione migliorata per mostrare messaggi temporanei
+// ==================== UI & MESSAGES ====================
+
 function showTemporaryMessage(message, duration = 2000) {
     // Utilizza l'elemento globale se esiste, altrimenti ne crea uno nuovo
     if (!temporaryMessageElement || !temporaryMessageElement.parentNode) {
@@ -316,7 +328,8 @@ function showTemporaryMessage(message, duration = 2000) {
     return temporaryMessageElement;
 }
 
-//*************************** */
+// ==================== GAME SCREENS & MENUS ====================
+
 function showIntroScreen() {
     // Mostra schermata intro
     gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
@@ -735,9 +748,7 @@ function promptForName(score) {
     });
 }
 
-//********************************** */
-
-
+// ==================== GAME INITIALIZATION & ENTITIES ====================
 
 function createElement(x, y, content, className = 'sprite') {
     const el = document.createElement('div');
@@ -1048,7 +1059,8 @@ function createTouchControls() {
     return null;
 }
 
-// Menu di gioco
+// ==================== GAME STATE & CONTROLS ====================
+
 function changeGameState(newState) {
     if (gameState === newState) return;
     gameState = newState;
@@ -1068,12 +1080,8 @@ function changeGameState(newState) {
     }
 }
 
+// ==================== PLAYER MOVEMENT & SHOOTING ====================
 
-
-
-
-
-// Funzioni di movimento e sparo
 function movePlayerLeft() {
     if (player.x > 10) {
         player.x -= 10;
@@ -1278,6 +1286,8 @@ function createBarriers() {
 
 // Inizializza il gioco
 //initGame();
+
+// ==================== GAME LOOP & PHYSICS ====================
 
 function moveInvaders() {
     const currentTime = Date.now();
@@ -1592,7 +1602,7 @@ function updatePlayerPosition() {
     player.el.style.left = `${player.x}px`;
 }
 
-
+// ==================== MAIN GAME LOOP ====================
 
 function gameLoop() {
     if (gameActive) {
@@ -1663,6 +1673,8 @@ function flashLivesIndicator() {
     }, 500);
 }
 
+// ==================== EVENT HANDLERS ====================
+
 document.addEventListener('keydown', (e) => {
     if (gameActive) {
         if (e.key === 'ArrowLeft') {
@@ -1685,6 +1697,8 @@ document.addEventListener('keyup', (e) => {
         isMovingRight = false;
     }
 });
+
+// ==================== GAME OVER & LEVEL COMPLETE ====================
 
 function gameOver() {
     gameActive = false;
