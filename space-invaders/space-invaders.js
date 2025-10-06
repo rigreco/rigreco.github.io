@@ -1,12 +1,4 @@
-// ==================== GLOBAL STATE ====================
-// Nota: Questo file usa variabili globali per semplicità del gameloop.
-// Per un refactoring futuro, considera di raggruppare in oggetti come:
-// - ui (scoreElement, livesElement, etc.)
-// - entities (player, bullets, invaders, etc.)
-// - state (score, lives, level, gameActive, etc.)
-// - config (invaderSpeed, bulletsFrequency, etc.)
-
-// UI Elements
+// Elementi UI
 let scoreElement;
 let livesElement;
 let levelElement;
@@ -14,42 +6,34 @@ let hiScoreElement;
 const gameArea = document.getElementById('gameArea');
 let temporaryMessageElement = document.getElementById('temporaryMessage');
 
-// Game Entities
+// Elementi di gioco
 let player, bullets, alienBullets, invaders, barriers, ufo;
 
-// Game State
+// Stato del gioco
 let score = 0, lives = 3, level = 1, gameActive = true;
-let gameState = 'intro'; // 'intro' | 'playing' | 'gameOver' | 'levelComplete' | 'highScores'
+let gameState = 'intro';
 let hiScore = 0;
 let gameLoopId;
 
-// Game Configuration
+// Configurazione del gioco
 let invaderDirection = 1, invaderSpeed = 1;
 let powerup = 0, nextLifeScore = 5000, bulletsFrequency = 3;
 let baseInvaderSpeed = 1;
 let alienMoveInterval = 1000;
 let minAlienMoveInterval = 100;
 
-// Timing
+// Tempistiche e controlli
 let lastAlienShootTime = 0;
 let lastMoveTime = 0;
 let lastMessageScore = 0;
-let resizeTimeout;
-
-// Input Controls
 let touchStartX = 0;
 let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
-let shootInterval = null;
+let shootInterval = null; // Variabile per gestire lo sparo continuo nei controlli touch
 
-// Game Constants
+// Punteggi e statistiche
 const ufoScores = [100, 50, 50, 100, 150, 100, 100, 50, 300, 100, 100, 100, 50, 150, 100, 50];
-const alienTypes = ['👽','👾','👻'];
-const alienPoints = [30, 20, 10];
-const alienSoundFrequencies = [55, 58, 62, 65];
-
-// Statistics
 let ufoScoreIndex = 0;
 let shotsFired = 0;
 let highScores = [
@@ -58,18 +42,25 @@ let highScores = [
     { name: 'CCC', score: 0 }
 ];
 
-// Audio System
+// Tipi di alieni e punti
+const alienTypes = ['👽','👾','👻'];
+const alienPoints = [30, 20, 10];
+
+// Audio
 let audioContext = null;
 let audioContextStarted = false;
 let alienMoveSound;
 let alienSoundSequence = [0, 1, 2, 3];
 let currentSequenceIndex = 0;
+const alienSoundFrequencies = [55, 58, 62, 65];
 
-// Rendering
+// Gestione del ridimensionamento
+let resizeTimeout;
+
+// Variabile per mantenere coerenza dello scaling
 let lastAppliedScale = null;
 
-// ==================== RENDERING & LAYOUT ====================
-
+// Funzione per gestire il ridimensionamento della finestra
 function handleResize() {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
@@ -136,8 +127,6 @@ function handleResize() {
     }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
 }
 
-// ==================== AUDIO SYSTEM ====================
-
 // Inizializza l'AudioContext - modificato per una migliore affidabilità
 function initAudioContext() {
     try {
@@ -194,37 +183,22 @@ function playSound(frequency, duration, type = 'sine') {
     }
 }
 
-// Funzione helper per fermare oscillatori in modo sicuro
-function stopOscillatorSafely(soundObject) {
-    if (soundObject && soundObject.oscillator) {
-        try {
-            soundObject.oscillator.stop();
-            soundObject.oscillator.disconnect();
-            if (soundObject.gainNode) {
-                soundObject.gainNode.disconnect();
-            }
-        } catch (e) {
-            // Oscillatore già fermato o disconnesso, ignora l'errore
-        }
-    }
-}
-
 // Funzione per creare il suono degli alieni
 function createAlienMoveSound() {
     if (!audioContextStarted || !audioContext) return null;
-
+    
     try {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-
+        
         oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(alienSoundFrequencies[0], audioContext.currentTime);
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-
+        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         oscillator.start();
-
+        
         return { oscillator, gainNode };
     } catch (e) {
         console.error('Errore nella creazione del suono degli alieni:', e);
@@ -279,8 +253,7 @@ function powerupSound() { playSound(880, 0.5, 'sine'); } // Cambiato per differe
 function lifeUpSound() { playSound(880, 1, 'triangle'); }
 function playerExplosionSound() { playSound(220, 0.5, 'triangle'); }
 
-// ==================== UI & MESSAGES ====================
-
+// Funzione migliorata per mostrare messaggi temporanei
 function showTemporaryMessage(message, duration = 2000) {
     // Utilizza l'elemento globale se esiste, altrimenti ne crea uno nuovo
     if (!temporaryMessageElement || !temporaryMessageElement.parentNode) {
@@ -328,8 +301,7 @@ function showTemporaryMessage(message, duration = 2000) {
     return temporaryMessageElement;
 }
 
-// ==================== GAME SCREENS & MENUS ====================
-
+//*************************** */
 function showIntroScreen() {
     // Mostra schermata intro
     gameState = 'intro'; // Assicurati che lo stato del gioco sia corretto
@@ -613,7 +585,13 @@ function startGameFromIntro() {
     
     // Forza la creazione del suono degli alieni
     if (audioContextStarted && audioContext) {
-        stopOscillatorSafely(alienMoveSound);
+        if (alienMoveSound && alienMoveSound.oscillator) {
+            try {
+                alienMoveSound.oscillator.stop();
+            } catch (e) {
+                console.warn("Errore nel fermare l'oscillator precedente:", e);
+            }
+        }
         alienMoveSound = createAlienMoveSound();
     }
 }
@@ -748,7 +726,9 @@ function promptForName(score) {
     });
 }
 
-// ==================== GAME INITIALIZATION & ENTITIES ====================
+//********************************** */
+
+
 
 function createElement(x, y, content, className = 'sprite') {
     const el = document.createElement('div');
@@ -1059,8 +1039,7 @@ function createTouchControls() {
     return null;
 }
 
-// ==================== GAME STATE & CONTROLS ====================
-
+// Menu di gioco
 function changeGameState(newState) {
     if (gameState === newState) return;
     gameState = newState;
@@ -1080,8 +1059,12 @@ function changeGameState(newState) {
     }
 }
 
-// ==================== PLAYER MOVEMENT & SHOOTING ====================
 
+
+
+
+
+// Funzioni di movimento e sparo
 function movePlayerLeft() {
     if (player.x > 10) {
         player.x -= 10;
@@ -1192,8 +1175,14 @@ function initGame() {
     // Crea il suono degli alieni
     if (audioContextStarted && audioContext) {
         // Assicurati che non ci siano suoni in riproduzione
-        stopOscillatorSafely(alienMoveSound);
-
+        if (alienMoveSound && alienMoveSound.oscillator) {
+            try {
+                alienMoveSound.oscillator.stop();
+            } catch (e) {
+                console.warn("Impossibile fermare l'oscillator precedente:", e);
+            }
+        }
+        
         try {
             alienMoveSound = createAlienMoveSound();
         } catch (e) {
@@ -1253,11 +1242,11 @@ function createInvaders() {
 function createBarriers() {
     // Struttura più simile all'originale Space Invaders, con forma distintiva
     const barrierPositions = [75, 225, 375, 525]; // Posizioni X dei 4 ripari
-
+    
     for (let barrierIndex = 0; barrierIndex < 4; barrierIndex++) {
         const baseX = barrierPositions[barrierIndex];
         const baseY = 480;
-
+        
         // Prima e seconda riga (rettangolo completo)
         for (let j = 0; j < 2; j++) {
             for (let i = 0; i < 5; i++) {
@@ -1269,7 +1258,7 @@ function createBarriers() {
                 });
             }
         }
-
+        
         // Terza riga (inferiore con incavo centrale)
         for (let i = 0; i < 5; i++) {
             if (i !== 2) { // Salta la posizione centrale per creare l'incavo nella parte inferiore
@@ -1284,10 +1273,74 @@ function createBarriers() {
     }
 }
 
+function handleResize() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        // Per garantire la consistenza visiva, usiamo lo stesso scaling per tutti gli stati del gioco
+        // Calcola il rapporto di aspetto del gioco e della finestra
+        const gameAspectRatio = 600 / 600; // Usa dimensioni fisse per uniformità
+        const windowAspectRatio = window.innerWidth / window.innerHeight;
+        
+        let scale;
+        
+        // Adatta in base al rapporto di aspetto
+        if (windowAspectRatio < gameAspectRatio) {
+            // Se la finestra è più stretta, adatta alla larghezza
+            scale = window.innerWidth / 600 * 0.95; // 95% della larghezza per un piccolo margine
+        } else {
+            // Se la finestra è più larga, adatta all'altezza
+            scale = window.innerHeight / 600 * 0.95; // 95% dell'altezza per un piccolo margine
+        }
+        
+        // Se abbiamo già applicato scaling, usa lo stesso scale a meno che non ci sia una differenza significativa
+        if (lastAppliedScale !== null && Math.abs(lastAppliedScale - scale) < 0.1) {
+            scale = lastAppliedScale;
+        } else {
+            lastAppliedScale = scale;
+        }
+        
+        // Imposta la posizione iniziale e lo stile per centrare correttamente
+        // Anche per la schermata intro/menu utilizziamo lo stesso posizionamento del gioco
+        gameArea.style.position = 'absolute';
+        gameArea.style.top = '50%';
+        gameArea.style.left = '50%';
+        gameArea.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        gameArea.style.transformOrigin = 'center center';
+        gameArea.style.margin = '0'; // Resetta il margine per evitare influenze sul centramento
+        
+        // Scale applicato: debug rimosso
+        
+        // Gestione dei controlli touch
+        const touchControlsContainer = document.getElementById('touchControlsContainer');
+        if (touchControlsContainer) {
+            touchControlsContainer.style.display = ('ontouchstart' in window || navigator.maxTouchPoints > 0) ? 'flex' : 'none';
+            
+            // Adatta la dimensione dei controlli touch in base allo schermo
+            const controlSize = Math.min(window.innerWidth / 6, 80);
+            const shootControlSize = Math.min(window.innerWidth / 5, 120);
+            
+            document.querySelectorAll('.touch-control').forEach(control => {
+                if (control.id === 'shootControl') {
+                    control.style.width = `${shootControlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                } else {
+                    control.style.width = `${controlSize}px`;
+                    control.style.height = `${controlSize}px`;
+                }
+            });
+        }
+        
+        // Assicurati che il messaggio temporaneo mantenga la sua posizione corretta
+        if (temporaryMessageElement) {
+            temporaryMessageElement.style.top = '10%';
+            temporaryMessageElement.style.left = '50%';
+            temporaryMessageElement.style.transform = 'translateX(-50%)';
+        }
+    }, 250); // Aspetta 250ms prima di applicare il ridimensionamento
+}
+
 // Inizializza il gioco
 //initGame();
-
-// ==================== GAME LOOP & PHYSICS ====================
 
 function moveInvaders() {
     const currentTime = Date.now();
@@ -1602,7 +1655,7 @@ function updatePlayerPosition() {
     player.el.style.left = `${player.x}px`;
 }
 
-// ==================== MAIN GAME LOOP ====================
+
 
 function gameLoop() {
     if (gameActive) {
@@ -1673,8 +1726,6 @@ function flashLivesIndicator() {
     }, 500);
 }
 
-// ==================== EVENT HANDLERS ====================
-
 document.addEventListener('keydown', (e) => {
     if (gameActive) {
         if (e.key === 'ArrowLeft') {
@@ -1698,8 +1749,6 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// ==================== GAME OVER & LEVEL COMPLETE ====================
-
 function gameOver() {
     gameActive = false;
     cancelAnimationFrame(gameLoopId);
@@ -1712,8 +1761,10 @@ function gameOver() {
     
     updateHiScore();
 
-    stopOscillatorSafely(alienMoveSound);
-
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
+    }
+    
     showGameOver(score);
 }
 
@@ -1771,7 +1822,9 @@ function levelComplete() {
     level++;
     showLevelComplete();
 
-    stopOscillatorSafely(alienMoveSound);
+    if (alienMoveSound && alienMoveSound.oscillator) {
+        alienMoveSound.oscillator.stop();
+    }
 
     changeGameState('levelComplete');
 }
