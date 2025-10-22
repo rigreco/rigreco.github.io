@@ -126,7 +126,7 @@ export function checkHighScore(score) {
  * Aggiunge un nuovo high score
  */
 export function addHighScore(name, score) {
-    name = name.padEnd(3, ' ').substr(0, 3).toUpperCase();
+    name = name.padEnd(3, ' ').substring(0, 3).toUpperCase();
 
     highScores.push({ name, score });
     highScores.sort((a, b) => b.score - a.score);

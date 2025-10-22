@@ -132,6 +132,9 @@ export function stopAlienMoveSound() {
     if (alienMoveSound && alienMoveSound.oscillator) {
         try {
             alienMoveSound.oscillator.stop();
+            alienMoveSound.oscillator.disconnect();
+            alienMoveSound.gainNode.disconnect();
+            alienMoveSound = null;
         } catch (e) {
             console.warn("Impossibile fermare l'oscillator:", e);
         }
