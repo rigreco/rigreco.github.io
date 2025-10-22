@@ -8,15 +8,21 @@ import * as Audio from './audio.js';
 import { player, bullets, createElement } from './entities.js';
 import { getLastAppliedScale } from './ui.js';
 
+// Costanti per boundaries del giocatore
+const PLAYER_MIN_X = 10;
+const PLAYER_MAX_X = 570;
+
 // Riferimento all'area di gioco
 let gameArea = null;
 
 // Controlli
-let touchStartX = 0;
-let isShooting = false;
 let isMovingLeft = false;
 let isMovingRight = false;
 let shootInterval = null;
+
+// Event listeners per cleanup
+let resizeListener = null;
+let orientationListener = null;
 
 /**
  * Inizializza il riferimento all'area di gioco
@@ -36,7 +42,7 @@ export function getMovementState() {
  * Muove il giocatore a sinistra
  */
 export function movePlayerLeft() {
-    if (player.x > 10) {
+    if (player.x > PLAYER_MIN_X) {
         player.x -= 10;
         player.el.style.left = `${player.x}px`;
     }
@@ -46,7 +52,7 @@ export function movePlayerLeft() {
  * Muove il giocatore a destra
  */
 export function movePlayerRight() {
-    if (player.x < 570) {
+    if (player.x < PLAYER_MAX_X) {
         player.x += 10;
         player.el.style.left = `${player.x}px`;
     }
@@ -73,10 +79,10 @@ export function shoot() {
  */
 export function updatePlayerPosition() {
     const moveSpeed = player.moveSpeed || 5;
-    if (isMovingLeft && player.x > 10) {
+    if (isMovingLeft && player.x > PLAYER_MIN_X) {
         player.x -= moveSpeed;
     }
-    if (isMovingRight && player.x < 570) {
+    if (isMovingRight && player.x < PLAYER_MAX_X) {
         player.x += moveSpeed;
     }
     player.el.style.left = `${player.x}px`;
@@ -299,8 +305,20 @@ export function createTouchControls() {
 
         resizeControls();
 
-        window.addEventListener('resize', resizeControls);
-        window.addEventListener('orientationchange', () => setTimeout(resizeControls, 100));
+        // Rimuovi vecchi event listeners se esistono
+        if (resizeListener) {
+            window.removeEventListener('resize', resizeListener);
+        }
+        if (orientationListener) {
+            window.removeEventListener('orientationchange', orientationListener);
+        }
+
+        // Aggiungi nuovi event listeners
+        resizeListener = resizeControls;
+        orientationListener = () => setTimeout(resizeControls, 100);
+
+        window.addEventListener('resize', resizeListener);
+        window.addEventListener('orientationchange', orientationListener);
 
         return {
             container: touchControlsContainer,
@@ -308,6 +326,24 @@ export function createTouchControls() {
         };
     }
     return null;
+}
+
+/**
+ * Pulisce gli event listeners dei controlli touch
+ */
+export function cleanupTouchControls() {
+    if (resizeListener) {
+        window.removeEventListener('resize', resizeListener);
+        resizeListener = null;
+    }
+    if (orientationListener) {
+        window.removeEventListener('orientationchange', orientationListener);
+        orientationListener = null;
+    }
+    if (shootInterval) {
+        clearInterval(shootInterval);
+        shootInterval = null;
+    }
 }
 
 /**

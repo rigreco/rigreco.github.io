@@ -7,6 +7,16 @@ import * as GameState from './game-state.js';
 import * as Audio from './audio.js';
 import { updateUI, showTemporaryMessage } from './ui.js';
 
+// Costanti per collision detection e boundaries
+const COLLISION_DISTANCE_LARGE = 20;  // Per invaders, UFO, player
+const COLLISION_DISTANCE_SMALL = 10;  // Per barriers
+const PLAYER_MIN_X = 10;
+const PLAYER_MAX_X = 570;
+const INVADER_MIN_X = 10;
+const INVADER_MAX_X = 560;
+const INVADER_DANGER_Y = 350;  // Y dove gli alieni accelerano
+const INVADER_GAME_OVER_Y = 530;  // Y dove il gioco finisce
+
 // Riferimento all'area di gioco
 let gameArea = null;
 
@@ -134,17 +144,13 @@ export function moveInvaders() {
         let shouldChangeDirection = false;
         let furthestDownInvader = 0;
 
-        // Trova l'invasore più in basso
+        // Trova l'invasore più in basso e verifica i bordi in un unico loop
         invaders.forEach(invader => {
             if (invader.y > furthestDownInvader) {
                 furthestDownInvader = invader.y;
             }
-        });
-
-        // Determina se gli alieni sono ai bordi
-        invaders.forEach(invader => {
-            if ((GameState.invaderDirection > 0 && invader.x > 560) ||
-                (GameState.invaderDirection < 0 && invader.x < 10)) {
+            if ((GameState.invaderDirection > 0 && invader.x > INVADER_MAX_X) ||
+                (GameState.invaderDirection < 0 && invader.x < INVADER_MIN_X)) {
                 shouldChangeDirection = true;
             }
         });
@@ -166,7 +172,7 @@ export function moveInvaders() {
             });
         }
 
-        if (furthestDownInvader > 350) {
+        if (furthestDownInvader > INVADER_DANGER_Y) {
             GameState.setAlienMoveInterval(
                 Math.max(GameState.alienMoveInterval - 100, GameState.minAlienMoveInterval)
             );
@@ -226,6 +232,31 @@ export function moveUfo() {
 }
 
 /**
+ * Helper per verificare collisioni con barriere
+ */
+function checkBarrierCollision(bullet, bulletArray, bulletIndex) {
+    for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
+        const barrier = barriers[barrierIndex];
+        if (Math.abs(bullet.x - barrier.x) < COLLISION_DISTANCE_SMALL &&
+            Math.abs(bullet.y - barrier.y) < COLLISION_DISTANCE_SMALL) {
+            gameArea.removeChild(bullet.el);
+            bulletArray.splice(bulletIndex, 1);
+
+            barrier.hp -= 1;
+
+            if (barrier.hp <= 0) {
+                gameArea.removeChild(barrier.el);
+                barriers.splice(barrierIndex, 1);
+            } else {
+                barrier.el.style.opacity = barrier.hp / 4;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Aggiorna i proiettili
  */
 export function updateBullets() {
@@ -275,7 +306,8 @@ export function checkCollisions() {
         // Collisione con invasori
         for (let invaderIndex = invaders.length - 1; invaderIndex >= 0; invaderIndex--) {
             const invader = invaders[invaderIndex];
-            if (Math.abs(bullet.x - invader.x) < 20 && Math.abs(bullet.y - invader.y) < 20) {
+            if (Math.abs(bullet.x - invader.x) < COLLISION_DISTANCE_LARGE &&
+                Math.abs(bullet.y - invader.y) < COLLISION_DISTANCE_LARGE) {
                 gameArea.removeChild(invader.el);
                 gameArea.removeChild(bullet.el);
 
@@ -302,7 +334,8 @@ export function checkCollisions() {
         if (bulletRemoved) continue;
 
         // Collisione con UFO
-        if (ufo.active && Math.abs(bullet.x - ufo.x) < 20 && Math.abs(bullet.y - ufo.y) < 20) {
+        if (ufo.active && Math.abs(bullet.x - ufo.x) < COLLISION_DISTANCE_LARGE &&
+            Math.abs(bullet.y - ufo.y) < COLLISION_DISTANCE_LARGE) {
             gameArea.removeChild(ufo.el);
             gameArea.removeChild(bullet.el);
             bullets.splice(bulletIndex, 1);
@@ -317,25 +350,7 @@ export function checkCollisions() {
         }
 
         // Collisione con barriere
-        let barrierHit = false;
-        for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
-            const barrier = barriers[barrierIndex];
-            if (Math.abs(bullet.x - barrier.x) < 10 && Math.abs(bullet.y - barrier.y) < 10) {
-                gameArea.removeChild(bullet.el);
-                bullets.splice(bulletIndex, 1);
-
-                barrier.hp -= 1;
-
-                if (barrier.hp <= 0) {
-                    gameArea.removeChild(barrier.el);
-                    barriers.splice(barrierIndex, 1);
-                } else {
-                    barrier.el.style.opacity = barrier.hp / 4;
-                }
-                barrierHit = true;
-                break;
-            }
-        }
+        const barrierHit = checkBarrierCollision(bullet, bullets, bulletIndex);
 
         if (barrierHit) continue;
     }
@@ -346,7 +361,8 @@ export function checkCollisions() {
         const bullet = alienBullets[bulletIndex];
 
         // Collisione con giocatore
-        if (Math.abs(bullet.x - player.x) < 20 && Math.abs(bullet.y - player.y) < 20) {
+        if (Math.abs(bullet.x - player.x) < COLLISION_DISTANCE_LARGE &&
+            Math.abs(bullet.y - player.y) < COLLISION_DISTANCE_LARGE) {
             gameArea.removeChild(bullet.el);
             alienBullets.splice(bulletIndex, 1);
             GameState.setLives(GameState.lives - 1);
@@ -362,26 +378,8 @@ export function checkCollisions() {
 
         if (bulletRemoved) continue;
 
-        // Collisione con barriere
-        let barrierHit = false;
-        for (let barrierIndex = barriers.length - 1; barrierIndex >= 0; barrierIndex--) {
-            const barrier = barriers[barrierIndex];
-            if (Math.abs(bullet.x - barrier.x) < 10 && Math.abs(bullet.y - barrier.y) < 10) {
-                gameArea.removeChild(bullet.el);
-                alienBullets.splice(bulletIndex, 1);
-
-                barrier.hp -= 1;
-
-                if (barrier.hp <= 0) {
-                    gameArea.removeChild(barrier.el);
-                    barriers.splice(barrierIndex, 1);
-                } else {
-                    barrier.el.style.opacity = barrier.hp / 4;
-                }
-                barrierHit = true;
-                break;
-            }
-        }
+        // Collisione con barriere - riusa la funzione di collisione
+        const barrierHit = checkBarrierCollision(bullet, alienBullets, bulletIndex);
 
         if (barrierHit) continue;
     }
@@ -389,7 +387,7 @@ export function checkCollisions() {
     // Controllo se gli invasori hanno raggiunto il fondo
     for (let i = 0; i < invaders.length; i++) {
         const invader = invaders[i];
-        if (invader.y > 530) {
+        if (invader.y > INVADER_GAME_OVER_Y) {
             result.gameOver = true;
             return result;
         }
@@ -404,12 +402,44 @@ export function checkCollisions() {
 }
 
 /**
- * Pulisce tutte le entità
+ * Pulisce tutte le entità rimuovendo anche gli elementi DOM
  */
 export function cleanupEntities() {
+    // Rimuovi elementi DOM dei proiettili
+    bullets.forEach(bullet => {
+        if (bullet.el && bullet.el.parentNode) {
+            gameArea.removeChild(bullet.el);
+        }
+    });
     bullets = [];
+
+    // Rimuovi elementi DOM dei proiettili alieni
+    alienBullets.forEach(bullet => {
+        if (bullet.el && bullet.el.parentNode) {
+            gameArea.removeChild(bullet.el);
+        }
+    });
     alienBullets = [];
+
+    // Rimuovi elementi DOM degli invasori
+    invaders.forEach(invader => {
+        if (invader.el && invader.el.parentNode) {
+            gameArea.removeChild(invader.el);
+        }
+    });
     invaders = [];
+
+    // Rimuovi elementi DOM delle barriere
+    barriers.forEach(barrier => {
+        if (barrier.el && barrier.el.parentNode) {
+            gameArea.removeChild(barrier.el);
+        }
+    });
     barriers = [];
+
+    // Rimuovi UFO se presente
+    if (ufo.el && ufo.el.parentNode) {
+        gameArea.removeChild(ufo.el);
+    }
     ufo = { x: -30, y: 30, el: null, active: false };
 }
