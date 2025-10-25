@@ -36,6 +36,19 @@ export function initGameArea(area) {
 }
 
 /**
+ * Rimuove in modo sicuro un elemento DOM
+ */
+function safeRemoveElement(element) {
+    if (element && element.parentNode) {
+        try {
+            element.parentNode.removeChild(element);
+        } catch (e) {
+            console.warn('Errore nella rimozione elemento DOM:', e);
+        }
+    }
+}
+
+/**
  * Crea un elemento DOM per le entità
  */
 export function createElement(x, y, content, className = 'sprite') {
@@ -225,7 +238,7 @@ export function moveUfo() {
         }
 
         if ((ufo.direction > 0 && ufo.x > 630) || (ufo.direction < 0 && ufo.x < -30)) {
-            gameArea.removeChild(ufo.el);
+            safeRemoveElement(ufo.el);
             ufo.active = false;
         }
     }
@@ -239,13 +252,13 @@ function checkBarrierCollision(bullet, bulletArray, bulletIndex) {
         const barrier = barriers[barrierIndex];
         if (Math.abs(bullet.x - barrier.x) < COLLISION_DISTANCE_SMALL &&
             Math.abs(bullet.y - barrier.y) < COLLISION_DISTANCE_SMALL) {
-            gameArea.removeChild(bullet.el);
+            safeRemoveElement(bullet.el);
             bulletArray.splice(bulletIndex, 1);
 
             barrier.hp -= 1;
 
             if (barrier.hp <= 0) {
-                gameArea.removeChild(barrier.el);
+                safeRemoveElement(barrier.el);
                 barriers.splice(barrierIndex, 1);
             } else {
                 barrier.el.style.opacity = barrier.hp / 4;
@@ -266,9 +279,7 @@ export function updateBullets() {
         bullet.y -= 5;
 
         if (bullet.y < 0) {
-            if (bullet.el && bullet.el.parentNode) {
-                gameArea.removeChild(bullet.el);
-            }
+            safeRemoveElement(bullet.el);
             bullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
@@ -281,9 +292,7 @@ export function updateBullets() {
         bullet.y += 5 + GameState.level;
 
         if (bullet.y > 600) {
-            if (bullet.el && bullet.el.parentNode) {
-                gameArea.removeChild(bullet.el);
-            }
+            safeRemoveElement(bullet.el);
             alienBullets.splice(i, 1);
         } else {
             bullet.el.style.top = `${bullet.y}px`;
@@ -308,8 +317,8 @@ export function checkCollisions() {
             const invader = invaders[invaderIndex];
             if (Math.abs(bullet.x - invader.x) < COLLISION_DISTANCE_LARGE &&
                 Math.abs(bullet.y - invader.y) < COLLISION_DISTANCE_LARGE) {
-                gameArea.removeChild(invader.el);
-                gameArea.removeChild(bullet.el);
+                safeRemoveElement(invader.el);
+                safeRemoveElement(bullet.el);
 
                 let points;
                 switch(invader.type) {
@@ -336,8 +345,8 @@ export function checkCollisions() {
         // Collisione con UFO
         if (ufo.active && Math.abs(bullet.x - ufo.x) < COLLISION_DISTANCE_LARGE &&
             Math.abs(bullet.y - ufo.y) < COLLISION_DISTANCE_LARGE) {
-            gameArea.removeChild(ufo.el);
-            gameArea.removeChild(bullet.el);
+            safeRemoveElement(ufo.el);
+            safeRemoveElement(bullet.el);
             bullets.splice(bulletIndex, 1);
             ufo.active = false;
             const ufoScore = ufo.score || 100;
@@ -363,7 +372,7 @@ export function checkCollisions() {
         // Collisione con giocatore
         if (player && Math.abs(bullet.x - player.x) < COLLISION_DISTANCE_LARGE &&
             Math.abs(bullet.y - player.y) < COLLISION_DISTANCE_LARGE) {
-            gameArea.removeChild(bullet.el);
+            safeRemoveElement(bullet.el);
             alienBullets.splice(bulletIndex, 1);
             GameState.setLives(GameState.lives - 1);
             updateUI();
@@ -407,39 +416,29 @@ export function checkCollisions() {
 export function cleanupEntities() {
     // Rimuovi elementi DOM dei proiettili
     bullets.forEach(bullet => {
-        if (bullet.el && bullet.el.parentNode) {
-            gameArea.removeChild(bullet.el);
-        }
+        safeRemoveElement(bullet.el);
     });
     bullets = [];
 
     // Rimuovi elementi DOM dei proiettili alieni
     alienBullets.forEach(bullet => {
-        if (bullet.el && bullet.el.parentNode) {
-            gameArea.removeChild(bullet.el);
-        }
+        safeRemoveElement(bullet.el);
     });
     alienBullets = [];
 
     // Rimuovi elementi DOM degli invasori
     invaders.forEach(invader => {
-        if (invader.el && invader.el.parentNode) {
-            gameArea.removeChild(invader.el);
-        }
+        safeRemoveElement(invader.el);
     });
     invaders = [];
 
     // Rimuovi elementi DOM delle barriere
     barriers.forEach(barrier => {
-        if (barrier.el && barrier.el.parentNode) {
-            gameArea.removeChild(barrier.el);
-        }
+        safeRemoveElement(barrier.el);
     });
     barriers = [];
 
     // Rimuovi UFO se presente
-    if (ufo.el && ufo.el.parentNode) {
-        gameArea.removeChild(ufo.el);
-    }
+    safeRemoveElement(ufo.el);
     ufo = { x: -30, y: 30, el: null, active: false };
 }
