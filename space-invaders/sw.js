@@ -1,15 +1,20 @@
 // sw.js
 
-const CACHE_NAME = 'cosmic-invaders-v5';  // Fix per async response error
+const CACHE_NAME = 'cosmic-invaders-v6';  // Aggiornato per modularizzazione
 // Utilizzo path relativi invece di assoluti per maggiore portabilità
 const urlsToCache = [
   './',
   './index.html',
-  './space-invaders.js',
+  './main.js',
+  './game-state.js',
+  './audio.js',
+  './entities.js',
+  './ui.js',
+  './controls.js',
   './icon.png',
   './favicon.ico',
   './manifest.json'
-  // Aggiungi qui altri file che vuoi mettere in cache
+  // File modulari dopo refactoring
 ];
 
 self.addEventListener('install', (event) => {
@@ -93,7 +98,7 @@ self.addEventListener('fetch', (event) => {
             if (url.match(/\.(html|htm)$/i)) {
               return caches.match('./index.html');
             } else if (url.match(/\.(js)$/i)) {
-              return caches.match('./space-invaders.js');
+              return caches.match('./main.js');
             } else if (url.match(/\.(png|jpg|jpeg|gif|ico)$/i)) {
               return caches.match('./icon.png');
             }
