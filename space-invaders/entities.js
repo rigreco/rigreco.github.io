@@ -361,7 +361,7 @@ export function checkCollisions() {
         const bullet = alienBullets[bulletIndex];
 
         // Collisione con giocatore
-        if (Math.abs(bullet.x - player.x) < COLLISION_DISTANCE_LARGE &&
+        if (player && Math.abs(bullet.x - player.x) < COLLISION_DISTANCE_LARGE &&
             Math.abs(bullet.y - player.y) < COLLISION_DISTANCE_LARGE) {
             gameArea.removeChild(bullet.el);
             alienBullets.splice(bulletIndex, 1);

@@ -42,6 +42,8 @@ export function getMovementState() {
  * Muove il giocatore a sinistra
  */
 export function movePlayerLeft() {
+    if (!player) return;
+
     if (player.x > PLAYER_MIN_X) {
         player.x -= 10;
         player.el.style.left = `${player.x}px`;
@@ -52,6 +54,8 @@ export function movePlayerLeft() {
  * Muove il giocatore a destra
  */
 export function movePlayerRight() {
+    if (!player) return;
+
     if (player.x < PLAYER_MAX_X) {
         player.x += 10;
         player.el.style.left = `${player.x}px`;
@@ -62,6 +66,10 @@ export function movePlayerRight() {
  * Spara un proiettile
  */
 export function shoot() {
+    if (!player || !gameArea) {
+        return; // Non sparare se il gioco non è inizializzato
+    }
+
     if (bullets.length < GameState.bulletsFrequency) {
         bullets.push({
             x: player.x + 10,
@@ -78,6 +86,8 @@ export function shoot() {
  * Aggiorna la posizione del giocatore basandosi sui controlli
  */
 export function updatePlayerPosition() {
+    if (!player) return;
+
     const moveSpeed = player.moveSpeed || 5;
     if (isMovingLeft && player.x > PLAYER_MIN_X) {
         player.x -= moveSpeed;
@@ -175,6 +185,8 @@ export function createTouchControls() {
         let joystickMaxDistance = 45;
 
         function updateJoystickPosition(touchX) {
+            if (!player) return; // Non aggiornare se player non esiste
+
             const joystickBounds = joystickContainer.getBoundingClientRect();
             const scale = getLastAppliedScale() || 1;
             const relativeX = (touchX - joystickBounds.left) / scale;
@@ -222,7 +234,9 @@ export function createTouchControls() {
             joystickStick.style.transform = 'translateX(0)';
             isMovingLeft = false;
             isMovingRight = false;
-            player.moveSpeed = 5;
+            if (player) {
+                player.moveSpeed = 5;
+            }
         };
 
         joystickContainer.addEventListener('touchend', resetJoystick);
