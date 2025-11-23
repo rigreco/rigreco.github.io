@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algebra Lineare - Didattica & Progetti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .subsection {
+      padding-left: 25px;
+    }
+    .math-table td ul, .math-table td ol {
+      margin-left: 30px;
+      padding-left: 15px;
+    }
+    .math-table td li {
+      margin-bottom: 8px;
+    }
+    .link-box {
+      background-color: #f0f8ff;
+      padding: 10px;
+      margin: 10px 0;
+      border-left: 4px solid #4CAF50;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+          <div class="dropdown-content">
+            <a href="space-invaders/index.html"><i data-lucide="target"></i> Cosmic Invaders</a>
+          </div>
+        </li>
+        <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Algebra Lineare</h2>
+
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Algebra Lineare: Fondamenti Teorici</th>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">1. Introduzione all'Algebra Lineare</td>
+      </tr>
+      <tr>
+        <td>Cos'è l'Algebra Lineare?</td>
+        <td>
+          L'algebra lineare è il ramo della matematica che studia i <strong>vettori</strong>, gli <strong>spazi vettoriali</strong> (o spazi lineari), le <strong>trasformazioni lineari</strong> e i <strong>sistemi di equazioni lineari</strong>.
+          <br><br>
+          È fondamentale in molti campi:
+          <ul>
+            <li>Fisica e ingegneria (circuiti elettrici, meccanica, sistemi di controllo)</li>
+            <li>Computer grafica (trasformazioni geometriche, rendering)</li>
+            <li>Machine learning e intelligenza artificiale</li>
+            <li>Economia e ricerca operativa</li>
+            <li>Analisi dei dati e statistica</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">2. Vettori</td>
+      </tr>
+      <tr>
+        <td>Definizione di Vettore</td>
+        <td>
+          Un vettore è un elemento di uno spazio vettoriale. Nel contesto dell'algebra lineare numerica, un vettore può essere rappresentato come una n-upla ordinata di numeri.
+          <br><br>
+          <strong>Vettore colonna in $\mathbb{R}^n$:</strong>
+          $$\mathbf{v} = \begin{bmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{bmatrix}$$
+          <br>
+          <strong>Vettore riga:</strong>
+          $$\mathbf{v}^T = \begin{bmatrix} v_1 & v_2 & \cdots & v_n \end{bmatrix}$$
+          <br>
+          Esempio in $\mathbb{R}^3$: $\mathbf{v} = \begin{bmatrix} 2 \\ -1 \\ 3 \end{bmatrix}$
+        </td>
+      </tr>
+      <tr>
+        <td>Operazioni con Vettori</td>
+        <td>
+          <strong>Somma di vettori:</strong> Dati $\mathbf{u}, \mathbf{v} \in \mathbb{R}^n$
+          $$\mathbf{u} + \mathbf{v} = \begin{bmatrix} u_1 + v_1 \\ u_2 + v_2 \\ \vdots \\ u_n + v_n \end{bmatrix}$$
+          <br>
+          <strong>Moltiplicazione per uno scalare:</strong> Dato $k \in \mathbb{R}$
+          $$k\mathbf{v} = \begin{bmatrix} kv_1 \\ kv_2 \\ \vdots \\ kv_n \end{bmatrix}$$
+          <br>
+          <strong>Prodotto scalare (o interno):</strong>
+          $$\mathbf{u} \cdot \mathbf{v} = u_1v_1 + u_2v_2 + \cdots + u_nv_n = \sum_{i=1}^{n} u_i v_i$$
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">3. Matrici</td>
+      </tr>
+      <tr>
+        <td>Definizione di Matrice</td>
+        <td>
+          Una matrice è una tabella rettangolare di numeri disposti in righe e colonne.
+          <br><br>
+          Una matrice $A$ di dimensione $m \times n$ (m righe, n colonne) si scrive:
+          $$A = \begin{bmatrix}
+          a_{11} & a_{12} & \cdots & a_{1n} \\
+          a_{21} & a_{22} & \cdots & a_{2n} \\
+          \vdots & \vdots & \ddots & \vdots \\
+          a_{m1} & a_{m2} & \cdots & a_{mn}
+          \end{bmatrix}$$
+          <br>
+          dove $a_{ij}$ è l'elemento nella riga $i$ e colonna $j$.
+          <br><br>
+          <strong>Esempio matrice $2 \times 3$:</strong>
+          $$A = \begin{bmatrix}
+          1 & 2 & 3 \\
+          4 & 5 & 6
+          \end{bmatrix}$$
+        </td>
+      </tr>
+      <tr>
+        <td>Matrice Trasposta</td>
+        <td>
+          La <strong>trasposta</strong> di una matrice $A$ di dimensione $m \times n$, indicata con $A^T$, è la matrice di dimensione $n \times m$ ottenuta scambiando righe e colonne:
+          <br><br>
+          Se $A = [a_{ij}]_{m \times n}$, allora $A^T = [a_{ji}]_{n \times m}$
+          <br><br>
+          <strong>Esempio:</strong>
+          $$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}_{2 \times 3} \quad \Rightarrow \quad A^T = \begin{bmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{bmatrix}_{3 \times 2}$$
+          <br>
+          La prima riga di $A$ diventa la prima colonna di $A^T$, la seconda riga diventa la seconda colonna, ecc.
+        </td>
+      </tr>
+      <tr>
+        <td>Tipi di Matrici Speciali</td>
+        <td>
+          <ul>
+            <li><strong>Matrice quadrata:</strong> $m = n$ (stesso numero di righe e colonne)</li>
+            <li><strong>Matrice identità:</strong> Matrice quadrata con 1 sulla diagonale e 0 altrove
+              $$I_n = \begin{bmatrix}
+              1 & 0 & \cdots & 0 \\
+              0 & 1 & \cdots & 0 \\
+              \vdots & \vdots & \ddots & \vdots \\
+              0 & 0 & \cdots & 1
+              \end{bmatrix}$$
+            </li>
+            <li><strong>Matrice nulla:</strong> Tutti gli elementi sono zero: $O_{m \times n}$</li>
+            <li><strong>Matrice diagonale:</strong> Elementi non nulli solo sulla diagonale principale</li>
+            <li><strong>Matrice triangolare superiore:</strong> $a_{ij} = 0$ per $i > j$</li>
+            <li><strong>Matrice triangolare inferiore:</strong> $a_{ij} = 0$ per $i < j$</li>
+            <li><strong>Matrice simmetrica:</strong> $A = A^T$ (uguale alla sua trasposta)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Operazioni con Matrici</td>
+        <td>
+          <div class="link-box">
+            <strong>📘 Per approfondire:</strong> <a href="operazioni_matrici.html">Operazioni con Matrici - Teoria, Esempi e Codice</a>
+          </div>
+          Le operazioni fondamentali includono:
+          <ul>
+            <li>Somma e sottrazione di matrici</li>
+            <li>Moltiplicazione per uno scalare</li>
+            <li>Moltiplicazione tra matrici (prodotto righe per colonne)</li>
+            <li>Trasposizione di matrici</li>
+            <li>Inversa di una matrice (quando esiste)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">4. Determinante</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          Il determinante è una funzione che associa ad ogni matrice quadrata un numero reale. Si indica con $\det(A)$ o $|A|$.
+          <br><br>
+          <strong>Interpretazione geometrica:</strong> Il determinante rappresenta il fattore di scala per il volume (o area in 2D) quando si applica la trasformazione lineare associata alla matrice.
+          <br><br>
+          <div class="link-box">
+            <strong>📘 Per approfondire:</strong> <a href="determinanti.html">Determinanti - Metodi di Calcolo e Proprietà</a>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Proprietà del Determinante</td>
+        <td>
+          <ul>
+            <li>$\det(I) = 1$ (determinante della matrice identità)</li>
+            <li>$\det(AB) = \det(A) \cdot \det(B)$ (proprietà moltiplicativa)</li>
+            <li>$\det(A^T) = \det(A)$ (determinante della trasposta)</li>
+            <li>Se $A$ ha una riga o colonna nulla, allora $\det(A) = 0$</li>
+            <li>Scambiando due righe (o colonne), il determinante cambia segno</li>
+            <li>Se $A$ è triangolare, $\det(A)$ è il prodotto degli elementi sulla diagonale</li>
+            <li>$\det(kA) = k^n \det(A)$ per una matrice $n \times n$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">5. Rango di una Matrice</td>
+      </tr>
+      <tr>
+        <td>Definizione di Rango</td>
+        <td>
+          Il rango di una matrice $A$, indicato con $\text{rank}(A)$ o $\text{rg}(A)$, è il numero massimo di righe (o colonne) linearmente indipendenti.
+          <br><br>
+          Equivalentemente:
+          <ul>
+            <li>È la dimensione dello spazio generato dalle righe (o colonne) di $A$</li>
+            <li>È l'ordine del massimo minore non nullo di $A$</li>
+          </ul>
+          <br>
+          <strong>Proprietà:</strong>
+          <ul>
+            <li>$0 \leq \text{rank}(A) \leq \min(m,n)$ per una matrice $m \times n$</li>
+            <li>$\text{rank}(A) = \text{rank}(A^T)$</li>
+            <li>Se $A$ è quadrata di ordine $n$: $\det(A) \neq 0 \Leftrightarrow \text{rank}(A) = n$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">6. Sistemi di Equazioni Lineari</td>
+      </tr>
+      <tr>
+        <td>Forma Generale</td>
+        <td>
+          Un sistema di $m$ equazioni lineari in $n$ incognite ha la forma:
+          $$\begin{cases}
+          a_{11}x_1 + a_{12}x_2 + \cdots + a_{1n}x_n = b_1 \\
+          a_{21}x_1 + a_{22}x_2 + \cdots + a_{2n}x_n = b_2 \\
+          \vdots \\
+          a_{m1}x_1 + a_{m2}x_2 + \cdots + a_{mn}x_n = b_m
+          \end{cases}$$
+          <br>
+          <strong>Forma matriciale:</strong>
+          $$A\mathbf{x} = \mathbf{b}$$
+          dove $A$ è la matrice dei coefficienti $(m \times n)$, $\mathbf{x}$ è il vettore delle incognite, e $\mathbf{b}$ è il vettore dei termini noti.
+          <br><br>
+          <div class="link-box">
+            <strong>📘 Per approfondire:</strong> <a href="sistemi_lineari.html">Sistemi Lineari - Teoria, Metodi Risolutivi e Codice</a>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Classificazione dei Sistemi</td>
+        <td>
+          Un sistema lineare può essere:
+          <br><br>
+          <strong>In base alla compatibilità:</strong>
+          <ul>
+            <li><strong>Compatibile:</strong> ammette almeno una soluzione</li>
+            <li><strong>Incompatibile:</strong> non ammette soluzioni</li>
+          </ul>
+          <br>
+          <strong>In base al numero di soluzioni (se compatibile):</strong>
+          <ul>
+            <li><strong>Determinato:</strong> ammette una sola soluzione</li>
+            <li><strong>Indeterminato:</strong> ammette infinite soluzioni (dipendenti da parametri liberi)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">7. Teoremi Fondamentali</td>
+      </tr>
+      <tr>
+        <td>Teorema di Rouché-Capelli</td>
+        <td>
+          <strong>Enunciato:</strong> Dato il sistema lineare $A\mathbf{x} = \mathbf{b}$, sia $[A|\mathbf{b}]$ la matrice completa (matrice dei coefficienti aumentata con il vettore dei termini noti).
+          <br><br>
+          Il sistema ammette soluzione se e solo se:
+          $$\text{rank}(A) = \text{rank}([A|\mathbf{b}])$$
+          <br>
+          Inoltre:
+          <ul>
+            <li>Se $\text{rank}(A) = \text{rank}([A|\mathbf{b}]) = n$ (numero incognite) → sistema <strong>determinato</strong> (una soluzione)</li>
+            <li>Se $\text{rank}(A) = \text{rank}([A|\mathbf{b}]) < n$ → sistema <strong>indeterminato</strong> ($\infty^{n-r}$ soluzioni, dove $r$ è il rango)</li>
+            <li>Se $\text{rank}(A) < \text{rank}([A|\mathbf{b}])$ → sistema <strong>incompatibile</strong> (nessuna soluzione)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Teorema di Cramer</td>
+        <td>
+          <strong>Enunciato:</strong> Dato un sistema lineare di $n$ equazioni in $n$ incognite $A\mathbf{x} = \mathbf{b}$, se $\det(A) \neq 0$, allora il sistema ammette un'unica soluzione data da:
+          $$x_i = \frac{\det(A_i)}{\det(A)} \quad \text{per } i = 1, 2, \ldots, n$$
+          dove $A_i$ è la matrice ottenuta da $A$ sostituendo la $i$-esima colonna con il vettore $\mathbf{b}$.
+          <br><br>
+          <strong>Esempio per $n=2$:</strong>
+          $$\begin{cases}
+          a_{11}x_1 + a_{12}x_2 = b_1 \\
+          a_{21}x_1 + a_{22}x_2 = b_2
+          \end{cases}$$
+          <br>
+          $$x_1 = \frac{\begin{vmatrix} b_1 & a_{12} \\ b_2 & a_{22} \end{vmatrix}}{\begin{vmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{vmatrix}}, \quad
+          x_2 = \frac{\begin{vmatrix} a_{11} & b_1 \\ a_{21} & b_2 \end{vmatrix}}{\begin{vmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{vmatrix}}$$
+          <br>
+          <strong>Nota:</strong> Il metodo di Cramer è teoricamente elegante ma computazionalmente inefficiente per matrici grandi.
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">8. Applicazioni dell'Algebra Lineare</td>
+      </tr>
+      <tr>
+        <td>Circuiti Elettrici</td>
+        <td>
+          Le leggi di Kirchhoff portano naturalmente a sistemi di equazioni lineari. Ogni maglia del circuito genera un'equazione lineare nelle correnti incognite.
+          <br><br>
+          Esempio: analisi di un circuito con più maglie → sistema $A\mathbf{i} = \mathbf{V}$ dove $\mathbf{i}$ è il vettore delle correnti.
+        </td>
+      </tr>
+      <tr>
+        <td>Geometria Analitica</td>
+        <td>
+          <ul>
+            <li>Rette e piani nello spazio sono descritti da equazioni lineari</li>
+            <li>Intersezione di due rette nel piano → sistema $2 \times 2$</li>
+            <li>Intersezione di tre piani nello spazio → sistema $3 \times 3$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Computer Grafica</td>
+        <td>
+          Le trasformazioni geometriche (rotazione, scaling, traslazione) sono rappresentate da matrici. Concatenare trasformazioni equivale a moltiplicare matrici.
+        </td>
+      </tr>
+    </table>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>Didattica & Progetti</h4>
+        <p>&copy; 2025 rigreco.github.io</p>
+        <p><a href="sitemap.html">Mappa del sito</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Sezioni</h4>
+        <ul>
+          <li><a href="matematica.html">Matematica</a></li>
+          <li><a href="progetti.html">Progetti</a></li>
+          <li><a href="space-invaders/index.html">Arcade</a></li>
+          <li><a href="apple2.html">Apple II</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Strumenti</h4>
+        <ul>
+          <li><a href="function_plot.html">Grafico Funzioni</a></li>
+          <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+          <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+          <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // Script per Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+</body>
+</html>
