@@ -31,12 +31,12 @@
       background-color: #e6e6e6;
       font-weight: bold;
     }
-    .math-table td ul {
-      margin-left: 20px;
-      padding-left: 10px;
+    .math-table td ul, .math-table td ol {
+      margin-left: 30px;
+      padding-left: 15px;
     }
     .math-table td li {
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
     .code-block {
       background-color: #f6f8fa;
@@ -241,9 +241,41 @@ print(f"det(A) calcolo manuale: {det_manuale}")
         </td>
       </tr>
       <tr>
+        <td>Minore Complementare e Cofattore</td>
+        <td>
+          Prima di introdurre il metodo di Laplace, definiamo due concetti fondamentali:
+          <br><br>
+          <strong>Minore complementare $M_{ij}$:</strong>
+          <br>
+          Il minore complementare dell'elemento $a_{ij}$ di una matrice $A$ è il determinante della sottomatrice ottenuta <strong>eliminando</strong> la riga $i$ e la colonna $j$ dalla matrice $A$.
+          <br><br>
+          <strong>Cofattore (o Complemento Algebrico) $C_{ij}$:</strong>
+          <br>
+          Il cofattore dell'elemento $a_{ij}$ è definito come:
+          $$C_{ij} = (-1)^{i+j} \cdot M_{ij}$$
+          <br>
+          Il segno $(-1)^{i+j}$ alterna secondo uno schema a scacchiera:
+          $$\begin{bmatrix} + & - & + & - & \cdots \\ - & + & - & + & \cdots \\ + & - & + & - & \cdots \\ - & + & - & + & \cdots \\ \vdots & \vdots & \vdots & \vdots & \ddots \end{bmatrix}$$
+          <br>
+          <div class="example-box">
+            <strong>Esempio per matrice $3 \times 3$:</strong>
+            $$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9 \end{bmatrix}$$
+            <br>
+            <strong>Calcolo di $C_{12}$ (riga 1, colonna 2):</strong>
+            <br><br>
+            1. Elimino riga 1 e colonna 2:
+            $$M_{12} = \begin{vmatrix} 4 & 6 \\ 7 & 9 \end{vmatrix} = (4)(9) - (6)(7) = 36 - 42 = -6$$
+            <br>
+            2. Applico il segno: $(-1)^{1+2} = (-1)^3 = -1$
+            <br>
+            3. Cofattore: $C_{12} = (-1) \cdot (-6) = 6$
+          </div>
+        </td>
+      </tr>
+      <tr>
         <td>Sviluppo di Laplace</td>
         <td>
-          Il determinante può essere calcolato sviluppando rispetto ad una riga o colonna qualsiasi:
+          Il determinante può essere calcolato sviluppando rispetto ad una riga o colonna qualsiasi, usando i cofattori:
           <br><br>
           <strong>Sviluppo rispetto alla prima riga:</strong>
           $$\det(A) = a_{11}C_{11} + a_{12}C_{12} + a_{13}C_{13}$$
