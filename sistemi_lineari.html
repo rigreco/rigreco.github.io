@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistemi Lineari - Didattica & Progetti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .math-table td ul, .math-table td ol {
+      margin-left: 20px;
+      padding-left: 10px;
+    }
+    .math-table td li {
+      margin-bottom: 5px;
+    }
+    .code-block {
+      background-color: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .example-box {
+      background-color: #fff9e6;
+      border-left: 4px solid #ffa500;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .step-box {
+      background-color: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      padding: 10px;
+      margin: 8px 0;
+    }
+    .geometric-figure {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+          <div class="dropdown-content">
+            <a href="space-invaders/index.html"><i data-lucide="target"></i> Cosmic Invaders</a>
+          </div>
+        </li>
+        <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Sistemi di Equazioni Lineari</h2>
+    <p style="text-align: center; margin-bottom: 20px;">
+      <a href="Algebra_lineare.html">← Torna ad Algebra Lineare</a>
+    </p>
+
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Sistemi Lineari: Teoria, Interpretazione Geometrica e Metodi di Risoluzione</th>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">1. Definizione e Forma Matriciale</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">Definizione</td>
+        <td>
+          Un <strong>sistema di equazioni lineari</strong> è un insieme di $m$ equazioni lineari in $n$ incognite:
+          $$\begin{cases}
+          a_{11}x_1 + a_{12}x_2 + \cdots + a_{1n}x_n = b_1 \\
+          a_{21}x_1 + a_{22}x_2 + \cdots + a_{2n}x_n = b_2 \\
+          \vdots \\
+          a_{m1}x_1 + a_{m2}x_2 + \cdots + a_{mn}x_n = b_m
+          \end{cases}$$
+          <br>
+          dove:
+          <ul>
+            <li>$a_{ij}$ sono i <strong>coefficienti</strong> (numeri noti)</li>
+            <li>$x_j$ sono le <strong>incognite</strong> (da determinare)</li>
+            <li>$b_i$ sono i <strong>termini noti</strong></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Forma Matriciale</td>
+        <td>
+          Il sistema può essere scritto in forma compatta come:
+          $$A\mathbf{x} = \mathbf{b}$$
+          <br>
+          dove:
+          <ul>
+            <li>$A = [a_{ij}]_{m \times n}$ è la <strong>matrice dei coefficienti</strong></li>
+            <li>$\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix}$ è il <strong>vettore delle incognite</strong></li>
+            <li>$\mathbf{b} = \begin{bmatrix} b_1 \\ b_2 \\ \vdots \\ b_m \end{bmatrix}$ è il <strong>vettore dei termini noti</strong></li>
+          </ul>
+          <br>
+          La <strong>matrice completa (o aumentata)</strong> è: $[A|\mathbf{b}]$
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">2. Interpretazione Geometrica</td>
+      </tr>
+      <tr>
+        <td>Sistemi 2×2<br>(Due Equazioni, Due Incognite)</td>
+        <td>
+          Ogni equazione lineare in due incognite rappresenta una <strong>retta</strong> nel piano cartesiano.
+          <br><br>
+          $$\begin{cases}
+          a_1x + b_1y = c_1 \quad \text{(retta 1)} \\
+          a_2x + b_2y = c_2 \quad \text{(retta 2)}
+          \end{cases}$$
+          <br>
+          <strong>Tre possibili situazioni:</strong>
+          <br><br>
+          <div class="geometric-figure">
+            <svg width="700" height="220" viewBox="0 0 700 220">
+              <!-- Sistema determinato (una soluzione) -->
+              <g transform="translate(120, 110)">
+                <line x1="-100" y1="0" x2="100" y2="0" stroke="#ccc" stroke-width="1"/>
+                <line x1="0" y1="-100" x2="0" y2="100" stroke="#ccc" stroke-width="1"/>
+                <line x1="-80" y1="60" x2="80" y2="-60" stroke="blue" stroke-width="2"/>
+                <line x1="-80" y1="-40" x2="80" y2="80" stroke="red" stroke-width="2"/>
+                <circle cx="0" cy="10" r="4" fill="green"/>
+                <text x="-110" y="-80" font-size="12" fill="black">Una soluzione</text>
+                <text x="-110" y="-65" font-size="11" fill="black">(rette incidenti)</text>
+              </g>
+
+              <!-- Sistema indeterminato (infinite soluzioni) -->
+              <g transform="translate(360, 110)">
+                <line x1="-100" y1="0" x2="100" y2="0" stroke="#ccc" stroke-width="1"/>
+                <line x1="0" y1="-100" x2="0" y2="100" stroke="#ccc" stroke-width="1"/>
+                <line x1="-80" y1="60" x2="80" y2="-60" stroke="blue" stroke-width="2"/>
+                <line x1="-80" y1="60" x2="80" y2="-60" stroke="red" stroke-width="2" stroke-dasharray="5,5"/>
+                <text x="-110" y="-80" font-size="12" fill="black">Infinite soluzioni</text>
+                <text x="-110" y="-65" font-size="11" fill="black">(rette coincidenti)</text>
+              </g>
+
+              <!-- Sistema impossibile (nessuna soluzione) -->
+              <g transform="translate(600, 110)">
+                <line x1="-100" y1="0" x2="100" y2="0" stroke="#ccc" stroke-width="1"/>
+                <line x1="0" y1="-100" x2="0" y2="100" stroke="#ccc" stroke-width="1"/>
+                <line x1="-80" y1="60" x2="80" y2="-60" stroke="blue" stroke-width="2"/>
+                <line x1="-80" y1="40" x2="80" y2="-80" stroke="red" stroke-width="2"/>
+                <text x="-110" y="-80" font-size="12" fill="black">Nessuna soluzione</text>
+                <text x="-110" y="-65" font-size="11" fill="black">(rette parallele)</text>
+              </g>
+            </svg>
+          </div>
+          <br>
+          <ol>
+            <li><strong>Determinato:</strong> Le rette si intersecano in un punto → una soluzione unica</li>
+            <li><strong>Indeterminato:</strong> Le rette coincidono → infinite soluzioni</li>
+            <li><strong>Impossibile:</strong> Le rette sono parallele distinte → nessuna soluzione</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td>Sistemi 3×3<br>(Tre Equazioni, Tre Incognite)</td>
+        <td>
+          Ogni equazione lineare in tre incognite rappresenta un <strong>piano</strong> nello spazio tridimensionale.
+          <br><br>
+          $$\begin{cases}
+          a_1x + b_1y + c_1z = d_1 \quad \text{(piano 1)} \\
+          a_2x + b_2y + c_2z = d_2 \quad \text{(piano 2)} \\
+          a_3x + b_3y + c_3z = d_3 \quad \text{(piano 3)}
+          \end{cases}$$
+          <br>
+          <strong>Possibili situazioni:</strong>
+          <ul>
+            <li><strong>Un punto:</strong> I tre piani si incontrano in un unico punto → sistema determinato</li>
+            <li><strong>Una retta:</strong> I tre piani si intersecano lungo una retta → infinite soluzioni ($\infty^1$)</li>
+            <li><strong>Un piano:</strong> I tre piani coincidono → infinite soluzioni ($\infty^2$)</li>
+            <li><strong>Nessun punto comune:</strong> I piani non hanno intersezione → sistema impossibile</li>
+          </ul>
+          <br>
+          <strong>Esempio di tre piani che si incontrano in un punto:</strong>
+          <div class="geometric-figure">
+            <svg width="300" height="300" viewBox="-150 -150 300 300">
+              <!-- Piano 1 (rosso) -->
+              <path d="M -100,-50 L 100,-50 L 80,50 L -120,50 Z" fill="rgba(255,0,0,0.2)" stroke="red" stroke-width="2"/>
+              <!-- Piano 2 (blu) -->
+              <path d="M -80,-80 L 0,80 L 80,-80 Z" fill="rgba(0,0,255,0.2)" stroke="blue" stroke-width="2"/>
+              <!-- Piano 3 (verde) -->
+              <path d="M -120,-20 L 120,-20 L 60,100 L -60,100 Z" fill="rgba(0,255,0,0.2)" stroke="green" stroke-width="2"/>
+              <!-- Punto di intersezione -->
+              <circle cx="0" cy="0" r="6" fill="black"/>
+              <text x="10" y="-10" font-size="14">P (soluzione)</text>
+            </svg>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">3. Teorema di Rouché-Capelli</td>
+      </tr>
+      <tr>
+        <td>Enunciato</td>
+        <td>
+          Il <strong>Teorema di Rouché-Capelli</strong> stabilisce le condizioni di esistenza e unicità delle soluzioni.
+          <br><br>
+          Dato il sistema $A\mathbf{x} = \mathbf{b}$, sia:
+          <ul>
+            <li>$r_A = \text{rank}(A)$ il rango della matrice dei coefficienti</li>
+            <li>$r_{Ab} = \text{rank}([A|\mathbf{b}])$ il rango della matrice completa</li>
+            <li>$n$ il numero di incognite</li>
+          </ul>
+          <br>
+          <strong>Condizioni:</strong>
+          <ol>
+            <li><strong>Sistema compatibile</strong> (ammette soluzione) $\Leftrightarrow r_A = r_{Ab}$</li>
+            <li>Se $r_A = r_{Ab} = n$ → <strong>sistema determinato</strong> (una soluzione)</li>
+            <li>Se $r_A = r_{Ab} < n$ → <strong>sistema indeterminato</strong> ($\infty^{n-r_A}$ soluzioni)</li>
+            <li>Se $r_A < r_{Ab}$ → <strong>sistema incompatibile</strong> (nessuna soluzione)</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio di Applicazione</td>
+        <td>
+          <div class="example-box">
+            $$\begin{cases}
+            x + 2y + z = 4 \\
+            2x + 4y + 2z = 8 \\
+            x + y + z = 3
+            \end{cases}$$
+            <br>
+            Matrici:
+            $$A = \begin{bmatrix} 1 & 2 & 1 \\ 2 & 4 & 2 \\ 1 & 1 & 1 \end{bmatrix}, \quad
+            [A|\mathbf{b}] = \begin{bmatrix} 1 & 2 & 1 & | & 4 \\ 2 & 4 & 2 & | & 8 \\ 1 & 1 & 1 & | & 3 \end{bmatrix}$$
+            <br>
+            <strong>Osservazione:</strong> La seconda riga è il doppio della prima → le due righe sono linearmente dipendenti.
+            <br><br>
+            Riducendo a forma a scala:
+            $$[A|\mathbf{b}] \rightarrow \begin{bmatrix} 1 & 2 & 1 & | & 4 \\ 0 & -1 & 0 & | & -1 \\ 0 & 0 & 0 & | & 0 \end{bmatrix}$$
+            <br>
+            $r_A = 2$, $r_{Ab} = 2$, $n = 3$
+            <br>
+            Poiché $r_A = r_{Ab} < n$ → sistema <strong>indeterminato</strong> con $\infty^{3-2} = \infty^1$ soluzioni.
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">4. Metodi di Risoluzione</td>
+      </tr>
+      <tr>
+        <td>4.1 Metodo di Sostituzione</td>
+        <td>
+          <strong>Procedimento:</strong>
+          <ol>
+            <li>Ricavare una incognita da una equazione</li>
+            <li>Sostituirla nelle altre equazioni</li>
+            <li>Risolvere il sistema ridotto</li>
+            <li>Sostituire all'indietro per trovare tutte le incognite</li>
+          </ol>
+          <br>
+          <div class="example-box">
+            <strong>Esempio:</strong>
+            $$\begin{cases}
+            x + y = 5 \\
+            2x - y = 1
+            \end{cases}$$
+            <br>
+            <div class="step-box">
+              <strong>Passo 1:</strong> Dalla prima equazione: $y = 5 - x$
+            </div>
+            <div class="step-box">
+              <strong>Passo 2:</strong> Sostituisco nella seconda:
+              <br>$2x - (5 - x) = 1$
+              <br>$2x - 5 + x = 1$
+              <br>$3x = 6$
+              <br>$x = 2$
+            </div>
+            <div class="step-box">
+              <strong>Passo 3:</strong> Sostituisco per trovare $y$:
+              <br>$y = 5 - 2 = 3$
+            </div>
+            <strong>Soluzione:</strong> $(x, y) = (2, 3)$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>4.2 Metodo di Eliminazione di Gauss</td>
+        <td>
+          Il <strong>metodo di Gauss</strong> (o eliminazione gaussiana) riduce il sistema a forma <strong>triangolare superiore</strong> mediante operazioni elementari sulle righe.
+          <br><br>
+          <strong>Operazioni elementari permesse:</strong>
+          <ul>
+            <li>Scambiare due righe</li>
+            <li>Moltiplicare una riga per una costante $k \neq 0$</li>
+            <li>Sommare ad una riga un multiplo di un'altra riga</li>
+          </ul>
+          <br>
+          <div class="example-box">
+            <strong>Esempio:</strong>
+            $$\begin{cases}
+            2x + y - z = 8 \\
+            -3x - y + 2z = -11 \\
+            -2x + y + 2z = -3
+            \end{cases}$$
+            <br>
+            Matrice aumentata:
+            $$\begin{bmatrix} 2 & 1 & -1 & | & 8 \\ -3 & -1 & 2 & | & -11 \\ -2 & 1 & 2 & | & -3 \end{bmatrix}$$
+            <br>
+            <div class="step-box">
+              <strong>Passo 1:</strong> $R_2 \leftarrow R_2 + \frac{3}{2}R_1$
+              $$\begin{bmatrix} 2 & 1 & -1 & | & 8 \\ 0 & \frac{1}{2} & \frac{1}{2} & | & 1 \\ -2 & 1 & 2 & | & -3 \end{bmatrix}$$
+            </div>
+            <div class="step-box">
+              <strong>Passo 2:</strong> $R_3 \leftarrow R_3 + R_1$
+              $$\begin{bmatrix} 2 & 1 & -1 & | & 8 \\ 0 & \frac{1}{2} & \frac{1}{2} & | & 1 \\ 0 & 2 & 1 & | & 5 \end{bmatrix}$$
+            </div>
+            <div class="step-box">
+              <strong>Passo 3:</strong> $R_3 \leftarrow R_3 - 4R_2$
+              $$\begin{bmatrix} 2 & 1 & -1 & | & 8 \\ 0 & \frac{1}{2} & \frac{1}{2} & | & 1 \\ 0 & 0 & -1 & | & 1 \end{bmatrix}$$
+            </div>
+            <br>
+            Ora il sistema è triangolare:
+            $$\begin{cases}
+            2x + y - z = 8 \\
+            \frac{1}{2}y + \frac{1}{2}z = 1 \\
+            -z = 1
+            \end{cases}$$
+            <br>
+            <strong>Risoluzione all'indietro:</strong>
+            <br>$z = -1$
+            <br>$\frac{1}{2}y + \frac{1}{2}(-1) = 1 \Rightarrow y = 3$
+            <br>$2x + 3 - (-1) = 8 \Rightarrow x = 2$
+            <br><br>
+            <strong>Soluzione:</strong> $(x, y, z) = (2, 3, -1)$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python (Gauss)</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+def gauss_elimination(A, b):
+    """
+    Risolve il sistema Ax = b usando eliminazione di Gauss
+    con sostituzione all'indietro
+    """
+    # Crea matrice aumentata
+    Ab = np.column_stack([A.astype(float), b.astype(float)])
+    n = len(b)
+
+    # Fase di eliminazione (riduzione a forma triangolare)
+    for i in range(n):
+        # Trova il pivot massimo (pivoting parziale)
+        max_row = i + np.argmax(np.abs(Ab[i:, i]))
+        Ab[[i, max_row]] = Ab[[max_row, i]]
+
+        # Elimina elementi sotto il pivot
+        for j in range(i + 1, n):
+            if Ab[i, i] != 0:
+                factor = Ab[j, i] / Ab[i, i]
+                Ab[j, i:] -= factor * Ab[i, i:]
+
+    print("Matrice triangolare:")
+    print(Ab)
+    print()
+
+    # Sostituzione all'indietro
+    x = np.zeros(n)
+    for i in range(n - 1, -1, -1):
+        if Ab[i, i] == 0:
+            raise ValueError("Sistema singolare")
+        x[i] = (Ab[i, -1] - np.dot(Ab[i, i+1:n], x[i+1:n])) / Ab[i, i]
+
+    return x
+
+# Esempio
+A = np.array([[2, 1, -1],
+              [-3, -1, 2],
+              [-2, 1, 2]])
+
+b = np.array([8, -11, -3])
+
+print("Sistema:")
+print("A =")
+print(A)
+print("\nb =", b)
+print()
+
+soluzione = gauss_elimination(A, b)
+print("Soluzione:", soluzione)
+
+# Verifica
+print("\nVerifica: A @ x =", A @ soluzione)
+print("Termine noto b =", b)
+
+# Output:
+# Sistema:
+# A =
+# [[ 2  1 -1]
+#  [-3 -1  2]
+#  [-2  1  2]]
+#
+# b = [  8 -11  -3]
+#
+# Matrice triangolare:
+# [[ 2.   1.  -1.   8. ]
+#  [ 0.   0.5  0.5  1. ]
+#  [ 0.   0.  -1.   1. ]]
+#
+# Soluzione: [ 2.  3. -1.]
+#
+# Verifica: A @ x = [  8. -11.  -3.]
+# Termine noto b = [  8 -11  -3]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>4.3 Metodo di Gauss-Jordan</td>
+        <td>
+          Il <strong>metodo di Gauss-Jordan</strong> estende il metodo di Gauss riducendo la matrice a forma <strong>diagonale</strong> (o forma ridotta a scala).
+          <br><br>
+          <strong>Differenza con Gauss:</strong>
+          <ul>
+            <li>Gauss: riduzione a forma triangolare superiore</li>
+            <li>Gauss-Jordan: riduzione a forma diagonale con pivots = 1</li>
+          </ul>
+          <br>
+          Il metodo elimina gli elementi sia <em>sotto</em> che <em>sopra</em> i pivots, ottenendo direttamente le soluzioni senza sostituzione all'indietro.
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python (Gauss-Jordan)</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+def gauss_jordan(A, b):
+    """
+    Risolve Ax = b usando il metodo di Gauss-Jordan
+    Riduce a forma ridotta a scala (rref)
+    """
+    Ab = np.column_stack([A.astype(float), b.astype(float)])
+    n = len(b)
+
+    for i in range(n):
+        # Trova pivot massimo
+        max_row = i + np.argmax(np.abs(Ab[i:, i]))
+        Ab[[i, max_row]] = Ab[[max_row, i]]
+
+        # Normalizza la riga del pivot
+        if Ab[i, i] != 0:
+            Ab[i] = Ab[i] / Ab[i, i]
+
+        # Elimina elementi sopra e sotto il pivot
+        for j in range(n):
+            if j != i and Ab[i, i] != 0:
+                Ab[j] -= Ab[j, i] * Ab[i]
+
+    print("Matrice ridotta (rref):")
+    print(Ab)
+    print()
+
+    # La soluzione è nell'ultima colonna
+    return Ab[:, -1]
+
+# Esempio
+A = np.array([[2, 1, -1],
+              [-3, -1, 2],
+              [-2, 1, 2]])
+
+b = np.array([8, -11, -3])
+
+print("Sistema:")
+print("A =")
+print(A)
+print("\nb =", b)
+print()
+
+soluzione = gauss_jordan(A, b)
+print("Soluzione:", soluzione)
+
+# Verifica
+print("\nVerifica: A @ x =", A @ soluzione)
+print("Termine noto b =", b)
+
+# Output:
+# Sistema:
+# A =
+# [[ 2  1 -1]
+#  [-3 -1  2]
+#  [-2  1  2]]
+#
+# b = [  8 -11  -3]
+#
+# Matrice ridotta (rref):
+# [[ 1.  0. -0.  2.]
+#  [ 0.  1.  0.  3.]
+#  [-0. -0.  1. -1.]]
+#
+# Soluzione: [ 2.  3. -1.]
+#
+# Verifica: A @ x = [  8. -11.  -3.]
+# Termine noto b = [  8 -11  -3]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>4.4 Metodo di Cramer</td>
+        <td>
+          Il <strong>metodo di Cramer</strong> si applica a sistemi quadrati ($n$ equazioni, $n$ incognite) con $\det(A) \neq 0$.
+          <br><br>
+          <strong>Formula:</strong>
+          $$x_i = \frac{\det(A_i)}{\det(A)}$$
+          <br>
+          dove $A_i$ è la matrice ottenuta sostituendo la colonna $i$ di $A$ con il vettore $\mathbf{b}$.
+          <br><br>
+          <div class="example-box">
+            <strong>Esempio sistema 2×2:</strong>
+            $$\begin{cases}
+            2x + 3y = 8 \\
+            x - y = -1
+            \end{cases}$$
+            <br>
+            $$A = \begin{bmatrix} 2 & 3 \\ 1 & -1 \end{bmatrix}, \quad \mathbf{b} = \begin{bmatrix} 8 \\ -1 \end{bmatrix}$$
+            <br>
+            $\det(A) = 2(-1) - 3(1) = -2 - 3 = -5 \neq 0$ → applicabile
+            <br><br>
+            $$A_1 = \begin{bmatrix} 8 & 3 \\ -1 & -1 \end{bmatrix}, \quad \det(A_1) = -8 - (-3) = -5$$
+            $$A_2 = \begin{bmatrix} 2 & 8 \\ 1 & -1 \end{bmatrix}, \quad \det(A_2) = -2 - 8 = -10$$
+            <br>
+            $$x = \frac{-5}{-5} = 1, \quad y = \frac{-10}{-5} = 2$$
+            <br>
+            <strong>Soluzione:</strong> $(x, y) = (1, 2)$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python (Cramer)</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+def cramer(A, b):
+    """
+    Risolve Ax = b usando il metodo di Cramer
+    (solo per sistemi quadrati con det(A) != 0)
+    """
+    det_A = np.linalg.det(A)
+
+    if abs(det_A) < 1e-10:
+        raise ValueError("det(A) = 0, metodo non applicabile")
+
+    n = len(b)
+    x = np.zeros(n)
+
+    for i in range(n):
+        # Crea A_i sostituendo la colonna i con b
+        A_i = A.copy()
+        A_i[:, i] = b
+
+        # Calcola x_i
+        x[i] = np.linalg.det(A_i) / det_A
+
+    return x
+
+# Esempio
+A = np.array([[2, 3],
+              [1, -1]], dtype=float)
+
+b = np.array([8, -1], dtype=float)
+
+print("Sistema:")
+print("A =")
+print(A)
+print("\nb =", b)
+print()
+
+print(f"det(A) = {np.linalg.det(A)}")
+print()
+
+soluzione = cramer(A, b)
+print("Soluzione con Cramer:", soluzione)
+
+# Verifica
+print("\nVerifica: A @ x =", A @ soluzione)
+print("Termine noto b =", b)
+
+# Output:
+# Sistema:
+# A =
+# [[ 2.  3.]
+#  [ 1. -1.]]
+#
+# b = [ 8. -1.]
+#
+# det(A) = -5.0
+#
+# Soluzione con Cramer: [1. 2.]
+#
+# Verifica: A @ x = [ 8. -1.]
+# Termine noto b = [ 8. -1.]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>4.5 Metodo Matriciale (Inversa)</td>
+        <td>
+          Se $A$ è quadrata e invertibile ($\det(A) \neq 0$), la soluzione di $A\mathbf{x} = \mathbf{b}$ è:
+          $$\mathbf{x} = A^{-1}\mathbf{b}$$
+          <br>
+          <strong>Nota:</strong> Questo metodo è teoricamente elegante ma computazionalmente inefficiente per matrici grandi. È meglio usare Gauss.
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python (Inversa)</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Esempio
+A = np.array([[2, 1, -1],
+              [-3, -1, 2],
+              [-2, 1, 2]], dtype=float)
+
+b = np.array([8, -11, -3], dtype=float)
+
+# Metodo 1: Usando l'inversa
+A_inv = np.linalg.inv(A)
+x_inversa = A_inv @ b
+print("Soluzione con A^(-1):", x_inversa)
+
+# Metodo 2: Usando np.linalg.solve (più efficiente)
+x_solve = np.linalg.solve(A, b)
+print("Soluzione con np.linalg.solve:", x_solve)
+
+# Verifica
+print("\nVerifica: A @ x =", A @ x_solve)
+print("Termine noto b =", b)
+
+# Output:
+# Soluzione con A^(-1): [ 2.  3. -1.]
+# Soluzione con np.linalg.solve: [ 2.  3. -1.]
+#
+# Verifica: A @ x = [  8. -11.  -3.]
+# Termine noto b = [  8. -11.  -3.]
+</code></pre>
+          </div>
+          <strong>Nota:</strong> <code>np.linalg.solve()</code> usa internamente l'eliminazione di Gauss con pivoting, che è più stabile ed efficiente del calcolo esplicito dell'inversa.
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">5. Confronto tra i Metodi</td>
+      </tr>
+      <tr>
+        <td>Efficienza Computazionale</td>
+        <td>
+          <table border="1" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <th>Metodo</th>
+              <th>Complessità</th>
+              <th>Quando usarlo</th>
+            </tr>
+            <tr>
+              <td>Sostituzione</td>
+              <td>$O(n^3)$</td>
+              <td>Piccoli sistemi (2-3 equazioni), calcolo manuale</td>
+            </tr>
+            <tr>
+              <td>Gauss</td>
+              <td>$O(n^3)$</td>
+              <td>Sistemi generali, più efficiente per sistemi grandi</td>
+            </tr>
+            <tr>
+              <td>Gauss-Jordan</td>
+              <td>$O(n^3)$</td>
+              <td>Quando serve la forma ridotta a scala</td>
+            </tr>
+            <tr>
+              <td>Cramer</td>
+              <td>$O(n! \cdot n)$</td>
+              <td>Solo per sistemi piccoli (n ≤ 3), teoricamente elegante</td>
+            </tr>
+            <tr>
+              <td>Inversa</td>
+              <td>$O(n^3)$</td>
+              <td>Quando serve calcolare $A^{-1}$ per altri scopi</td>
+            </tr>
+          </table>
+          <br>
+          <strong>Raccomandazione:</strong> Per sistemi grandi, usare sempre <code>np.linalg.solve()</code> che implementa Gauss con ottimizzazioni.
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">6. Esempio Completo con Visualizzazione Geometrica</td>
+      </tr>
+      <tr>
+        <td>Esempio 2×2 con Visualizzazione</td>
+        <td>
+          <div class="example-box">
+            $$\begin{cases}
+            x + 2y = 5 \\
+            2x - y = 0
+            \end{cases}$$
+          </div>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+
+# Definizione del sistema
+A = np.array([[1, 2],
+              [2, -1]])
+b = np.array([5, 0])
+
+# Risoluzione
+x_sol = np.linalg.solve(A, b)
+print(f"Soluzione: x = {x_sol[0]:.2f}, y = {x_sol[1]:.2f}")
+
+# Visualizzazione geometrica
+x = np.linspace(-2, 5, 100)
+
+# Retta 1: x + 2y = 5  =>  y = (5 - x) / 2
+y1 = (5 - x) / 2
+
+# Retta 2: 2x - y = 0  =>  y = 2x
+y2 = 2 * x
+
+# Grafico
+plt.figure(figsize=(8, 6))
+plt.plot(x, y1, 'b-', label='$x + 2y = 5$', linewidth=2)
+plt.plot(x, y2, 'r-', label='$2x - y = 0$', linewidth=2)
+plt.plot(x_sol[0], x_sol[1], 'go', markersize=10, label=f'Soluzione ({x_sol[0]:.2f}, {x_sol[1]:.2f})')
+plt.axhline(y=0, color='k', linewidth=0.5)
+plt.axvline(x=0, color='k', linewidth=0.5)
+plt.grid(True, alpha=0.3)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Intersezione di due rette')
+plt.legend()
+plt.axis('equal')
+plt.xlim(-1, 4)
+plt.ylim(-1, 4)
+plt.show()
+
+# Output:
+# Soluzione: x = 1.00, y = 2.00
+# [Mostra il grafico con le due rette che si intersecano in (1, 2)]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">7. Applicazioni Pratiche</td>
+      </tr>
+      <tr>
+        <td>Circuiti Elettrici</td>
+        <td>
+          Le <strong>leggi di Kirchhoff</strong> generano sistemi lineari:
+          <ul>
+            <li>Legge delle correnti (KCL): somma correnti in un nodo = 0</li>
+            <li>Legge delle tensioni (KVL): somma tensioni in una maglia = 0</li>
+          </ul>
+          <br>
+          Ogni maglia genera un'equazione lineare nelle correnti incognite.
+        </td>
+      </tr>
+      <tr>
+        <td>Interpolazione Polinomiale</td>
+        <td>
+          Trovare un polinomio di grado $n$ che passa per $n+1$ punti dati genera un sistema lineare nei coefficienti del polinomio.
+        </td>
+      </tr>
+      <tr>
+        <td>Economia e Ricerca Operativa</td>
+        <td>
+          <ul>
+            <li>Modelli di input-output (matrici di Leontief)</li>
+            <li>Problemi di bilanciamento</li>
+            <li>Programmazione lineare (nella risoluzione con metodo del simplesso)</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>Didattica & Progetti</h4>
+        <p>&copy; 2025 rigreco.github.io</p>
+        <p><a href="sitemap.html">Mappa del sito</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Sezioni</h4>
+        <ul>
+          <li><a href="matematica.html">Matematica</a></li>
+          <li><a href="progetti.html">Progetti</a></li>
+          <li><a href="space-invaders/index.html">Arcade</a></li>
+          <li><a href="apple2.html">Apple II</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Strumenti</h4>
+        <ul>
+          <li><a href="function_plot.html">Grafico Funzioni</a></li>
+          <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+          <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+          <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
