@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operazioni con Matrici - Didattica & Progetti</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .math-table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    .math-table th, .math-table td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    .math-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .section-header {
+      background-color: #e6e6e6;
+      font-weight: bold;
+    }
+    .math-table td ul {
+      margin-left: 20px;
+      padding-left: 10px;
+    }
+    .math-table td li {
+      margin-bottom: 5px;
+    }
+    .code-block {
+      background-color: #f6f8fa;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .example-box {
+      background-color: #fff9e6;
+      border-left: 4px solid #ffa500;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    code {
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Didattica & Progetti</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html"><i data-lucide="home"></i> Home</a></li>
+        <li><a href="matematica.html"><i data-lucide="book"></i> Matematica</a></li>
+        <li><a href="progetti.html"><i data-lucide="file-code"></i> Progetti</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
+          <div class="dropdown-content">
+            <a href="space-invaders/index.html"><i data-lucide="target"></i> Space Invaders</a>
+          </div>
+        </li>
+        <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h2>Operazioni con Matrici</h2>
+    <p style="text-align: center; margin-bottom: 20px;">
+      <a href="Algebra_lineare.html">← Torna ad Algebra Lineare</a>
+    </p>
+
+    <table class="math-table">
+      <tr>
+        <th colspan="2">Operazioni Matriciali: Teoria, Esempi e Implementazione</th>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">1. Somma e Sottrazione di Matrici</td>
+      </tr>
+      <tr>
+        <td style="width: 30%;">Definizione</td>
+        <td>
+          Date due matrici $A$ e $B$ della <strong>stessa dimensione</strong> $m \times n$, la loro somma (o differenza) è una matrice $C$ della stessa dimensione i cui elementi sono:
+          $$C = A + B \quad \Rightarrow \quad c_{ij} = a_{ij} + b_{ij}$$
+          $$C = A - B \quad \Rightarrow \quad c_{ij} = a_{ij} - b_{ij}$$
+          <br>
+          <strong>Nota:</strong> La somma è definita solo per matrici con le stesse dimensioni.
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio Numerico</td>
+        <td>
+          <div class="example-box">
+            $$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}, \quad
+            B = \begin{bmatrix} 7 & 8 & 9 \\ 10 & 11 & 12 \end{bmatrix}$$
+            <br>
+            $$A + B = \begin{bmatrix} 1+7 & 2+8 & 3+9 \\ 4+10 & 5+11 & 6+12 \end{bmatrix}
+            = \begin{bmatrix} 8 & 10 & 12 \\ 14 & 16 & 18 \end{bmatrix}$$
+            <br>
+            $$A - B = \begin{bmatrix} 1-7 & 2-8 & 3-9 \\ 4-10 & 5-11 & 6-12 \end{bmatrix}
+            = \begin{bmatrix} -6 & -6 & -6 \\ -6 & -6 & -6 \end{bmatrix}$$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Definizione delle matrici
+A = np.array([[1, 2, 3],
+              [4, 5, 6]])
+
+B = np.array([[7, 8, 9],
+              [10, 11, 12]])
+
+# Somma di matrici
+C_somma = A + B
+print("A + B =")
+print(C_somma)
+
+# Sottrazione di matrici
+C_diff = A - B
+print("\nA - B =")
+print(C_diff)
+
+# Output:
+# A + B =
+# [[ 8 10 12]
+#  [14 16 18]]
+#
+# A - B =
+# [[-6 -6 -6]
+#  [-6 -6 -6]]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">2. Moltiplicazione per uno Scalare</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          Dato uno scalare $k \in \mathbb{R}$ e una matrice $A$ di dimensione $m \times n$, il prodotto $kA$ è una matrice della stessa dimensione i cui elementi sono:
+          $$C = kA \quad \Rightarrow \quad c_{ij} = k \cdot a_{ij}$$
+          <br>
+          Ogni elemento della matrice viene moltiplicato per lo scalare $k$.
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio Numerico</td>
+        <td>
+          <div class="example-box">
+            $$A = \begin{bmatrix} 2 & -1 \\ 0 & 3 \\ 4 & -2 \end{bmatrix}, \quad k = 3$$
+            <br>
+            $$3A = \begin{bmatrix} 3 \cdot 2 & 3 \cdot (-1) \\ 3 \cdot 0 & 3 \cdot 3 \\ 3 \cdot 4 & 3 \cdot (-2) \end{bmatrix}
+            = \begin{bmatrix} 6 & -3 \\ 0 & 9 \\ 12 & -6 \end{bmatrix}$$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Definizione della matrice
+A = np.array([[2, -1],
+              [0, 3],
+              [4, -2]])
+
+# Scalare
+k = 3
+
+# Moltiplicazione per scalare
+C = k * A
+print(f"{k} * A =")
+print(C)
+
+# Output:
+# 3 * A =
+# [[ 6 -3]
+#  [ 0  9]
+#  [12 -6]]
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">3. Moltiplicazione tra Matrici (Prodotto Righe per Colonne)</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          Date due matrici $A$ di dimensione $m \times p$ e $B$ di dimensione $p \times n$, il loro prodotto $C = AB$ è una matrice di dimensione $m \times n$ dove:
+          $$c_{ij} = \sum_{k=1}^{p} a_{ik} \cdot b_{kj}$$
+          <br>
+          L'elemento $c_{ij}$ è il prodotto scalare tra la riga $i$ di $A$ e la colonna $j$ di $B$.
+          <br><br>
+          <strong>Condizione necessaria:</strong> Il numero di colonne di $A$ deve essere uguale al numero di righe di $B$.
+          <br><br>
+          <strong>Nota importante:</strong> Il prodotto matriciale <strong>non è commutativo</strong>: in generale $AB \neq BA$.
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio Numerico</td>
+        <td>
+          <div class="example-box">
+            $$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}_{2 \times 2}, \quad
+            B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}_{2 \times 2}$$
+            <br>
+            <strong>Calcolo elemento per elemento:</strong>
+            <br>
+            $c_{11} = 1 \cdot 5 + 2 \cdot 7 = 5 + 14 = 19$
+            <br>
+            $c_{12} = 1 \cdot 6 + 2 \cdot 8 = 6 + 16 = 22$
+            <br>
+            $c_{21} = 3 \cdot 5 + 4 \cdot 7 = 15 + 28 = 43$
+            <br>
+            $c_{22} = 3 \cdot 6 + 4 \cdot 8 = 18 + 32 = 50$
+            <br><br>
+            $$AB = \begin{bmatrix} 19 & 22 \\ 43 & 50 \end{bmatrix}$$
+            <br>
+            <strong>Verifica non commutatività:</strong>
+            <br>
+            $BA = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix} \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}
+            = \begin{bmatrix} 23 & 34 \\ 31 & 46 \end{bmatrix} \neq AB$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Definizione delle matrici
+A = np.array([[1, 2],
+              [3, 4]])
+
+B = np.array([[5, 6],
+              [7, 8]])
+
+# Prodotto matriciale usando @
+C = A @ B
+print("A @ B =")
+print(C)
+
+# Alternativa: usando np.dot()
+C_dot = np.dot(A, B)
+print("\nnp.dot(A, B) =")
+print(C_dot)
+
+# Verifica non commutatività
+BA = B @ A
+print("\nB @ A =")
+print(BA)
+print("\nAB == BA?", np.array_equal(C, BA))
+
+# Output:
+# A @ B =
+# [[19 22]
+#  [43 50]]
+#
+# np.dot(A, B) =
+# [[19 22]
+#  [43 50]]
+#
+# B @ A =
+# [[23 34]
+#  [31 46]]
+#
+# AB == BA? False
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio con Dimensioni Diverse</td>
+        <td>
+          <div class="example-box">
+            $$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}_{2 \times 3}, \quad
+            B = \begin{bmatrix} 1 & 2 \\ 3 & 4 \\ 5 & 6 \end{bmatrix}_{3 \times 2}$$
+            <br>
+            $c_{11} = 1 \cdot 1 + 2 \cdot 3 + 3 \cdot 5 = 1 + 6 + 15 = 22$
+            <br>
+            $c_{12} = 1 \cdot 2 + 2 \cdot 4 + 3 \cdot 6 = 2 + 8 + 18 = 28$
+            <br>
+            $c_{21} = 4 \cdot 1 + 5 \cdot 3 + 6 \cdot 5 = 4 + 15 + 30 = 49$
+            <br>
+            $c_{22} = 4 \cdot 2 + 5 \cdot 4 + 6 \cdot 6 = 8 + 20 + 36 = 64$
+            <br><br>
+            $$AB = \begin{bmatrix} 22 & 28 \\ 49 & 64 \end{bmatrix}_{2 \times 2}$$
+          </div>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+A = np.array([[1, 2, 3],
+              [4, 5, 6]])  # 2x3
+
+B = np.array([[1, 2],
+              [3, 4],
+              [5, 6]])     # 3x2
+
+C = A @ B  # Risultato: 2x2
+print("A (2x3) @ B (3x2) =")
+print(C)
+print(f"Dimensione risultato: {C.shape}")
+
+# Output:
+# A (2x3) @ B (3x2) =
+# [[22 28]
+#  [49 64]]
+# Dimensione risultato: (2, 2)
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">4. Trasposizione di Matrici</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          La trasposta di una matrice $A$ di dimensione $m \times n$, indicata con $A^T$, è la matrice di dimensione $n \times m$ ottenuta scambiando righe e colonne:
+          $$(A^T)_{ij} = a_{ji}$$
+          <br>
+          La riga $i$ di $A$ diventa la colonna $i$ di $A^T$.
+          <br><br>
+          <strong>Proprietà:</strong>
+          <ul>
+            <li>$(A^T)^T = A$</li>
+            <li>$(A + B)^T = A^T + B^T$</li>
+            <li>$(kA)^T = kA^T$</li>
+            <li>$(AB)^T = B^T A^T$ (inversione dell'ordine!)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio Numerico</td>
+        <td>
+          <div class="example-box">
+            $$A = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}_{2 \times 3}$$
+            <br>
+            $$A^T = \begin{bmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{bmatrix}_{3 \times 2}$$
+            <br><br>
+            La prima riga di $A$ (1, 2, 3) diventa la prima colonna di $A^T$.
+            <br>
+            La seconda riga di $A$ (4, 5, 6) diventa la seconda colonna di $A^T$.
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Definizione della matrice
+A = np.array([[1, 2, 3],
+              [4, 5, 6]])
+
+# Trasposizione
+A_T = A.T
+print("A =")
+print(A)
+print(f"Dimensione A: {A.shape}")
+
+print("\nA^T =")
+print(A_T)
+print(f"Dimensione A^T: {A_T.shape}")
+
+# Verifica proprietà: (A^T)^T = A
+A_T_T = A_T.T
+print("\n(A^T)^T =")
+print(A_T_T)
+print("(A^T)^T == A?", np.array_equal(A_T_T, A))
+
+# Output:
+# A =
+# [[1 2 3]
+#  [4 5 6]]
+# Dimensione A: (2, 3)
+#
+# A^T =
+# [[1 4]
+#  [2 5]
+#  [3 6]]
+# Dimensione A^T: (3, 2)
+#
+# (A^T)^T =
+# [[1 2 3]
+#  [4 5 6]]
+# (A^T)^T == A? True
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">5. Matrice Inversa</td>
+      </tr>
+      <tr>
+        <td>Definizione</td>
+        <td>
+          Data una matrice quadrata $A$ di ordine $n$, se esiste una matrice $A^{-1}$ tale che:
+          $$A \cdot A^{-1} = A^{-1} \cdot A = I_n$$
+          allora $A^{-1}$ si chiama <strong>matrice inversa</strong> di $A$.
+          <br><br>
+          <strong>Condizione di invertibilità:</strong> Una matrice quadrata $A$ è invertibile se e solo se $\det(A) \neq 0$.
+          <br><br>
+          <strong>Proprietà:</strong>
+          <ul>
+            <li>$(A^{-1})^{-1} = A$</li>
+            <li>$(AB)^{-1} = B^{-1}A^{-1}$ (inversione dell'ordine)</li>
+            <li>$(A^T)^{-1} = (A^{-1})^T$</li>
+            <li>$\det(A^{-1}) = \frac{1}{\det(A)}$</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Formula per Matrici $2 \times 2$</td>
+        <td>
+          Per una matrice $2 \times 2$:
+          $$A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
+          <br>
+          Se $\det(A) = ad - bc \neq 0$, allora:
+          $$A^{-1} = \frac{1}{ad - bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$$
+          <br><br>
+          <div class="example-box">
+            <strong>Esempio:</strong>
+            $$A = \begin{bmatrix} 4 & 7 \\ 2 & 6 \end{bmatrix}$$
+            <br>
+            $\det(A) = 4 \cdot 6 - 7 \cdot 2 = 24 - 14 = 10 \neq 0$ → $A$ è invertibile
+            <br><br>
+            $$A^{-1} = \frac{1}{10} \begin{bmatrix} 6 & -7 \\ -2 & 4 \end{bmatrix}
+            = \begin{bmatrix} 0.6 & -0.7 \\ -0.2 & 0.4 \end{bmatrix}$$
+            <br>
+            <strong>Verifica:</strong>
+            $$A \cdot A^{-1} = \begin{bmatrix} 4 & 7 \\ 2 & 6 \end{bmatrix} \begin{bmatrix} 0.6 & -0.7 \\ -0.2 & 0.4 \end{bmatrix}
+            = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I_2$$
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Codice Python</td>
+        <td>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+# Definizione della matrice
+A = np.array([[4, 7],
+              [2, 6]])
+
+# Calcolo del determinante
+det_A = np.linalg.det(A)
+print(f"det(A) = {det_A}")
+
+# Verifica che la matrice sia invertibile
+if det_A != 0:
+    # Calcolo dell'inversa
+    A_inv = np.linalg.inv(A)
+    print("\nA^(-1) =")
+    print(A_inv)
+
+    # Verifica: A * A^(-1) = I
+    I = A @ A_inv
+    print("\nA @ A^(-1) =")
+    print(I)
+
+    # Verifica con np.allclose (per gestire errori numerici)
+    I_attesa = np.eye(2)
+    print("\nÈ l'identità?", np.allclose(I, I_attesa))
+else:
+    print("La matrice non è invertibile (determinante nullo)")
+
+# Output:
+# det(A) = 10.000000000000002
+#
+# A^(-1) =
+# [[ 0.6 -0.7]
+#  [-0.2  0.4]]
+#
+# A @ A^(-1) =
+# [[1. 0.]
+#  [0. 1.]]
+#
+# È l'identità? True
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Esempio con Matrice Non Invertibile</td>
+        <td>
+          <div class="example-box">
+            $$B = \begin{bmatrix} 2 & 4 \\ 1 & 2 \end{bmatrix}$$
+            <br>
+            $\det(B) = 2 \cdot 2 - 4 \cdot 1 = 4 - 4 = 0$
+            <br><br>
+            La matrice $B$ <strong>non è invertibile</strong> (è singolare).
+          </div>
+          <div class="code-block">
+            <pre><code class="language-python">import numpy as np
+
+B = np.array([[2, 4],
+              [1, 2]])
+
+det_B = np.linalg.det(B)
+print(f"det(B) = {det_B}")
+
+try:
+    B_inv = np.linalg.inv(B)
+    print("\nB^(-1) =")
+    print(B_inv)
+except np.linalg.LinAlgError:
+    print("\nErrore: la matrice è singolare (non invertibile)")
+
+# Output:
+# det(B) = 0.0
+# Errore: la matrice è singolare (non invertibile)
+</code></pre>
+          </div>
+        </td>
+      </tr>
+      <tr class="section-header">
+        <td colspan="2">6. Proprietà Generali delle Operazioni Matriciali</td>
+      </tr>
+      <tr>
+        <td>Proprietà Algebriche</td>
+        <td>
+          <strong>Somma:</strong>
+          <ul>
+            <li>Commutativa: $A + B = B + A$</li>
+            <li>Associativa: $(A + B) + C = A + (B + C)$</li>
+            <li>Elemento neutro: $A + O = A$ (dove $O$ è la matrice nulla)</li>
+          </ul>
+          <br>
+          <strong>Prodotto:</strong>
+          <ul>
+            <li><strong>Non commutativa:</strong> in generale $AB \neq BA$</li>
+            <li>Associativa: $(AB)C = A(BC)$</li>
+            <li>Distributiva rispetto alla somma: $A(B + C) = AB + AC$</li>
+            <li>Elemento neutro: $AI = IA = A$ (dove $I$ è la matrice identità)</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Note Computazionali</td>
+        <td>
+          <strong>Complessità computazionale:</strong>
+          <ul>
+            <li>Somma di matrici $n \times n$: $O(n^2)$</li>
+            <li>Prodotto di matrici $n \times n$ (algoritmo standard): $O(n^3)$</li>
+            <li>Inversa di una matrice $n \times n$: $O(n^3)$</li>
+          </ul>
+          <br>
+          <strong>Precisione numerica:</strong> Quando si lavora con numeri in virgola mobile, usare <code>np.allclose()</code> invece di <code>==</code> per confrontare matrici, per tenere conto degli errori di arrotondamento.
+        </td>
+      </tr>
+    </table>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-section">
+        <h4>Didattica & Progetti</h4>
+        <p>&copy; 2025 rigreco.github.io</p>
+        <p><a href="sitemap.html">Mappa del sito</a></p>
+      </div>
+      <div class="footer-section">
+        <h4>Sezioni</h4>
+        <ul>
+          <li><a href="matematica.html">Matematica</a></li>
+          <li><a href="progetti.html">Progetti</a></li>
+          <li><a href="space-invaders/index.html">Arcade</a></li>
+          <li><a href="apple2.html">Apple II</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Strumenti</h4>
+        <ul>
+          <li><a href="function_plot.html">Grafico Funzioni</a></li>
+          <li><a href="function_derivative.html">Calcolo Derivate</a></li>
+          <li><a href="bode_plot.html">Diagrammi di Bode</a></li>
+          <li><a href="complex_operations.html">Operazioni Numeri Complessi</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ]
+      });
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
