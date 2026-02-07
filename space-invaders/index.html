@@ -388,7 +388,8 @@ const STATE = {
   LEVEL_CLEAR: 3,
   DYING: 4,
   HIGH_SCORE_ENTRY: 5,
-  HIGH_SCORES: 6
+  HIGH_SCORES: 6,
+  DEMO: 7
 };
 
 let state = STATE.INTRO;
@@ -419,6 +420,24 @@ let level = 1;
 let frameCount = 0;
 let dyingTimer = 0;
 let levelClearTimer = 0;
+
+// Demo / attract mode
+let demoMode = false;
+let titleIdleTimer = 0;
+const DEMO_IDLE_FRAMES = 600; // ~10s at 60fps before demo starts
+let demoShootTimer = 0;
+
+// First interaction unlocks audio (even without starting game)
+let userHasInteracted = false;
+function onFirstInteraction() {
+  if (!userHasInteracted) {
+    userHasInteracted = true;
+    initAudio();
+  }
+}
+window.addEventListener('keydown', onFirstInteraction, { once: false });
+window.addEventListener('mousedown', onFirstInteraction, { once: false });
+window.addEventListener('touchstart', onFirstInteraction, { once: false });
 
 // UFO deterministic scoring
 let shotsFired = 0;
@@ -611,7 +630,27 @@ function initGame() {
   level = 1;
   shotsFired = 0;
   ufoFromLeft = true;
+  demoMode = false;
   startLevel();
+}
+
+function initDemo() {
+  score = 0;
+  lives = 1;
+  level = 1;
+  shotsFired = 0;
+  ufoFromLeft = true;
+  demoMode = true;
+  demoShootTimer = 0;
+  player.x = W / 2 - 6;
+  bullet.active = false;
+  particles = [];
+  explosions = [];
+  ufo.active = false;
+  ufo.timer = 0;
+  initInvaders();
+  initShields();
+  state = STATE.DEMO;
 }
 
 function startLevel() {
@@ -636,6 +675,7 @@ function update() {
     if (keys['Enter'] || keys['Space'] || keys['Escape']) {
       state = STATE.TITLE;
       introPlayed = true;
+      titleIdleTimer = 0;
       keys['Enter'] = false;
       keys['Space'] = false;
       keys['Escape'] = false;
@@ -644,22 +684,46 @@ function update() {
   }
 
   if (state === STATE.TITLE) {
+    titleIdleTimer++;
     if (keys['Enter'] || keys['Space']) {
       initAudio();
       initGame();
       keys['Enter'] = false;
       keys['Space'] = false;
-    }
-    if (keys['KeyH']) {
+      titleIdleTimer = 0;
+    } else if (keys['KeyH']) {
       state = STATE.HIGH_SCORES;
       keys['KeyH'] = false;
+      titleIdleTimer = 0;
+    } else if (titleIdleTimer >= DEMO_IDLE_FRAMES) {
+      titleIdleTimer = 0;
+      initDemo();
     }
+    return;
+  }
+
+  // ── Demo mode (attract) ──
+  if (state === STATE.DEMO) {
+    // Any key/touch exits demo → back to title
+    if (keys['Enter'] || keys['Space'] || keys['Escape'] ||
+        keys['ArrowLeft'] || keys['ArrowRight']) {
+      state = STATE.TITLE;
+      titleIdleTimer = 0;
+      keys['Enter'] = false;
+      keys['Space'] = false;
+      keys['Escape'] = false;
+      keys['ArrowLeft'] = false;
+      keys['ArrowRight'] = false;
+      return;
+    }
+    updateDemo();
     return;
   }
 
   if (state === STATE.HIGH_SCORES) {
     if (keys['Enter'] || keys['Space'] || keys['Escape']) {
       state = STATE.TITLE;
+      titleIdleTimer = 0;
       keys['Enter'] = false;
       keys['Space'] = false;
       keys['Escape'] = false;
@@ -674,6 +738,7 @@ function update() {
   if (state === STATE.GAME_OVER) {
     if (keys['Enter'] || keys['Space']) {
       state = STATE.TITLE;
+      titleIdleTimer = 0;
       keys['Enter'] = false;
       keys['Space'] = false;
     }
@@ -681,9 +746,23 @@ function update() {
   }
 
   if (state === STATE.DYING) {
+    // During demo dying, any key goes back to title
+    if (demoMode && (keys['Enter'] || keys['Space'] || keys['Escape'])) {
+      state = STATE.TITLE;
+      titleIdleTimer = 0;
+      demoMode = false;
+      keys['Enter'] = false;
+      keys['Space'] = false;
+      keys['Escape'] = false;
+      return;
+    }
     dyingTimer--;
     if (dyingTimer <= 0) {
-      if (lives <= 0) {
+      if (demoMode) {
+        state = STATE.TITLE;
+        titleIdleTimer = 0;
+        demoMode = false;
+      } else if (lives <= 0) {
         if (isHighScore(score)) {
           hsEntryName = '';
           state = STATE.HIGH_SCORE_ENTRY;
@@ -929,6 +1008,226 @@ function updateParticles() {
   }
 }
 
+// ─── DEMO AI ───
+function updateDemo() {
+  frameCount++;
+
+  // Simple AI: move toward lowest alive invader column, shoot occasionally
+  const aliveInvaders = invaders.filter(function(i) { return i.alive; });
+
+  if (aliveInvaders.length === 0) {
+    // Demo ends, back to title
+    state = STATE.TITLE;
+    titleIdleTimer = 0;
+    return;
+  }
+
+  // Find the lowest invader (highest Y)
+  let lowestInv = aliveInvaders[0];
+  for (let i = 1; i < aliveInvaders.length; i++) {
+    if (aliveInvaders[i].y > lowestInv.y ||
+        (aliveInvaders[i].y === lowestInv.y &&
+         Math.abs(aliveInvaders[i].x - player.x) < Math.abs(lowestInv.x - player.x))) {
+      lowestInv = aliveInvaders[i];
+    }
+  }
+
+  // Move toward target
+  const sz = getInvaderSize(lowestInv.type);
+  const targetX = lowestInv.x + sz.w / 2 - player.w / 2;
+  const diff = targetX - player.x;
+
+  if (Math.abs(diff) > 2) {
+    player.x += diff > 0 ? player.speed : -player.speed;
+  }
+
+  // Clamp player position
+  if (player.x < 2) player.x = 2;
+  if (player.x > W - player.w - 2) player.x = W - player.w - 2;
+
+  // Shoot with some randomness
+  demoShootTimer++;
+  if (!bullet.active && demoShootTimer > 20 + Math.random() * 30) {
+    bullet.x = player.x + 6;
+    bullet.y = player.y - 2;
+    bullet.active = true;
+    shotsFired++;
+    playShoot();
+    demoShootTimer = 0;
+  }
+
+  // ── Bullet movement (same as PLAYING) ──
+  if (bullet.active) {
+    bullet.y -= bullet.speed;
+    if (bullet.y < 8) bullet.active = false;
+
+    for (let inv of invaders) {
+      if (!inv.alive) continue;
+      const isz = getInvaderSize(inv.type);
+      if (bullet.x >= inv.x && bullet.x <= inv.x + isz.w &&
+          bullet.y >= inv.y && bullet.y <= inv.y + isz.h) {
+        inv.alive = false;
+        bullet.active = false;
+        score += inv.points;
+        playExplosion();
+        explosions.push({ x: inv.x, y: inv.y, timer: 12 });
+
+        const alive = invaders.filter(function(i) { return i.alive; }).length;
+        if (alive > 0) {
+          invaderMoveInterval = Math.max(2, Math.floor(3 + alive * 0.7));
+        }
+        break;
+      }
+    }
+
+    for (let s of shields) {
+      if (!s.alive) continue;
+      if (bullet.x >= s.x && bullet.x <= s.x + s.w &&
+          bullet.y >= s.y && bullet.y <= s.y + s.h) {
+        s.alive = false;
+        bullet.active = false;
+        break;
+      }
+    }
+
+    if (ufo.active &&
+        bullet.x >= ufo.x && bullet.x <= ufo.x + 16 &&
+        bullet.y >= ufo.y && bullet.y <= ufo.y + 7) {
+      ufo.active = false;
+      bullet.active = false;
+      const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
+      const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
+      score += ufoPoints;
+      playExplosion();
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
+    }
+  }
+
+  // ── Invader movement ──
+  invaderMoveTimer++;
+  if (invaderMoveTimer >= invaderMoveInterval) {
+    invaderMoveTimer = 0;
+    invaderAnimFrame = 1 - invaderAnimFrame;
+
+    let hitEdge = false;
+    for (let inv of invaders) {
+      if (!inv.alive) continue;
+      const isz = getInvaderSize(inv.type);
+      if ((invaderDir > 0 && inv.x + isz.w >= W - 4) ||
+          (invaderDir < 0 && inv.x <= 4)) {
+        hitEdge = true;
+        break;
+      }
+    }
+
+    if (hitEdge) {
+      invaderDir *= -1;
+      for (let inv of invaders) {
+        if (inv.alive) inv.y += 4;
+      }
+    } else {
+      for (let inv of invaders) {
+        if (inv.alive) inv.x += invaderDir * 2;
+      }
+    }
+
+    playInvaderMove(moveSound);
+    moveSound = (moveSound + 1) % 4;
+
+    // Invader shooting
+    if (aliveInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
+      const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)];
+      const ssz = getInvaderSize(shooter.type);
+      invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2 });
+    }
+
+    // Invaders reached bottom → demo over
+    for (let inv of invaders) {
+      if (inv.alive && inv.y + 8 >= player.y) {
+        state = STATE.TITLE;
+        titleIdleTimer = 0;
+        return;
+      }
+    }
+
+    // Shield erosion
+    for (let inv of invaders) {
+      if (!inv.alive) continue;
+      const isz = getInvaderSize(inv.type);
+      for (let s of shields) {
+        if (!s.alive) continue;
+        if (inv.x < s.x + s.w && inv.x + isz.w > s.x &&
+            inv.y < s.y + s.h && inv.y + isz.h > s.y) {
+          s.alive = false;
+        }
+      }
+    }
+  }
+
+  // ── Invader bullets ──
+  for (let i = invaderBullets.length - 1; i >= 0; i--) {
+    const b = invaderBullets[i];
+    b.y += b.speed;
+
+    if (b.y > H) {
+      invaderBullets.splice(i, 1);
+      continue;
+    }
+
+    // Hit player → demo over
+    if (b.x >= player.x && b.x <= player.x + player.w &&
+        b.y >= player.y && b.y <= player.y + player.h) {
+      playPlayerDie();
+      spawnPlayerExplosion();
+      // Show explosion briefly then return to title
+      state = STATE.DYING;
+      demoMode = true;
+      lives = 0;
+      dyingTimer = 60;
+      invaderBullets.splice(i, 1);
+      continue;
+    }
+
+    for (let s of shields) {
+      if (!s.alive) continue;
+      if (b.x >= s.x && b.x <= s.x + s.w &&
+          b.y >= s.y && b.y <= s.y + s.h) {
+        s.alive = false;
+        invaderBullets.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  // ── UFO ──
+  if (!ufo.active) {
+    ufo.timer++;
+    if (ufo.timer >= 1536) {
+      ufo.active = true;
+      ufo.timer = 0;
+      if (ufoFromLeft) {
+        ufo.x = -16;
+        ufo.speed = 0.5;
+      } else {
+        ufo.x = W + 16;
+        ufo.speed = -0.5;
+      }
+      ufoFromLeft = !ufoFromLeft;
+    }
+  } else {
+    ufo.x += ufo.speed;
+    if (frameCount % 12 === 0) playUfo();
+    if (ufo.x > W + 16 || ufo.x < -16) ufo.active = false;
+  }
+
+  updateParticles();
+
+  for (let i = explosions.length - 1; i >= 0; i--) {
+    explosions[i].timer--;
+    if (explosions[i].timer <= 0) explosions.splice(i, 1);
+  }
+}
+
 // ─── RENDER ───
 function render() {
   // Clear
@@ -959,6 +1258,8 @@ function render() {
     drawGameOverScreen();
     return;
   }
+
+  // DEMO uses same rendering as PLAYING (falls through below)
 
   // HUD
   drawHUD();
@@ -1046,6 +1347,18 @@ function render() {
   // Lives
   for (let i = 0; i < lives - 1; i++) {
     drawSprite(SPRITES.player, 4 + i * 16, H - 14, GREEN_DIM);
+  }
+
+  // Demo mode overlay
+  if (state === STATE.DEMO || (state === STATE.DYING && demoMode)) {
+    const blink = Math.sin(frameCount * 0.08) > 0;
+    if (blink) {
+      ctx.fillStyle = COLOR_WHITE;
+      ctx.font = '5px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText('PREMI INVIO PER GIOCARE', W/2, 26);
+      ctx.textAlign = 'left';
+    }
   }
 }
 
