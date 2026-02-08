@@ -1,9 +1,13 @@
 // sw.js
 
-const CACHE_NAME = 'cosmic-invaders-v10';
+const CACHE_NAME = 'cosmic-invaders-v12';
 const urlsToCache = [
   './',
   './index.html',
+  './sprites.js',
+  './audio.js',
+  './boss.js',
+  './game.js',
   './icon.png',
   './favicon.ico',
   './manifest.json'
