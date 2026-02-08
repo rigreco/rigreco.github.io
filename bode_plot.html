@@ -45,28 +45,28 @@
                 <div id="poles">Poli: </div>
             </div>
             <label for="num">Numeratore (es. 1,1 per s+1):</label>
-            <input type="text" id="num" name="num" placeholder="Inserisci i coefficienti del numeratore separati da virgola"><br>
-            <label for="den">Denominatore (es. 1,2,0 per s^2+2s):</label>  
-            <input type="text" id="den" name="den" placeholder="Inserisci i coefficienti del denominatore separati da virgola"><br>
+            <input type="text" id="num" name="num" placeholder="Coefficienti numeratore" style="max-width: 100%; box-sizing: border-box;"><br>
+            <label for="den">Denominatore (es. 1,2,0 per s^2+2s):</label>
+            <input type="text" id="den" name="den" placeholder="Coefficienti denominatore" style="max-width: 100%; box-sizing: border-box;"><br>
             <button onclick="calculateBode()">Calcola</button>
             
             <div class="bode-plot">
                 <h3>Diagramma di Bode - Magnitudine</h3>
-                <canvas id="magPlot" width="600" height="400"></canvas>
+                <canvas id="magPlot" width="600" height="400" style="max-width: 100%; height: auto;"></canvas>
                 <button id="downloadMag" class="download-btn" onclick="downloadPlot('magPlot', 'bode_magnitude.png')">
                     <i data-lucide="download"></i> Salva
                 </button>
             </div>
             <div class="bode-plot">
                 <h3>Diagramma di Bode - Fase</h3>
-                <canvas id="phasePlot" width="600" height="400"></canvas>
+                <canvas id="phasePlot" width="600" height="400" style="max-width: 100%; height: auto;"></canvas>
                 <button id="downloadPhase" class="download-btn" onclick="downloadPlot('phasePlot', 'bode_phase.png')">
                     <i data-lucide="download"></i> Salva
                 </button>
             </div>
             <div class="bode-plot">
                 <h3>Piano Complesso</h3>
-                <canvas id="complexPlane" width="400" height="400"></canvas>
+                <canvas id="complexPlane" width="400" height="400" style="max-width: 100%; height: auto;"></canvas>
                 <button id="downloadComplex" class="download-btn" onclick="downloadPlot('complexPlane', 'complex_plane.png')">
                     <i data-lucide="download"></i> Salva
                 </button>

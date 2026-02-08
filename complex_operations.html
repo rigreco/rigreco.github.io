@@ -50,9 +50,11 @@
         
         .number-inputs input {
             width: 80px;
+            min-width: 60px;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            box-sizing: border-box;
         }
         
         .operations {
@@ -120,6 +122,21 @@
         @media (max-width: 768px) {
             .input-container {
                 grid-template-columns: 1fr;
+            }
+            #complex-calculator {
+                width: 100%;
+                padding: 12px;
+                box-sizing: border-box;
+            }
+            .number-inputs {
+                flex-wrap: wrap;
+            }
+            .number-inputs input {
+                width: 70px;
+                flex: 1;
+            }
+            #complex-plot {
+                height: 300px;
             }
         }
     </style>

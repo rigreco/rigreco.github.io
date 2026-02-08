@@ -33,17 +33,17 @@
         <button id="zoomIn">Zoom In</button>
         <button id="zoomOut">Zoom Out</button>
         <button id="resetZoom">Reset Zoom</button>
-        <div class="function-plot-container">
+        <div class="function-plot-container" style="max-width: 100%;">
             <p>Esempio: (x^2 + 1) / (x - 2) per funzioni fratte</p>
             <p>Usa / per le divisioni, ^ per le potenze</p>
             <label for="function">Funzione (es. x^2 + 2*x + 1):</label>
-            <input type="text" id="function" name="function" placeholder="Inserisci la funzione">
+            <input type="text" id="function" name="function" placeholder="Inserisci la funzione" style="max-width: 100%; box-sizing: border-box;">
             <label for="xMin">X minimo:</label>
             <input type="number" id="xMin" name="xMin" value="-10">
             <label for="xMax">X massimo:</label>
             <input type="number" id="xMax" name="xMax" value="10">
             <button id="plotButton">Traccia Grafico</button>
-            <canvas id="functionPlot" width="600" height="400"></canvas>
+            <canvas id="functionPlot" width="600" height="400" style="max-width: 100%; height: auto;"></canvas>
         </div>
     </main>
 

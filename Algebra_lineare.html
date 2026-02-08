@@ -12,10 +12,16 @@
       margin: 0;
       padding: 0;
     }
+    .math-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .math-table {
       width: 90%;
       margin: 20px auto;
       border-collapse: collapse;
+      min-width: 500px;
     }
     .math-table th, .math-table td {
       border: 1px solid #ddd;
@@ -69,6 +75,7 @@
   <main>
     <h2>Algebra Lineare</h2>
 
+    <div class="math-table-wrapper">
     <table class="math-table">
       <tr>
         <th colspan="2">Algebra Lineare: Fondamenti Teorici</th>
@@ -354,6 +361,7 @@
         </td>
       </tr>
     </table>
+    </div>
   </main>
 
   <footer>

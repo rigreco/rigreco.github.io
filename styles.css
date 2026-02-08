@@ -18,12 +18,19 @@ header {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+header h1 {
+  text-align: center;
+  padding: 0 15px;
+}
+
 nav ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 0;
 }
 
 nav ul li {
@@ -231,7 +238,8 @@ nav ul li a i {
 
 .dropdown-content a:hover {background-color: #f1f1f1}
 
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content,
+.dropdown:focus-within .dropdown-content {
   display: block;
 }
 
@@ -551,4 +559,174 @@ pre code {
   color: #666;
   margin-top: 8px;
   font-style: italic;
+}
+
+/* ─── MOBILE RESPONSIVE ─── */
+
+/* Canvas responsive globale */
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Tabelle responsive: wrap in scrollable container via CSS */
+.math-table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* KaTeX display math overflow */
+.katex-display > .katex {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+}
+
+/* Input e button più grandi per touch */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  nav ul {
+    gap: 6px 0;
+    padding: 0 10px;
+  }
+
+  nav ul li {
+    margin: 0 8px;
+  }
+
+  nav ul li a {
+    font-size: 0.85rem;
+    padding: 4px 0;
+  }
+
+  /* Dropdown: adattamento mobile */
+  .dropdown-content {
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 180px;
+  }
+
+  main {
+    padding: 15px 12px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  /* Input e button touch-friendly */
+  input[type="text"],
+  input[type="number"],
+  select,
+  button {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+
+  input[type="text"],
+  input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Canvas fissi: forza responsive */
+  canvas[width] {
+    max-width: 100%;
+    height: auto !important;
+  }
+
+  /* Bode container */
+  .bode-container {
+    padding: 10px;
+  }
+
+  .bode-plot {
+    overflow-x: auto;
+  }
+
+  /* Tool cards grid */
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Math resources grid */
+  .math-resources {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tabelle math: scroll orizzontale */
+  .math-table {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  .math-table td,
+  .math-table th {
+    padding: 8px;
+  }
+
+  /* KaTeX overflow */
+  .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0;
+  }
+
+  /* Function plot container */
+  .function-plot-container {
+    width: 100%;
+  }
+
+  .function-plot-container label {
+    display: block;
+    margin-top: 8px;
+  }
+
+  .function-plot-container input {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* Download button in Bode plots */
+  .download-btn {
+    position: static;
+    margin: 10px auto;
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.1rem;
+  }
+
+  nav ul li {
+    margin: 0 6px;
+  }
+
+  nav ul li a {
+    font-size: 0.8rem;
+  }
+
+  .tool-card {
+    padding: 12px;
+  }
+
+  .tool-card h4 {
+    font-size: 0.9rem;
+  }
+
+  .operations button,
+  .special-operations button {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    flex: 1 1 auto;
+  }
 }
