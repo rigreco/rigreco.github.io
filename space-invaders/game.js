@@ -65,6 +65,8 @@ const intro = {
 let score = 0;
 let lives = 3;
 let level = 1;
+let extraLifeAwarded = false;
+const EXTRA_LIFE_SCORE = 1500;
 let frameCount = 0;
 let dyingTimer = 0;
 let levelClearTimer = 0;
@@ -354,6 +356,7 @@ function initGame() {
   score = 0;
   lives = 3;
   level = 1;
+  extraLifeAwarded = false;
   shotsFired = 0;
   ufoFromLeft = true;
   demoMode = false;
@@ -429,8 +432,24 @@ function triggerBossIfNeeded() {
 }
 
 // ─── UPDATE ───
+function checkExtraLife() {
+  if (!extraLifeAwarded && !demoMode && score >= EXTRA_LIFE_SCORE) {
+    extraLifeAwarded = true;
+    lives++;
+    // Suono vita extra
+    if (audioStarted) {
+      try {
+        shootSynth.triggerAttackRelease('C5', '0.1');
+        setTimeout(function() { shootSynth.triggerAttackRelease('E5', '0.1'); }, 100);
+        setTimeout(function() { shootSynth.triggerAttackRelease('G5', '0.15'); }, 200);
+      } catch(e) {}
+    }
+  }
+}
+
 function update() {
   frameCount++;
+  checkExtraLife();
 
   if (state === STATE.INTRO) {
     intro.frame++;
