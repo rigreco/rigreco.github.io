@@ -89,8 +89,8 @@ function initAudio() {
   bossSnareSynth.volume.value = -14;
 }
 
-function playShoot() { if (audioStarted) shootSynth.triggerAttackRelease('C6', '0.08'); }
-function playExplosion() { if (audioStarted) explosionSynth.triggerAttackRelease('0.15'); }
+function playShoot() { if (audioStarted) try { shootSynth.triggerAttackRelease('C6', '0.08'); } catch(e) {} }
+function playExplosion() { if (audioStarted) try { explosionSynth.triggerAttackRelease('0.15'); } catch(e) {} }
 function playInvaderMove(pitch) {
   if (!audioStarted) return;
   var notes = ['C3', 'D3', 'E3', 'F3'];
@@ -398,6 +398,18 @@ function startBossMusic(type) {
   Tone.Transport.start();
 }
 
+function pauseBossMusic() {
+  if (bossPlaying && Tone.Transport.state === 'started') {
+    Tone.Transport.pause();
+  }
+}
+
+function resumeBossMusic() {
+  if (bossPlaying && Tone.Transport.state === 'paused') {
+    Tone.Transport.start();
+  }
+}
+
 function stopBossMusic() {
   if (!bossPlaying) return;
   bossPlaying = false;
@@ -459,6 +471,17 @@ function playVictoryFanfare() {
 function playBossHit() {
   if (!audioStarted) return;
   explosionSynth.triggerAttackRelease('0.08');
+}
+
+function playPowerupCollect() {
+  if (!audioStarted) return;
+  try {
+    var now = Tone.now();
+    ufoSynth.triggerAttackRelease('E5', '0.08', now);
+    setTimeout(function() { ufoSynth.triggerAttackRelease('G5', '0.08'); }, 80);
+    setTimeout(function() { ufoSynth.triggerAttackRelease('B5', '0.08'); }, 160);
+    setTimeout(function() { ufoSynth.triggerAttackRelease('E6', '0.12'); }, 240);
+  } catch(e) {}
 }
 
 function playBossDeath() {

@@ -37,10 +37,13 @@ const STATE = {
   DEMO: 7,
   BOSS_INTRO: 8,
   BOSS_FIGHT: 9,
-  VICTORY: 10
+  VICTORY: 10,
+  PAUSED: 11,
+  CREDITS: 12
 };
 
 let state = STATE.INTRO;
+let stateBeforePause = null;
 let introPlayed = false;
 
 // ─── INTRO ANIMATION STATE ───
@@ -62,11 +65,13 @@ const intro = {
   playTextX: W/2,
   readyBlink: 0
 };
+let cycle = 0; // New Game+ cycle (0 = first run, 1 = NG+, 2 = NG++...)
+
 let score = 0;
 let lives = 3;
 let level = 1;
-let extraLifeAwarded = false;
-const EXTRA_LIFE_SCORE = 1500;
+let nextExtraLifeScore = 1500;
+const EXTRA_LIFE_INTERVAL = 1500;
 let frameCount = 0;
 let dyingTimer = 0;
 let levelClearTimer = 0;
@@ -100,6 +105,7 @@ const WAVE_Y_OFFSETS = [0, 8, 16, 24, 32, 40, 48, 48];
 // Player
 let player = { x: W / 2 - 6, y: H - 32, w: 13, h: 8, speed: 1.5 };
 let bullet = { x: 0, y: 0, active: false, speed: 3 };
+let bullet2 = { x: 0, y: 0, active: false, speed: 3 }; // Double shot power-up bullet
 
 // Boss fight: multi-shot + velocita' aumentata
 const BOSS_BULLET_SPEED = 5;
@@ -129,6 +135,13 @@ const shieldData = [
   '0000000000',
   '000    000'
 ];
+
+// Power-ups
+let activePowerup = null;  // { type, x, y, speed } - falling
+let powerupEffect = null;  // { type, timer } - active effect
+const POWERUP_DURATION = 600; // 10 sec at 60fps
+const POWERUP_TYPES = ['speed', 'double', 'shield'];
+let playerShieldHits = 0;
 
 // Particles
 let particles = [];
@@ -197,6 +210,23 @@ window.addEventListener('keydown', function(e) {
   keys[e.code] = true;
   if (e.code === 'Space' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
     e.preventDefault();
+  }
+
+  // Pause toggle with P key
+  if (e.code === 'KeyP' && !demoMode) {
+    if (state === STATE.PAUSED) {
+      state = stateBeforePause;
+      stateBeforePause = null;
+      resumeBossMusic();
+      keys['KeyP'] = false;
+      return;
+    } else if (state === STATE.PLAYING || state === STATE.BOSS_FIGHT) {
+      stateBeforePause = state;
+      state = STATE.PAUSED;
+      pauseBossMusic();
+      keys['KeyP'] = false;
+      return;
+    }
   }
 
   if (state === STATE.HIGH_SCORE_ENTRY) {
@@ -345,7 +375,7 @@ function initInvaders() {
     }
   }
   invaderDir = 1;
-  invaderMoveInterval = Math.max(8, 45 - (level - 1) * 5);
+  invaderMoveInterval = Math.max(5, 45 - (level - 1) * 5 - cycle * 3);
   invaderMoveTimer = 0;
   invaderAnimFrame = 0;
   invaderBullets = [];
@@ -356,7 +386,8 @@ function initGame() {
   score = 0;
   lives = 3;
   level = 1;
-  extraLifeAwarded = false;
+  cycle = 0;
+  nextExtraLifeScore = EXTRA_LIFE_INTERVAL;
   shotsFired = 0;
   ufoFromLeft = true;
   demoMode = false;
@@ -365,11 +396,16 @@ function initGame() {
   bossFightBullets = [];
   bossShootCooldown = 0;
   player.x = W / 2 - 6;
+  player.speed = 1.5;
   bullet.active = false;
+  bullet2.active = false;
   particles = [];
   explosions = [];
   ufo.active = false;
   ufo.timer = 0;
+  activePowerup = null;
+  powerupEffect = null;
+  playerShieldHits = 0;
   initInvaders();
   initShields();
   state = STATE.PLAYING;
@@ -385,6 +421,7 @@ function initDemo() {
   demoShootTimer = 0;
   player.x = W / 2 - 6;
   bullet.active = false;
+  bullet2.active = false;
   particles = [];
   explosions = [];
   ufo.active = false;
@@ -393,6 +430,9 @@ function initDemo() {
   bossBullets = [];
   bossFightBullets = [];
   bossShootCooldown = 0;
+  activePowerup = null;
+  powerupEffect = null;
+  playerShieldHits = 0;
   initInvaders();
   initShields();
   state = STATE.DEMO;
@@ -400,7 +440,9 @@ function initDemo() {
 
 function startLevel() {
   player.x = W / 2 - 6;
+  player.speed = Math.min(2.2, 1.5 + (level - 1) * 0.08 + cycle * 0.1);
   bullet.active = false;
+  bullet2.active = false;
   particles = [];
   explosions = [];
   ufo.active = false;
@@ -409,6 +451,48 @@ function startLevel() {
   bossBullets = [];
   bossFightBullets = [];
   bossShootCooldown = 0;
+  activePowerup = null;
+  powerupEffect = null;
+  playerShieldHits = 0;
+  initInvaders();
+  initShields();
+  state = STATE.PLAYING;
+}
+
+// ─── COLUMN-BASED SHOOTING HELPER ───
+function getBottomInvaders() {
+  var columns = {};
+  for (var i = 0; i < invaders.length; i++) {
+    var inv = invaders[i];
+    if (!inv.alive) continue;
+    var col = Math.round((inv.x - 26) / 16);
+    if (!columns[col] || inv.y > columns[col].y) {
+      columns[col] = inv;
+    }
+  }
+  return Object.values(columns);
+}
+
+// ─── NEW GAME+ ───
+function startNewGamePlus() {
+  cycle++;
+  level = 1;
+  // Keep score and lives
+  player.x = W / 2 - 6;
+  player.speed = Math.min(2.2, 1.5 + cycle * 0.1);
+  bullet.active = false;
+  bullet2.active = false;
+  particles = [];
+  explosions = [];
+  ufo.active = false;
+  ufo.timer = 0;
+  boss = null;
+  bossBullets = [];
+  bossFightBullets = [];
+  bossShootCooldown = 0;
+  activePowerup = null;
+  powerupEffect = null;
+  playerShieldHits = 0;
   initInvaders();
   initShields();
   state = STATE.PLAYING;
@@ -432,24 +516,29 @@ function triggerBossIfNeeded() {
 }
 
 // ─── UPDATE ───
+const MAX_LIVES = 5;
+
 function checkExtraLife() {
-  if (!extraLifeAwarded && !demoMode && score >= EXTRA_LIFE_SCORE) {
-    extraLifeAwarded = true;
-    lives++;
-    // Suono vita extra
-    if (audioStarted) {
-      try {
-        shootSynth.triggerAttackRelease('C5', '0.1');
-        setTimeout(function() { shootSynth.triggerAttackRelease('E5', '0.1'); }, 100);
-        setTimeout(function() { shootSynth.triggerAttackRelease('G5', '0.15'); }, 200);
-      } catch(e) {}
+  if (!demoMode && score >= nextExtraLifeScore) {
+    nextExtraLifeScore += EXTRA_LIFE_INTERVAL;
+    if (lives < MAX_LIVES) {
+      lives++;
+      // Suono vita extra
+      if (audioStarted) {
+        try {
+          shootSynth.triggerAttackRelease('C5', '0.1');
+          setTimeout(function() { shootSynth.triggerAttackRelease('E5', '0.1'); }, 100);
+          setTimeout(function() { shootSynth.triggerAttackRelease('G5', '0.15'); }, 200);
+        } catch(e) {}
+      }
     }
   }
 }
 
 function update() {
+  if (state === STATE.PAUSED) return;
+
   frameCount++;
-  checkExtraLife();
 
   if (state === STATE.INTRO) {
     intro.frame++;
@@ -530,6 +619,11 @@ function update() {
     return;
   }
 
+  if (state === STATE.CREDITS) {
+    updateCredits();
+    return;
+  }
+
   if (state === STATE.DYING) {
     if (demoMode && (keys['Enter'] || keys['Space'] || keys['Escape'])) {
       state = STATE.TITLE;
@@ -600,23 +694,31 @@ function update() {
 
   // ─── BOSS FIGHT STATE ───
   if (state === STATE.BOSS_FIGHT) {
+    checkExtraLife();
     updateBossFight();
     return;
   }
 
   // ─── PLAYING STATE ───
+  checkExtraLife();
 
   // Player movement
   if (keys['ArrowLeft'] && player.x > 2) player.x -= player.speed;
   if (keys['ArrowRight'] && player.x < W - player.w - 2) player.x += player.speed;
 
-  // Shoot
+  // Shoot (with double shot power-up support)
   if (keys['Space'] && !bullet.active) {
     bullet.x = player.x + 6;
     bullet.y = player.y - 2;
     bullet.active = true;
     shotsFired++;
     playShoot();
+    // Double shot power-up
+    if (powerupEffect && powerupEffect.type === 'double' && !bullet2.active) {
+      bullet2.x = player.x + 10;
+      bullet2.y = player.y - 2;
+      bullet2.active = true;
+    }
     keys['Space'] = false;
   }
 
@@ -680,6 +782,73 @@ function update() {
       score += ufoPoints;
       playExplosion();
       explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
+
+      // Power-up drop (30% chance)
+      if (Math.random() < 0.3 && !activePowerup) {
+        var ptype = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+        activePowerup = { type: ptype, x: ufo.x + 8, y: ufo.y + 8, speed: 0.5 };
+      }
+    }
+  }
+
+  // Bullet2 movement (double shot power-up)
+  if (bullet2.active) {
+    bullet2.y -= bullet2.speed;
+    if (bullet2.y < 8) bullet2.active = false;
+
+    // Hit invader
+    for (let inv of invaders) {
+      if (!inv.alive) continue;
+      const sz = getInvaderSize(inv.type);
+      if (bullet2.x >= inv.x && bullet2.x <= inv.x + sz.w &&
+          bullet2.y >= inv.y && bullet2.y <= inv.y + sz.h) {
+        inv.alive = false;
+        bullet2.active = false;
+        score += inv.points;
+        playExplosion();
+        explosions.push({ x: inv.x, y: inv.y, timer: 12 });
+
+        const alive = invaders.filter(function(i) { return i.alive; }).length;
+        if (alive > 0) {
+          invaderMoveInterval = Math.max(2, Math.floor(3 + alive * 0.7 - (level - 1) * 0.3));
+        }
+
+        if (alive === 0) {
+          const bossType = getBossType(level);
+          if (bossType && !demoMode) {
+            state = STATE.LEVEL_CLEAR;
+            levelClearTimer = 60;
+          } else {
+            state = STATE.LEVEL_CLEAR;
+            levelClearTimer = 90;
+          }
+        }
+        break;
+      }
+    }
+
+    // Hit shield
+    for (let s of shields) {
+      if (!s.alive) continue;
+      if (bullet2.x >= s.x && bullet2.x <= s.x + s.w &&
+          bullet2.y >= s.y && bullet2.y <= s.y + s.h) {
+        s.alive = false;
+        bullet2.active = false;
+        break;
+      }
+    }
+
+    // Hit UFO
+    if (bullet2.active && ufo.active &&
+        bullet2.x >= ufo.x && bullet2.x <= ufo.x + 16 &&
+        bullet2.y >= ufo.y && bullet2.y <= ufo.y + 7) {
+      ufo.active = false;
+      bullet2.active = false;
+      const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
+      const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
+      score += ufoPoints;
+      playExplosion();
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
     }
   }
 
@@ -714,12 +883,12 @@ function update() {
     playInvaderMove(moveSound);
     moveSound = (moveSound + 1) % 4;
 
-    // Invader shooting
-    const aliveInvaders = invaders.filter(function(i) { return i.alive; });
-    if (aliveInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-      const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)];
+    // Invader shooting (column-based: only bottom invader per column can fire)
+    const bottomInvaders = getBottomInvaders();
+    if (bottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
+      const shooter = bottomInvaders[Math.floor(Math.random() * bottomInvaders.length)];
       const sz = getInvaderSize(shooter.type);
-      invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 });
+      invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3 });
     }
 
     // Check if invaders reached player zone
@@ -762,6 +931,14 @@ function update() {
     if (b.x >= player.x && b.x <= player.x + player.w &&
         b.y >= player.y && b.y <= player.y + player.h) {
       invaderBullets.splice(i, 1);
+      // Shield power-up absorbs hit
+      if (playerShieldHits > 0) {
+        playerShieldHits--;
+        playExplosion();
+        // Visual feedback
+        particles.push({ x: player.x + player.w / 2, y: player.y, vx: 0, vy: -1, life: 15 });
+        continue;
+      }
       lives--;
       state = STATE.DYING;
       dyingTimer = 60;
@@ -801,6 +978,45 @@ function update() {
     ufo.x += ufo.speed;
     if (frameCount % 12 === 0) playUfo();
     if (ufo.x > W + 16 || ufo.x < -16) ufo.active = false;
+  }
+
+  // ─── POWER-UP UPDATE ───
+  if (activePowerup) {
+    activePowerup.y += activePowerup.speed;
+    // Collect: player collision
+    if (activePowerup.x >= player.x - 3 && activePowerup.x <= player.x + player.w + 3 &&
+        activePowerup.y >= player.y - 3 && activePowerup.y <= player.y + player.h + 3) {
+      playPowerupCollect();
+      if (activePowerup.type === 'shield') {
+        playerShieldHits = 2;
+        powerupEffect = null; // shield is permanent until hits used
+      } else {
+        // Cancel previous timed effect
+        if (powerupEffect && powerupEffect.type === 'speed') {
+          player.speed = Math.min(2.2, 1.5 + (level - 1) * 0.08 + cycle * 0.1);
+        }
+        powerupEffect = { type: activePowerup.type, timer: POWERUP_DURATION };
+        if (activePowerup.type === 'speed') {
+          player.speed = Math.min(3.3, player.speed * 1.5);
+        }
+      }
+      activePowerup = null;
+    }
+    // Off screen
+    if (activePowerup && activePowerup.y > H) {
+      activePowerup = null;
+    }
+  }
+
+  // Power-up effect timer
+  if (powerupEffect) {
+    powerupEffect.timer--;
+    if (powerupEffect.timer <= 0) {
+      if (powerupEffect.type === 'speed') {
+        player.speed = Math.min(2.2, 1.5 + (level - 1) * 0.08 + cycle * 0.1);
+      }
+      powerupEffect = null;
+    }
   }
 
   // Particles & Explosions
@@ -871,6 +1087,7 @@ function updateBossFight() {
         break;
       }
     }
+    if (hitShield) continue;
   }
 
   // Update boss
@@ -1027,8 +1244,9 @@ function updateDemo() {
     playInvaderMove(moveSound);
     moveSound = (moveSound + 1) % 4;
 
-    if (aliveInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-      const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)];
+    const demoBottomInvaders = getBottomInvaders();
+    if (demoBottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
+      const shooter = demoBottomInvaders[Math.floor(Math.random() * demoBottomInvaders.length)];
       const ssz = getInvaderSize(shooter.type);
       invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2 });
     }
@@ -1151,6 +1369,49 @@ function render() {
     return;
   }
 
+  if (state === STATE.CREDITS) {
+    renderCredits();
+    return;
+  }
+
+  if (state === STATE.PAUSED) {
+    // Render the frozen game scene based on stateBeforePause
+    if (stateBeforePause === STATE.BOSS_FIGHT) {
+      drawBossFightScreen();
+    } else {
+      drawHUD();
+      ctx.fillStyle = COLOR_GREEN;
+      ctx.fillRect(0, H - 16, W, 1);
+      ctx.fillStyle = COLOR_GREEN;
+      for (let s of shields) {
+        if (s.alive) ctx.fillRect(s.x, s.y, s.w, s.h);
+      }
+      drawSprite(SPRITES.player, player.x, player.y, COLOR_GREEN);
+      for (let inv of invaders) {
+        if (!inv.alive) continue;
+        let sprite;
+        if (inv.type === 1) sprite = invaderAnimFrame === 0 ? SPRITES.invader1a : SPRITES.invader1b;
+        else if (inv.type === 2) sprite = invaderAnimFrame === 0 ? SPRITES.invader2a : SPRITES.invader2b;
+        else sprite = invaderAnimFrame === 0 ? SPRITES.invader3a : SPRITES.invader3b;
+        drawSprite(sprite, inv.x, inv.y, getZoneColor(inv.y + 4));
+      }
+      for (let i = 0; i < lives - 1; i++) {
+        drawSprite(SPRITES.player, 24 + i * 16, H - 14, GREEN_DIM);
+      }
+    }
+    // Pause overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = COLOR_WHITE;
+    ctx.font = '8px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSA', W / 2, H / 2 - 4);
+    ctx.font = '5px "Press Start 2P"';
+    ctx.fillText('PREMI P PER RIPRENDERE', W / 2, H / 2 + 10);
+    ctx.textAlign = 'left';
+    return;
+  }
+
   if (state === STATE.BOSS_INTRO) {
     drawHUD();
     // Ground line
@@ -1167,7 +1428,7 @@ function render() {
     renderBossIntro();
     // Lives
     for (let i = 0; i < lives - 1; i++) {
-      drawSprite(SPRITES.player, 4 + i * 16, H - 14, GREEN_DIM);
+      drawSprite(SPRITES.player, 24 + i * 16, H - 14, GREEN_DIM);
     }
     return;
   }
@@ -1197,12 +1458,27 @@ function render() {
     drawSprite(SPRITES.playerExplosion, player.x, player.y, COLOR_GREEN);
   } else {
     drawSprite(SPRITES.player, player.x, player.y, COLOR_GREEN);
+    // Shield power-up glow
+    if (playerShieldHits > 0) {
+      ctx.globalAlpha = 0.25 + Math.sin(frameCount * 0.15) * 0.1;
+      ctx.strokeStyle = '#4488ff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(player.x - 2, player.y - 2, player.w + 4, player.h + 4);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1;
+    }
   }
 
   // Player bullet
   if (bullet.active) {
     ctx.fillStyle = getZoneColor(bullet.y);
     ctx.fillRect(bullet.x, bullet.y, 1, 4);
+  }
+
+  // Bullet2 (double shot power-up)
+  if (bullet2.active) {
+    ctx.fillStyle = '#00ffff';
+    ctx.fillRect(bullet2.x, bullet2.y, 1, 4);
   }
 
   // Invaders
@@ -1262,9 +1538,39 @@ function render() {
     ctx.textAlign = 'left';
   }
 
+  // Falling power-up
+  if (activePowerup) {
+    var puColor, puSprite;
+    if (activePowerup.type === 'speed') { puColor = '#ffff33'; puSprite = SPRITES.powerupSpeed; }
+    else if (activePowerup.type === 'double') { puColor = '#00ffff'; puSprite = SPRITES.powerupDouble; }
+    else { puColor = '#4488ff'; puSprite = SPRITES.powerupShield; }
+    drawSprite(puSprite, activePowerup.x - 3, activePowerup.y - 3, puColor);
+  }
+
+  // Power-up HUD indicator
+  if (powerupEffect) {
+    var puHudColor = powerupEffect.type === 'speed' ? '#ffff33' : '#00ffff';
+    var puLabel = powerupEffect.type === 'speed' ? 'SPD' : 'x2';
+    ctx.fillStyle = puHudColor;
+    ctx.font = '4px "Press Start 2P"';
+    ctx.textAlign = 'right';
+    ctx.fillText(puLabel, W - 4, H - 4);
+    // Timer bar
+    var barFrac = powerupEffect.timer / POWERUP_DURATION;
+    ctx.fillRect(W - 30, H - 8, 20 * barFrac, 2);
+    ctx.textAlign = 'left';
+  }
+  if (playerShieldHits > 0) {
+    ctx.fillStyle = '#4488ff';
+    ctx.font = '4px "Press Start 2P"';
+    ctx.textAlign = 'right';
+    ctx.fillText('SH' + playerShieldHits, W - 4, H - 10);
+    ctx.textAlign = 'left';
+  }
+
   // Lives
   for (let i = 0; i < lives - 1; i++) {
-    drawSprite(SPRITES.player, 4 + i * 16, H - 14, GREEN_DIM);
+    drawSprite(SPRITES.player, 24 + i * 16, H - 14, GREEN_DIM);
   }
 
   // Demo mode overlay
@@ -1299,6 +1605,15 @@ function drawBossFightScreen() {
     drawSprite(SPRITES.playerExplosion, player.x, player.y, COLOR_GREEN);
   } else {
     drawSprite(SPRITES.player, player.x, player.y, COLOR_GREEN);
+    // Shield power-up glow (boss fight)
+    if (playerShieldHits > 0) {
+      ctx.globalAlpha = 0.25 + Math.sin(frameCount * 0.15) * 0.1;
+      ctx.strokeStyle = '#4488ff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(player.x - 2, player.y - 2, player.w + 4, player.h + 4);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1;
+    }
   }
 
   // Player bullets (multi-shot)
@@ -1336,7 +1651,7 @@ function drawBossFightScreen() {
 
   // Lives
   for (let i = 0; i < lives - 1; i++) {
-    drawSprite(SPRITES.player, 4 + i * 16, H - 14, GREEN_DIM);
+    drawSprite(SPRITES.player, 24 + i * 16, H - 14, GREEN_DIM);
   }
 }
 
@@ -1346,7 +1661,9 @@ function drawHUD() {
   ctx.textAlign = 'left';
   ctx.fillText('SCORE ' + score.toString().padStart(5, '0'), 4, 12);
   ctx.textAlign = 'center';
-  ctx.fillText('LV' + level, W/2, 12);
+  var lvText = 'LV' + level;
+  if (cycle > 0) lvText += '+' + cycle;
+  ctx.fillText(lvText, W/2, 12);
   ctx.textAlign = 'right';
   ctx.fillText('HI ' + getTopHighScore().toString().padStart(5, '0'), W - 4, 12);
   ctx.textAlign = 'left';

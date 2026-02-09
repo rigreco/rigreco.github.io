@@ -236,6 +236,35 @@ const SPRITES = {
     '  0        0      00      0        0            '
   ],
 
+  // Power-up sprites (7x7)
+  powerupSpeed: [
+    '  000  ',
+    ' 00000 ',
+    '000 000',
+    '0000000',
+    '000 000',
+    ' 00000 ',
+    '  000  '
+  ],
+  powerupDouble: [
+    ' 0   0 ',
+    ' 0   0 ',
+    ' 0   0 ',
+    ' 0   0 ',
+    ' 0   0 ',
+    '000 000',
+    ' 0   0 '
+  ],
+  powerupShield: [
+    '  000  ',
+    ' 00000 ',
+    '0000000',
+    '0000000',
+    '0000000',
+    ' 00000 ',
+    '  000  '
+  ],
+
   // Shield for boss (small shield icon for boss shield phase)
   bossShield: [
     '  00000000000000000000  ',

@@ -17,14 +17,15 @@ function initBoss(type) {
   bossBullets = [];
 
   if (type === 'midboss') {
+    var mbHp = 5 + cycle * 2;
     boss = {
       type: 'midboss',
       x: W / 2 - 12,
       y: -20,
       w: 24,
       h: 16,
-      hp: 5,
-      maxHp: 5,
+      hp: mbHp,
+      maxHp: mbHp,
       name: 'GIRU GIRU',
       points: 1000,
       phase: 'normal',    // 'normal' or 'enraged' (below 50% HP)
@@ -39,14 +40,15 @@ function initBoss(type) {
       introY: -20
     };
   } else if (type === 'midboss2') {
+    var mb2Hp = 8 + cycle * 3;
     boss = {
       type: 'midboss2',
       x: W / 2 - 12,
       y: -20,
       w: 24,
       h: 16,
-      hp: 8,
-      maxHp: 8,
+      hp: mb2Hp,
+      maxHp: mb2Hp,
       name: 'GURA GURA',
       points: 2000,
       phase: 'normal',
@@ -62,14 +64,15 @@ function initBoss(type) {
       spinAngle: 0        // Per sparo a cerchio rotante
     };
   } else if (type === 'mothership') {
+    var msHp = 18 + cycle * 5;
     boss = {
       type: 'mothership',
       x: W / 2 - 24,
       y: -30,
       w: 48,
       h: 24,
-      hp: 18,
-      maxHp: 18,
+      hp: msHp,
+      maxHp: msHp,
       name: 'ASTRONAVE MADRE',
       points: 5000,
       phase: 'shield',      // 'shield', 'attack', 'vulnerable', 'kamikaze'
@@ -262,6 +265,13 @@ function updateBoss() {
     if (b.x >= player.x && b.x <= player.x + player.w &&
         b.y >= player.y && b.y <= player.y + player.h) {
       bossBullets.splice(i, 1);
+      // Shield power-up absorbs hit
+      if (playerShieldHits > 0) {
+        playerShieldHits--;
+        playExplosion();
+        particles.push({ x: player.x + player.w / 2, y: player.y, vx: 0, vy: -1, life: 15 });
+        continue;
+      }
       lives--;
       state = STATE.DYING;
       dyingTimer = 60;
@@ -310,7 +320,7 @@ function updateMidBoss() {
 
     if (isEnraged) {
       // Fan shot (3 bullets)
-      for (let angle = -0.3; angle <= 0.3; angle += 0.3) {
+      [-0.3, 0, 0.3].forEach(function(angle) {
         bossBullets.push({
           x: boss.x + boss.w / 2,
           y: boss.y + boss.h,
@@ -318,7 +328,7 @@ function updateMidBoss() {
           vy: 1.2,
           color: COLOR_RED
         });
-      }
+      });
     } else {
       // Single aimed shot toward player
       const dx = (player.x + player.w / 2) - (boss.x + boss.w / 2);
@@ -525,8 +535,8 @@ function updateMothership() {
     if (boss.shootTimer >= boss.shootInterval) {
       boss.shootTimer = 0;
 
-      // Fan shot from center (3 proiettili invece di 5)
-      for (let angle = -0.3; angle <= 0.3; angle += 0.3) {
+      // Fan shot from center (3 proiettili)
+      [-0.3, 0, 0.3].forEach(function(angle) {
         bossBullets.push({
           x: boss.x + boss.w / 2,
           y: boss.y + boss.h,
@@ -534,7 +544,7 @@ function updateMothership() {
           vy: 1.2,
           color: COLOR_RED
         });
-      }
+      });
     }
 
     // Turret shooting
@@ -878,19 +888,144 @@ function updateVictory() {
     victoryFlash = 2; // white flash
   }
 
-  // After celebration, go to high score
+  // After celebration, transition to credits
   if (victoryTimer >= 300) {
-    if (isHighScore(score)) {
-      hsEntryName = '';
-      hsEntryPos = 0;
-      hsEntryChars = [0, 0, 0];
-      hsEntryConfirmed = 0;
-      state = STATE.HIGH_SCORE_ENTRY;
-    } else {
-      state = STATE.TITLE;
-      titleIdleTimer = 0;
+    creditsScrollY = H + 20;
+    creditsTimer = 0;
+    creditsFinished = false;
+    state = STATE.CREDITS;
+  }
+}
+
+// ─── CREDITS STATE ───
+let creditsScrollY = 0;
+let creditsTimer = 0;
+
+var CREDITS_LINES = [
+  { text: 'COSMIC INVADERS', size: 10, color: '#ffffff', gap: 30 },
+  { text: 'THE MATHSYNTH LABS MASTER', size: 5, color: '#888888', gap: 20 },
+  { text: '', size: 5, color: '', gap: 15 },
+  { text: '--- BOSS ---', size: 5, color: '#ff3333', gap: 15 },
+  { text: 'I SIGNORI DELL'ABISSO', size: 6, color: '#ff3333', gap: 20 },
+  { text: '', size: 5, color: '', gap: 15 },
+  { text: '--- AI ---', size: 5, color: '#888888', gap: 15 },
+  { text: 'MOTHERSHIP AI COMPUTER', size: 5, color: '#ffffff', gap: 12 },
+  { text: 'CLAUDE', size: 8, color: '#00ffff', gap: 25 },
+  { text: '', size: 5, color: '', gap: 15 },
+  { text: '--- ISPIRAZIONE ---', size: 5, color: '#888888', gap: 15 },
+  { text: 'COSMIC INVADERS 1978', size: 5, color: '#33ff33', gap: 12 },
+  { text: 'CLASSICI ARCADE', size: 5, color: '#33ff33', gap: 20 },
+  { text: '', size: 5, color: '', gap: 15 },
+  { text: '--- AUDIO ---', size: 5, color: '#888888', gap: 15 },
+  { text: 'TONE.JS', size: 6, color: '#ffffff', gap: 25 },
+  { text: '', size: 5, color: '', gap: 20 },
+  { text: '', size: 5, color: '', gap: 10 },  // placeholder for cycle text
+  { text: '', size: 5, color: '', gap: 10 },  // placeholder for next cycle text
+  { text: '', size: 5, color: '', gap: 30 },
+  { text: '2026 MATHSYNTH LABS', size: 4, color: '#555555', gap: 20 }
+];
+
+let creditsFinished = false;
+
+function updateCredits() {
+  creditsTimer++;
+  creditsScrollY -= 0.5;
+
+  // Calculate total height of credits
+  var totalH = 0;
+  for (var i = 0; i < CREDITS_LINES.length; i++) {
+    totalH += CREDITS_LINES[i].gap;
+  }
+
+  // When credits have fully scrolled, show choice
+  if (creditsScrollY + totalH < -20) {
+    creditsFinished = true;
+  }
+
+  // Allow skip to choice screen
+  if (creditsTimer > 60 && !creditsFinished && (keys['Enter'] || keys['Space'])) {
+    keys['Enter'] = false;
+    keys['Space'] = false;
+    creditsFinished = true;
+  }
+
+  // Choice screen: Enter = NG+, Escape = end
+  if (creditsFinished) {
+    if (keys['Enter'] || keys['Space']) {
+      keys['Enter'] = false;
+      keys['Space'] = false;
+      startNewGamePlus();
+    } else if (keys['Escape']) {
+      keys['Escape'] = false;
+      if (isHighScore(score)) {
+        hsEntryName = '';
+        hsEntryPos = 0;
+        hsEntryChars = [0, 0, 0];
+        hsEntryConfirmed = 0;
+        state = STATE.HIGH_SCORE_ENTRY;
+      } else {
+        state = STATE.TITLE;
+        titleIdleTimer = 0;
+      }
     }
   }
+}
+
+function renderCredits() {
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+  var y = creditsScrollY;
+
+  for (var i = 0; i < CREDITS_LINES.length; i++) {
+    var line = CREDITS_LINES[i];
+    var textToDraw = line.text;
+
+    // Dynamic cycle lines
+    if (i === CREDITS_LINES.length - 4) {
+      textToDraw = 'CICLO ' + (cycle + 1) + ' COMPLETATO!';
+      line.color = '#ffff33';
+      line.size = 6;
+    } else if (i === CREDITS_LINES.length - 3) {
+      textToDraw = 'PREPARATI PER IL CICLO ' + (cycle + 2) + '...';
+      line.color = COLOR_WHITE;
+      line.size = 5;
+    }
+
+    if (textToDraw && y > -15 && y < H + 15) {
+      ctx.fillStyle = line.color;
+      ctx.font = line.size + 'px "Press Start 2P"';
+      ctx.fillText(textToDraw, W / 2, y);
+    }
+    y += line.gap;
+  }
+
+  // Score display at bottom
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '5px "Press Start 2P"';
+  ctx.fillText('SCORE: ' + score, W / 2, H - 16);
+
+  if (creditsFinished) {
+    // Choice screen
+    var blink = Math.sin(creditsTimer * 0.08) > 0;
+    if (blink) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '5px "Press Start 2P"';
+      ctx.fillText('INVIO = CONTINUA', W / 2, H / 2 - 10);
+      ctx.fillText('ESC = FINE', W / 2, H / 2 + 5);
+    }
+  } else if (creditsTimer > 60) {
+    // Skip hint
+    var blink2 = Math.sin(creditsTimer * 0.08) > 0;
+    if (blink2) {
+      ctx.fillStyle = '#555555';
+      ctx.font = '3px "Press Start 2P"';
+      ctx.fillText('PREMI INVIO', W / 2, H - 5);
+    }
+  }
+
+  ctx.textAlign = 'left';
 }
 
 function renderVictory() {
