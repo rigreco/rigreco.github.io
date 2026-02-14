@@ -493,7 +493,7 @@ function playBossDeath() {
   }
 }
 
-// ─── SPEECH SYNTHESIS (voce di Imperatore Xarion - robotica drammatica) ───
+// ─── SPEECH SYNTHESIS (voce dell'Imperatore - robotica drammatica) ───
 let bossVoiceReady = false;
 let bossVoices = [];
 
@@ -507,7 +507,7 @@ if ('speechSynthesis' in window) {
   if (bossVoices.length > 0) bossVoiceReady = true;
 }
 
-let bossSpeaking = false; // true mentre Imperatore Xarion sta parlando
+let bossSpeaking = false; // true mentre l'Imperatore sta parlando
 
 function speakBoss(text) {
   if (!('speechSynthesis' in window)) {

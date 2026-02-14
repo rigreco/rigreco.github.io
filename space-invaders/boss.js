@@ -127,7 +127,7 @@ function updateBossIntro() {
     } else if (boss.introPhase === 1) {
       // UFO stops, Imperatore Xarion speaks, then expansion
       if (boss.introTimer === 1) {
-        speakBoss('Maledetti terrestri! Ti distruggerò!');
+        speakBoss('Maledetti terrestri! Vi distruggerò!');
       }
       if (boss.introTimer >= 60 && !bossSpeaking) {
         boss.introPhase = 2;
@@ -185,7 +185,7 @@ function renderBossIntro() {
         ctx.fillText('WARNING!', W / 2, 10);
       }
       if (boss.introPhase === 1) {
-        // Frase di Imperatore Xarion con effetto typewriter
+        // Frase dell'Imperatore con effetto typewriter
         const vegaText = 'MALEDETTI TERRESTRI!';
         const charsToShow = Math.min(Math.floor(boss.introTimer / 4), vegaText.length);
         const displayText = vegaText.substring(0, charsToShow);
@@ -408,7 +408,7 @@ function updateMothership() {
     boss.shieldVisible = false;
     boss.kamikazeTextTimer = 0;
     boss.kamikazeCharging = true;
-    speakBoss('Ti distruggerò!');
+    speakBoss('Vi distruggerò!');
   }
 
   if (boss.phase === 'kamikaze') {
@@ -906,15 +906,14 @@ var CREDITS_LINES = [
   { text: 'THE MATHSYNTH LABS MASTER', size: 5, color: '#888888', gap: 20 },
   { text: '', size: 5, color: '', gap: 15 },
   { text: '--- BOSS ---', size: 5, color: '#ff3333', gap: 15 },
-  { text: 'I SIGNORI DELL'ABISSO', size: 6, color: '#ff3333', gap: 20 },
+  { text: "I SIGNORI DELL'ABISSO", size: 6, color: '#ff3333', gap: 20 },
   { text: '', size: 5, color: '', gap: 15 },
   { text: '--- AI ---', size: 5, color: '#888888', gap: 15 },
   { text: 'MOTHERSHIP AI COMPUTER', size: 5, color: '#ffffff', gap: 12 },
   { text: 'CLAUDE', size: 8, color: '#00ffff', gap: 25 },
   { text: '', size: 5, color: '', gap: 15 },
   { text: '--- ISPIRAZIONE ---', size: 5, color: '#888888', gap: 15 },
-  { text: 'COSMIC INVADERS 1978', size: 5, color: '#33ff33', gap: 12 },
-  { text: 'CLASSICI ARCADE', size: 5, color: '#33ff33', gap: 20 },
+  { text: 'CLASSICI ARCADE ANNI 70', size: 5, color: '#33ff33', gap: 20 },
   { text: '', size: 5, color: '', gap: 15 },
   { text: '--- AUDIO ---', size: 5, color: '#888888', gap: 15 },
   { text: 'TONE.JS', size: 6, color: '#ffffff', gap: 25 },

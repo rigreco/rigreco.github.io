@@ -1783,11 +1783,11 @@ function drawIntroScreen() {
   ctx.font = '10px "Press Start 2P"';
   ctx.textAlign = 'center';
 
-  if (titleShow.length <= 5) {
+  if (titleShow.length <= 6) {
     ctx.fillText(titleShow, W/2, 50);
   } else {
-    ctx.fillText('SPACE', W/2, 50);
-    ctx.fillText(titleShow.substring(6), W/2, 68);
+    ctx.fillText('COSMIC', W/2, 50);
+    ctx.fillText(titleShow.substring(7), W/2, 68);
   }
 
   if (intro.titleDone) {
