@@ -117,10 +117,13 @@ let bossShootCooldown = 0;
 let invaders = [];
 let invaderDir = 1;
 let invaderMoveTimer = 0;
-let invaderMoveInterval = 45;
+let invaderMoveInterval = 1;  // ticks between each single-alien step
 let invaderBullets = [];
-let invaderAnimFrame = 0;
+let invaderAnimFrame = 0;     // kept for rendering compatibility
 let moveSound = 0;
+let invaderStepIndex = 0;     // which alien to move next (sequential)
+let invaderNeedsDrop = false;  // flagged when edge hit, drop on next cycle
+let invaderNextDir = 1;        // direction for next cycle after drop
 
 // UFO
 let ufo = { x: -16, y: 18, active: false, speed: 0.5, timer: 0 };
@@ -370,16 +373,20 @@ function initInvaders() {
         y: BASE_Y + row * 16 + waveOffset,
         type: type,
         points: points,
-        alive: true
+        alive: true,
+        animFrame: 0
       });
     }
   }
   invaderDir = 1;
-  invaderMoveInterval = Math.max(5, 45 - (level - 1) * 5 - cycle * 3);
+  invaderMoveInterval = 3;  // ticks between each single-alien step
   invaderMoveTimer = 0;
   invaderAnimFrame = 0;
   invaderBullets = [];
   moveSound = 0;
+  invaderStepIndex = 0;
+  invaderNeedsDrop = false;
+  invaderNextDir = 1;
 }
 
 function initGame() {
@@ -740,9 +747,6 @@ function update() {
         explosions.push({ x: inv.x, y: inv.y, timer: 12 });
 
         const alive = invaders.filter(function(i) { return i.alive; }).length;
-        if (alive > 0) {
-          invaderMoveInterval = Math.max(2, Math.floor(3 + alive * 0.7 - (level - 1) * 0.3));
-        }
 
         if (alive === 0) {
           // Check if this level triggers a boss
@@ -809,9 +813,6 @@ function update() {
         explosions.push({ x: inv.x, y: inv.y, timer: 12 });
 
         const alive = invaders.filter(function(i) { return i.alive; }).length;
-        if (alive > 0) {
-          invaderMoveInterval = Math.max(2, Math.floor(3 + alive * 0.7 - (level - 1) * 0.3));
-        }
 
         if (alive === 0) {
           const bossType = getBossType(level);
@@ -852,69 +853,92 @@ function update() {
     }
   }
 
-  // Invader movement
+  // Invader movement - sequential, one alien per tick (like the 1978 original)
   invaderMoveTimer++;
   if (invaderMoveTimer >= invaderMoveInterval) {
     invaderMoveTimer = 0;
-    invaderAnimFrame = 1 - invaderAnimFrame;
 
-    let hitEdge = false;
-    for (let inv of invaders) {
-      if (!inv.alive) continue;
-      const sz = getInvaderSize(inv.type);
-      if ((invaderDir > 0 && inv.x + sz.w >= W - 4) ||
-          (invaderDir < 0 && inv.x <= 4)) {
-        hitEdge = true;
+    // Find the next alive invader (bottom-left to top-right)
+    let stepped = false;
+    const startIdx = invaderStepIndex;
+    do {
+      if (invaderStepIndex >= invaders.length) {
+        // Completed a full sweep - end of cycle
+        invaderStepIndex = 0;
+
+        // Play movement sound once per full cycle
+        playInvaderMove(moveSound);
+        moveSound = (moveSound + 1) % 4;
+
+        // If any alien hit the edge during this cycle, drop ALL on next cycle
+        if (invaderNeedsDrop) {
+          invaderDir = invaderNextDir;
+          for (let inv of invaders) {
+            if (inv.alive) inv.y += 4;
+          }
+          invaderNeedsDrop = false;
+        }
+
+        // Shooting happens once per full sweep
+        const bottomInvaders = getBottomInvaders();
+        if (bottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
+          const shooter = bottomInvaders[Math.floor(Math.random() * bottomInvaders.length)];
+          const sz = getInvaderSize(shooter.type);
+          invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3 });
+        }
+
+        // Check if invaders reached player zone
+        for (let inv of invaders) {
+          if (inv.alive && inv.y + 8 >= player.y) {
+            lives = 0;
+            state = STATE.DYING;
+            dyingTimer = 60;
+            playPlayerDie();
+            spawnPlayerExplosion();
+            return;
+          }
+        }
+
+        // Invaders erode shields on contact
+        for (let inv of invaders) {
+          if (!inv.alive) continue;
+          const sz = getInvaderSize(inv.type);
+          for (let s of shields) {
+            if (!s.alive) continue;
+            if (inv.x < s.x + s.w && inv.x + sz.w > s.x &&
+                inv.y < s.y + s.h && inv.y + sz.h > s.y) {
+              s.alive = false;
+            }
+          }
+        }
+
+        stepped = true;
         break;
       }
-    }
 
-    if (hitEdge) {
-      invaderDir *= -1;
-      for (let inv of invaders) {
-        if (inv.alive) inv.y += 4;
-      }
-    } else {
-      for (let inv of invaders) {
-        if (inv.alive) inv.x += invaderDir * 2;
-      }
-    }
+      const inv = invaders[invaderStepIndex];
+      if (inv.alive) {
+        // Move this single alien
+        inv.x += invaderDir * 2;
+        // Toggle its animation frame
+        inv.animFrame = 1 - inv.animFrame;
 
-    playInvaderMove(moveSound);
-    moveSound = (moveSound + 1) % 4;
-
-    // Invader shooting (column-based: only bottom invader per column can fire)
-    const bottomInvaders = getBottomInvaders();
-    if (bottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-      const shooter = bottomInvaders[Math.floor(Math.random() * bottomInvaders.length)];
-      const sz = getInvaderSize(shooter.type);
-      invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3 });
-    }
-
-    // Check if invaders reached player zone
-    for (let inv of invaders) {
-      if (inv.alive && inv.y + 8 >= player.y) {
-        lives = 0;
-        state = STATE.DYING;
-        dyingTimer = 60;
-        playPlayerDie();
-        spawnPlayerExplosion();
-        return;
-      }
-    }
-
-    // Invaders erode shields on contact
-    for (let inv of invaders) {
-      if (!inv.alive) continue;
-      const sz = getInvaderSize(inv.type);
-      for (let s of shields) {
-        if (!s.alive) continue;
-        if (inv.x < s.x + s.w && inv.x + sz.w > s.x &&
-            inv.y < s.y + s.h && inv.y + sz.h > s.y) {
-          s.alive = false;
+        // Check if this alien hit an edge
+        const sz = getInvaderSize(inv.type);
+        if ((invaderDir > 0 && inv.x + sz.w >= W - 4) ||
+            (invaderDir < 0 && inv.x <= 4)) {
+          invaderNeedsDrop = true;
+          invaderNextDir = -invaderDir;
         }
+
+        invaderStepIndex++;
+        stepped = true;
+        break;
       }
-    }
+
+      // Skip dead aliens (this is what causes natural speedup!)
+      invaderStepIndex++;
+    } while (invaderStepIndex !== startIdx);
   }
 
   // Invader bullets
@@ -1182,10 +1206,6 @@ function updateDemo() {
         playExplosion();
         explosions.push({ x: inv.x, y: inv.y, timer: 12 });
 
-        const alive = invaders.filter(function(i) { return i.alive; }).length;
-        if (alive > 0) {
-          invaderMoveInterval = Math.max(2, Math.floor(3 + alive * 0.7));
-        }
         break;
       }
     }
@@ -1213,63 +1233,69 @@ function updateDemo() {
     }
   }
 
-  // Invader movement
+  // Invader movement - sequential (same system as gameplay)
   invaderMoveTimer++;
   if (invaderMoveTimer >= invaderMoveInterval) {
     invaderMoveTimer = 0;
-    invaderAnimFrame = 1 - invaderAnimFrame;
 
-    let hitEdge = false;
-    for (let inv of invaders) {
-      if (!inv.alive) continue;
-      const isz = getInvaderSize(inv.type);
-      if ((invaderDir > 0 && inv.x + isz.w >= W - 4) ||
-          (invaderDir < 0 && inv.x <= 4)) {
-        hitEdge = true;
+    do {
+      if (invaderStepIndex >= invaders.length) {
+        invaderStepIndex = 0;
+        playInvaderMove(moveSound);
+        moveSound = (moveSound + 1) % 4;
+
+        if (invaderNeedsDrop) {
+          invaderDir = invaderNextDir;
+          for (let inv of invaders) {
+            if (inv.alive) inv.y += 4;
+          }
+          invaderNeedsDrop = false;
+        }
+
+        const demoBottomInvaders = getBottomInvaders();
+        if (demoBottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
+          const shooter = demoBottomInvaders[Math.floor(Math.random() * demoBottomInvaders.length)];
+          const ssz = getInvaderSize(shooter.type);
+          invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2 });
+        }
+
+        for (let inv of invaders) {
+          if (inv.alive && inv.y + 8 >= player.y) {
+            state = STATE.TITLE;
+            titleIdleTimer = 0;
+            return;
+          }
+        }
+
+        for (let inv of invaders) {
+          if (!inv.alive) continue;
+          const isz = getInvaderSize(inv.type);
+          for (let s of shields) {
+            if (!s.alive) continue;
+            if (inv.x < s.x + s.w && inv.x + isz.w > s.x &&
+                inv.y < s.y + s.h && inv.y + isz.h > s.y) {
+              s.alive = false;
+            }
+          }
+        }
         break;
       }
-    }
 
-    if (hitEdge) {
-      invaderDir *= -1;
-      for (let inv of invaders) {
-        if (inv.alive) inv.y += 4;
-      }
-    } else {
-      for (let inv of invaders) {
-        if (inv.alive) inv.x += invaderDir * 2;
-      }
-    }
-
-    playInvaderMove(moveSound);
-    moveSound = (moveSound + 1) % 4;
-
-    const demoBottomInvaders = getBottomInvaders();
-    if (demoBottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-      const shooter = demoBottomInvaders[Math.floor(Math.random() * demoBottomInvaders.length)];
-      const ssz = getInvaderSize(shooter.type);
-      invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2 });
-    }
-
-    for (let inv of invaders) {
-      if (inv.alive && inv.y + 8 >= player.y) {
-        state = STATE.TITLE;
-        titleIdleTimer = 0;
-        return;
-      }
-    }
-
-    for (let inv of invaders) {
-      if (!inv.alive) continue;
-      const isz = getInvaderSize(inv.type);
-      for (let s of shields) {
-        if (!s.alive) continue;
-        if (inv.x < s.x + s.w && inv.x + isz.w > s.x &&
-            inv.y < s.y + s.h && inv.y + isz.h > s.y) {
-          s.alive = false;
+      const inv = invaders[invaderStepIndex];
+      if (inv.alive) {
+        inv.x += invaderDir * 2;
+        inv.animFrame = 1 - inv.animFrame;
+        const isz = getInvaderSize(inv.type);
+        if ((invaderDir > 0 && inv.x + isz.w >= W - 4) ||
+            (invaderDir < 0 && inv.x <= 4)) {
+          invaderNeedsDrop = true;
+          invaderNextDir = -invaderDir;
         }
+        invaderStepIndex++;
+        break;
       }
-    }
+      invaderStepIndex++;
+    } while (true);
   }
 
   // Invader bullets
@@ -1390,9 +1416,10 @@ function render() {
       for (let inv of invaders) {
         if (!inv.alive) continue;
         let sprite;
-        if (inv.type === 1) sprite = invaderAnimFrame === 0 ? SPRITES.invader1a : SPRITES.invader1b;
-        else if (inv.type === 2) sprite = invaderAnimFrame === 0 ? SPRITES.invader2a : SPRITES.invader2b;
-        else sprite = invaderAnimFrame === 0 ? SPRITES.invader3a : SPRITES.invader3b;
+        const af = inv.animFrame || 0;
+        if (inv.type === 1) sprite = af === 0 ? SPRITES.invader1a : SPRITES.invader1b;
+        else if (inv.type === 2) sprite = af === 0 ? SPRITES.invader2a : SPRITES.invader2b;
+        else sprite = af === 0 ? SPRITES.invader3a : SPRITES.invader3b;
         drawSprite(sprite, inv.x, inv.y, getZoneColor(inv.y + 4));
       }
       for (let i = 0; i < lives - 1; i++) {
@@ -1485,9 +1512,10 @@ function render() {
   for (let inv of invaders) {
     if (!inv.alive) continue;
     let sprite;
-    if (inv.type === 1) sprite = invaderAnimFrame === 0 ? SPRITES.invader1a : SPRITES.invader1b;
-    else if (inv.type === 2) sprite = invaderAnimFrame === 0 ? SPRITES.invader2a : SPRITES.invader2b;
-    else sprite = invaderAnimFrame === 0 ? SPRITES.invader3a : SPRITES.invader3b;
+    const af = inv.animFrame || 0;
+    if (inv.type === 1) sprite = af === 0 ? SPRITES.invader1a : SPRITES.invader1b;
+    else if (inv.type === 2) sprite = af === 0 ? SPRITES.invader2a : SPRITES.invader2b;
+    else sprite = af === 0 ? SPRITES.invader3a : SPRITES.invader3b;
     drawSprite(sprite, inv.x, inv.y, getZoneColor(inv.y + 4));
   }
 
