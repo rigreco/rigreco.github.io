@@ -107,6 +107,17 @@ const SPRITES = {
     '  000  00  000  ',
     '   0        0   '
   ],
+  // UFO explosion - original SpriteSaucerExp from ROM table 1D7C (CCW rotated)
+  ufoExplosion: [
+    '   0  0 0      0 0  0   ',
+    '    0        00    0    ',
+    ' 0 0   0000   00        ',
+    '      0000000  000  0   ',
+    '     000 0 0 0  000  0  ',
+    '   0   00000   00       ',
+    ' 0      0 0   00   0    ',
+    '   0   0   0    0       '
+  ],
   // Alien explosion - ROM: 00 08 49 22 14 81 42 00 42 81 14 22 49 08 00 00
   explosion: [
     '    0   0    ',

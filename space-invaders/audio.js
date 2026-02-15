@@ -139,6 +139,19 @@ function playUfo() {
   } catch(e) {}
 }
 
+function playUfoExplosion() {
+  if (!audioStarted) return;
+  try {
+    // Original ROM uses a dedicated saucer-hit sound bit (see routine around 074B).
+    // Keep it distinct from generic explosion: short noise + quick descending tone burst.
+    var now = Tone.now();
+    explosionSynth.triggerAttackRelease('0.05', now, 0.65);
+    ufoSynth.triggerAttack(1200, now);
+    ufoSynth.frequency.exponentialRampToValueAtTime(380, now + 0.1);
+    ufoSynth.triggerRelease(now + 0.11);
+  } catch(e) {}
+}
+
 function playBulletMiss() {
   if (!audioStarted) return;
   try {

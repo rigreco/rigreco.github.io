@@ -121,9 +121,19 @@ let invaderMoveInterval = 1;  // ticks between each single-alien step
 let invaderBullets = [];
 let invaderAnimFrame = 0;     // kept for rendering compatibility
 let moveSound = 0;
+let fleetSoundTimer = 0;      // ROM-like independent timer (2096 equivalent)
+let fleetSoundReload = 52;    // ROM-like reload (2097 equivalent)
+let fleetSoundHold = 4;       // ROM-like hold window (209B equivalent)
+let changeFleetSound = false; // ROM-like pending flag (2095 equivalent)
 let invaderStepIndex = 0;     // which alien to move next (sequential)
 let invaderNeedsDrop = false;  // flagged when edge hit, drop on next cycle
 let invaderNextDir = 1;        // direction for next cycle after drop
+let alienShotPhase = 0;        // 0=rolling, 1=plunger, 2=squiggly (original object cadence)
+let alienShotColumnIndex = 0;  // deterministic column walk for squiggly
+
+// ROM tables 1A11/1A21: live-aliens thresholds and fleet sound delays
+const FLEET_SOUND_ALIEN_THRESHOLDS = [50, 43, 36, 28, 22, 17, 13, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+const FLEET_SOUND_DELAY_TABLE = [52, 46, 39, 34, 28, 24, 21, 19, 16, 14, 13, 12, 11, 9, 7, 5];
 
 // UFO
 let ufo = { x: -16, y: 18, active: false, speed: 0.5, timer: 0 };
@@ -402,9 +412,15 @@ function initInvaders() {
   invaderAnimFrame = 0;
   invaderBullets = [];
   moveSound = 0;
+  fleetSoundReload = FLEET_SOUND_DELAY_TABLE[0];
+  fleetSoundTimer = fleetSoundReload;
+  fleetSoundHold = 4;
+  changeFleetSound = false;
   invaderStepIndex = 0;
   invaderNeedsDrop = false;
   invaderNextDir = 1;
+  alienShotPhase = 0;
+  alienShotColumnIndex = 0;
 }
 
 function initGame() {
@@ -499,6 +515,124 @@ function getBottomInvaders() {
     }
   }
   return Object.values(columns);
+}
+
+function hasAlienShotType(type) {
+  for (let i = 0; i < invaderBullets.length; i++) {
+    if (invaderBullets[i].type === type) return true;
+  }
+  return false;
+}
+
+function getAliveInvaderCount() {
+  let alive = 0;
+  for (let i = 0; i < invaders.length; i++) {
+    if (invaders[i].alive) alive++;
+  }
+  return alive;
+}
+
+function getFleetSoundReloadForAliens(aliveAliens) {
+  for (let i = 0; i < FLEET_SOUND_ALIEN_THRESHOLDS.length; i++) {
+    if (aliveAliens >= FLEET_SOUND_ALIEN_THRESHOLDS[i]) {
+      return FLEET_SOUND_DELAY_TABLE[i];
+    }
+  }
+  return FLEET_SOUND_DELAY_TABLE[FLEET_SOUND_DELAY_TABLE.length - 1];
+}
+
+function updateFleetSound() {
+  if (fleetSoundHold > 0) fleetSoundHold--;
+
+  const aliveAliens = getAliveInvaderCount();
+  if (aliveAliens <= 0) return;
+
+  fleetSoundTimer--;
+  if (fleetSoundTimer <= 0) {
+    playInvaderMove(moveSound);
+    moveSound = (moveSound + 1) % 4;
+    fleetSoundTimer = fleetSoundReload;
+    fleetSoundHold = 4;
+    changeFleetSound = true;
+  }
+
+  if (changeFleetSound) {
+    fleetSoundReload = getFleetSoundReloadForAliens(aliveAliens);
+    changeFleetSound = false;
+  }
+}
+
+function spawnAlienShotByType(type, isDemo) {
+  if (hasAlienShotType(type)) return false;
+
+  const bottomInvaders = getBottomInvaders();
+  if (bottomInvaders.length === 0) return false;
+
+  let shooter = null;
+  const playerCenterX = player.x + player.w / 2;
+
+  if (type === 'rolling') {
+    // Rolling shot tracks the player: use the closest bottom invader to player X.
+    let bestDist = Infinity;
+    for (let i = 0; i < bottomInvaders.length; i++) {
+      const inv = bottomInvaders[i];
+      const sz = getInvaderSize(inv.type);
+      const invCenter = inv.x + sz.w / 2;
+      const dist = Math.abs(invCenter - playerCenterX);
+      if (dist < bestDist) {
+        bestDist = dist;
+        shooter = inv;
+      }
+    }
+  } else if (type === 'plunger') {
+    // Original behavior suppresses plunger when one alien remains.
+    if (getAliveInvaderCount() <= 1) return false;
+    let bestDist = Infinity;
+    for (let i = 0; i < bottomInvaders.length; i++) {
+      const inv = bottomInvaders[i];
+      const sz = getInvaderSize(inv.type);
+      const invCenter = inv.x + sz.w / 2;
+      const dist = Math.abs(invCenter - playerCenterX);
+      if (dist < bestDist) {
+        bestDist = dist;
+        shooter = inv;
+      }
+    }
+  } else {
+    // Squiggly advances through available bottom columns deterministically.
+    const sorted = bottomInvaders.slice().sort(function(a, b) { return a.x - b.x; });
+    if (alienShotColumnIndex >= sorted.length) alienShotColumnIndex = 0;
+    shooter = sorted[alienShotColumnIndex];
+    alienShotColumnIndex = (alienShotColumnIndex + 1) % sorted.length;
+    if (ufo.active) return false; // Keep existing "no squiggly during UFO" rule.
+  }
+
+  if (!shooter) return false;
+  const sz = getInvaderSize(shooter.type);
+  const speed = isDemo ? 1.2 : 1 + level * 0.2 + cycle * 0.3;
+  invaderBullets.push({
+    x: shooter.x + sz.w / 2,
+    y: shooter.y + sz.h,
+    speed: speed,
+    type: type,
+    frame: 0
+  });
+  return true;
+}
+
+function runAlienShotPhase(isDemo) {
+  const phaseTypes = ['rolling', 'plunger', 'squiggly'];
+  const type = phaseTypes[alienShotPhase];
+  alienShotPhase = (alienShotPhase + 1) % phaseTypes.length;
+  spawnAlienShotByType(type, isDemo);
+}
+
+function getActiveAlienShotType() {
+  // Original ISR cadence: timer 0=rolling, 1=plunger, 2=squiggly/saucer object slot.
+  const slot = frameCount % 3;
+  if (slot === 0) return 'rolling';
+  if (slot === 1) return 'plunger';
+  return 'squiggly';
 }
 
 // ─── NEW GAME+ ───
@@ -827,8 +961,8 @@ function update() {
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
-      playExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
+      playUfoExplosion();
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
 
       // Power-up drop (30% chance)
       if (Math.random() < 0.3 && !activePowerup) {
@@ -910,12 +1044,13 @@ function update() {
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
-      playExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
+      playUfoExplosion();
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
     }
   }
 
   // Invader movement - sequential, one alien per tick (like the 1978 original)
+  updateFleetSound();
   invaderMoveTimer++;
   if (invaderMoveTimer >= invaderMoveInterval) {
     invaderMoveTimer = 0;
@@ -928,10 +1063,6 @@ function update() {
         // Completed a full sweep - end of cycle
         invaderStepIndex = 0;
 
-        // Play movement sound once per full cycle
-        playInvaderMove(moveSound);
-        moveSound = (moveSound + 1) % 4;
-
         // If any alien hit the edge during this cycle, drop ALL on next cycle
         if (invaderNeedsDrop) {
           invaderDir = invaderNextDir;
@@ -941,23 +1072,8 @@ function update() {
           invaderNeedsDrop = false;
         }
 
-        // Shooting happens once per full sweep
-        const bottomInvaders = getBottomInvaders();
-        if (bottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-          const shooter = bottomInvaders[Math.floor(Math.random() * bottomInvaders.length)];
-          const sz = getInvaderSize(shooter.type);
-          // Choose bullet type: rolling targets player, squiggly disabled during UFO
-          let btype;
-          const roll = Math.random();
-          if (roll < 0.4) {
-            btype = 'rolling';
-          } else if (roll < 0.7 && !ufo.active) {
-            btype = 'squiggly';
-          } else {
-            btype = 'plunger';
-          }
-          invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3, type: btype, frame: 0 });
-        }
+        // Shooting follows a deterministic phase cadence (rolling -> plunger -> squiggly).
+        runAlienShotPhase(false);
 
         // Check if invaders reached player zone
         for (let inv of invaders) {
@@ -1014,8 +1130,10 @@ function update() {
   }
 
   // Invader bullets
+  const activeAlienShotType = getActiveAlienShotType();
   for (let i = invaderBullets.length - 1; i >= 0; i--) {
     const b = invaderBullets[i];
+    if (b.type && b.type !== activeAlienShotType) continue;
     b.y += b.speed;
     // Animate bullet frame
     if (b.frame !== undefined && frameCount % 4 === 0) b.frame = (b.frame + 1) % 4;
@@ -1327,12 +1445,13 @@ function updateDemo() {
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
-      playExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 20, text: ufoPoints.toString() });
+      playUfoExplosion();
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
     }
   }
 
   // Invader movement - sequential (same system as gameplay)
+  updateFleetSound();
   invaderMoveTimer++;
   if (invaderMoveTimer >= invaderMoveInterval) {
     invaderMoveTimer = 0;
@@ -1340,9 +1459,6 @@ function updateDemo() {
     do {
       if (invaderStepIndex >= invaders.length) {
         invaderStepIndex = 0;
-        playInvaderMove(moveSound);
-        moveSound = (moveSound + 1) % 4;
-
         if (invaderNeedsDrop) {
           invaderDir = invaderNextDir;
           for (let inv of invaders) {
@@ -1351,17 +1467,7 @@ function updateDemo() {
           invaderNeedsDrop = false;
         }
 
-        const demoBottomInvaders = getBottomInvaders();
-        if (demoBottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
-          const shooter = demoBottomInvaders[Math.floor(Math.random() * demoBottomInvaders.length)];
-          const ssz = getInvaderSize(shooter.type);
-          let dbtype;
-          const droll = Math.random();
-          if (droll < 0.4) { dbtype = 'rolling'; }
-          else if (droll < 0.7 && !ufo.active) { dbtype = 'squiggly'; }
-          else { dbtype = 'plunger'; }
-          invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2, type: dbtype, frame: 0 });
-        }
+        runAlienShotPhase(true);
 
         for (let inv of invaders) {
           if (inv.alive && inv.y + 8 >= player.y) {
@@ -1403,8 +1509,10 @@ function updateDemo() {
   }
 
   // Invader bullets
+  const activeDemoAlienShotType = getActiveAlienShotType();
   for (let i = invaderBullets.length - 1; i >= 0; i--) {
     const b = invaderBullets[i];
+    if (b.type && b.type !== activeDemoAlienShotType) continue;
     b.y += b.speed;
     if (b.frame !== undefined && frameCount % 4 === 0) b.frame = (b.frame + 1) % 4;
 
@@ -1653,7 +1761,15 @@ function render() {
   // Explosions
   for (let ex of explosions) {
     const exColor = ex.color || getZoneColor(ex.y);
-    if (ex.text) {
+    if (ex.ufoExplosion) {
+      if (ex.timer > 14) {
+        drawSprite(SPRITES.ufoExplosion, ex.x - 4, ex.y, COLOR_RED);
+      } else if (ex.text) {
+        ctx.fillStyle = COLOR_WHITE;
+        ctx.font = '5px "Press Start 2P"';
+        ctx.fillText(ex.text, ex.x, ex.y + 4);
+      }
+    } else if (ex.text) {
       ctx.fillStyle = exColor;
       ctx.font = '5px "Press Start 2P"';
       ctx.fillText(ex.text, ex.x, ex.y + 4);
@@ -1779,7 +1895,15 @@ function drawBossFightScreen() {
   // Explosions
   for (let ex of explosions) {
     const exColor = ex.color || getZoneColor(ex.y);
-    if (ex.text) {
+    if (ex.ufoExplosion) {
+      if (ex.timer > 14) {
+        drawSprite(SPRITES.ufoExplosion, ex.x - 4, ex.y, COLOR_RED);
+      } else if (ex.text) {
+        ctx.fillStyle = COLOR_WHITE;
+        ctx.font = '5px "Press Start 2P"';
+        ctx.fillText(ex.text, ex.x, ex.y + 4);
+      }
+    } else if (ex.text) {
       ctx.fillStyle = exColor;
       ctx.font = '5px "Press Start 2P"';
       ctx.fillText(ex.text, ex.x, ex.y + 4);
