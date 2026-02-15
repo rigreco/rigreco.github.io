@@ -30,13 +30,13 @@ function initAudio() {
 
   invaderMoveSynth = new Tone.Synth({
     oscillator: { type: 'square' },
-    envelope: { attack: 0.001, decay: 0.04, sustain: 0, release: 0.01 }
+    envelope: { attack: 0.002, decay: 0.06, sustain: 0, release: 0.02 }
   }).toDestination();
-  invaderMoveSynth.volume.value = -18;
+  invaderMoveSynth.volume.value = -15;
 
   playerDieSynth = new Tone.Synth({
     oscillator: { type: 'sawtooth' },
-    envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 }
+    envelope: { attack: 0.01, decay: 1.2, sustain: 0.3, release: 0.3 }
   }).toDestination();
   playerDieSynth.volume.value = -10;
 
@@ -89,15 +89,63 @@ function initAudio() {
   bossSnareSynth.volume.value = -14;
 }
 
-function playShoot() { if (audioStarted) try { shootSynth.triggerAttackRelease('C6', '0.08'); } catch(e) {} }
+function playShoot() {
+  if (!audioStarted) return;
+  try {
+    // Originale: noise shift register, breve impulso discendente
+    var now = Tone.now();
+    shootSynth.triggerAttack('E6', now);
+    shootSynth.frequency.exponentialRampToValueAtTime(Tone.Frequency('A3').toFrequency(), now + 0.06);
+    shootSynth.triggerRelease(now + 0.07);
+  } catch(e) {}
+}
 function playExplosion() { if (audioStarted) try { explosionSynth.triggerAttackRelease('0.15'); } catch(e) {} }
 function playInvaderMove(pitch) {
   if (!audioStarted) return;
-  var notes = ['C3', 'D3', 'E3', 'F3'];
-  invaderMoveSynth.triggerAttackRelease(notes[pitch % 4], '0.04');
+  // Originale: 4 circuiti oscillatori discreti (~96, 108, 120, 144 Hz)
+  // Corrispondono circa a G2, A2, B2, D3
+  var notes = ['G2', 'A2', 'B2', 'D3'];
+  invaderMoveSynth.triggerAttackRelease(notes[pitch % 4], '0.06');
 }
-function playPlayerDie() { if (audioStarted) playerDieSynth.triggerAttackRelease('C2', '0.5'); }
-function playUfo() { if (audioStarted) ufoSynth.triggerAttackRelease('B5', '0.1'); }
+function playPlayerDie() {
+  if (!audioStarted) return;
+  try {
+    // Originale: sweep discendente con rapida modulazione di frequenza (wobble)
+    // Il circuito analogico produce un effetto "brrrrp" caratteristico
+    var now = Tone.now();
+    var duration = 1.5;
+    var steps = 40;
+    playerDieSynth.triggerAttack(800, now);
+    for (var i = 1; i <= steps; i++) {
+      var t = i / steps;
+      // Discesa esponenziale da ~800Hz a ~80Hz
+      var baseFreq = 800 * Math.pow(0.1, t);
+      // Modulazione rapida (wobble analogico) ~8Hz
+      var wobble = Math.sin(i * 1.6) * baseFreq * 0.25;
+      playerDieSynth.frequency.setValueAtTime(baseFreq + wobble, now + t * duration);
+    }
+    playerDieSynth.triggerRelease(now + duration);
+  } catch(e) {}
+}
+function playUfo() {
+  if (!audioStarted) return;
+  try {
+    // Originale: 555 timer crea sweep periodico (~800Hz-400Hz), chiamato ogni 12 frame
+    var now = Tone.now();
+    ufoSynth.triggerAttack(800, now);
+    ufoSynth.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+    ufoSynth.frequency.exponentialRampToValueAtTime(800, now + 0.18);
+    ufoSynth.triggerRelease(now + 0.19);
+  } catch(e) {}
+}
+
+function playBulletMiss() {
+  if (!audioStarted) return;
+  try {
+    // Breve tick/pop come nell'originale quando il proiettile esplode
+    explosionSynth.triggerAttackRelease('0.03');
+  } catch(e) {}
+}
 
 // ─── BOSS MUSIC ───
 // Colonna sonora originale in stile anime mecha anni '70

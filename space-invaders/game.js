@@ -146,6 +146,24 @@ const POWERUP_DURATION = 600; // 10 sec at 60fps
 const POWERUP_TYPES = ['speed', 'double', 'shield'];
 let playerShieldHits = 0;
 
+// Baseline (green line, destructible like original)
+let baselinePixels = [];
+function initBaseline() {
+  baselinePixels = new Array(W).fill(true);
+}
+function erodeBaseline(cx) {
+  // Erode pixels around impact point (6px wide, like alienShotExplosion)
+  for (let i = cx - 3; i <= cx + 3; i++) {
+    if (i >= 0 && i < W) baselinePixels[i] = false;
+  }
+}
+function drawBaseline() {
+  ctx.fillStyle = COLOR_GREEN;
+  for (let i = 0; i < W; i++) {
+    if (baselinePixels[i]) ctx.fillRect(i, H - 16, 1, 1);
+  }
+}
+
 // Particles
 let particles = [];
 let explosions = [];
@@ -415,6 +433,7 @@ function initGame() {
   playerShieldHits = 0;
   initInvaders();
   initShields();
+  initBaseline();
   state = STATE.PLAYING;
 }
 
@@ -442,6 +461,7 @@ function initDemo() {
   playerShieldHits = 0;
   initInvaders();
   initShields();
+  initBaseline();
   state = STATE.DEMO;
 }
 
@@ -463,6 +483,7 @@ function startLevel() {
   playerShieldHits = 0;
   initInvaders();
   initShields();
+  initBaseline();
   state = STATE.PLAYING;
 }
 
@@ -502,6 +523,7 @@ function startNewGamePlus() {
   playerShieldHits = 0;
   initInvaders();
   initShields();
+  initBaseline();
   state = STATE.PLAYING;
 }
 
@@ -732,7 +754,28 @@ function update() {
   // Bullet movement
   if (bullet.active) {
     bullet.y -= bullet.speed;
-    if (bullet.y < 8) bullet.active = false;
+    if (bullet.y < 8) {
+      bullet.active = false;
+      explosions.push({ x: bullet.x - 4, y: 4, timer: 10, sprite: SPRITES.playerShotExplosion, color: COLOR_RED });
+      playBulletMiss();
+    }
+
+    // Bullet-bullet collision (player vs invader)
+    if (bullet.active) {
+      for (let bi = invaderBullets.length - 1; bi >= 0; bi--) {
+        const ib = invaderBullets[bi];
+        // Rolling shots pass through (can't be destroyed, like original)
+
+        if (ib.type === 'rolling') continue; // Rolling shots indistruttibili (come originale)
+        if (Math.abs(bullet.x - ib.x) < 3 && bullet.y < ib.y + 7 && bullet.y + 4 > ib.y) {
+          bullet.active = false;
+          invaderBullets.splice(bi, 1);
+          explosions.push({ x: ib.x - 3, y: ib.y, timer: 8, sprite: SPRITES.alienShotExplosion, color: getZoneColor(ib.y) });
+          playBulletMiss();
+          break;
+        }
+      }
+    }
 
     // Hit invader
     for (let inv of invaders) {
@@ -798,7 +841,26 @@ function update() {
   // Bullet2 movement (double shot power-up)
   if (bullet2.active) {
     bullet2.y -= bullet2.speed;
-    if (bullet2.y < 8) bullet2.active = false;
+    if (bullet2.y < 8) {
+      bullet2.active = false;
+      explosions.push({ x: bullet2.x - 4, y: 4, timer: 10, sprite: SPRITES.playerShotExplosion, color: COLOR_RED });
+      playBulletMiss();
+    }
+
+    // Bullet2-bullet collision
+    if (bullet2.active) {
+      for (let bi = invaderBullets.length - 1; bi >= 0; bi--) {
+        const ib = invaderBullets[bi];
+
+        if (Math.abs(bullet2.x - ib.x) < 3 && bullet2.y < ib.y + 7 && bullet2.y + 4 > ib.y) {
+          bullet2.active = false;
+          invaderBullets.splice(bi, 1);
+          explosions.push({ x: ib.x - 3, y: ib.y, timer: 8, sprite: SPRITES.alienShotExplosion, color: getZoneColor(ib.y) });
+          playBulletMiss();
+          break;
+        }
+      }
+    }
 
     // Hit invader
     for (let inv of invaders) {
@@ -884,7 +946,17 @@ function update() {
         if (bottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
           const shooter = bottomInvaders[Math.floor(Math.random() * bottomInvaders.length)];
           const sz = getInvaderSize(shooter.type);
-          invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3 });
+          // Choose bullet type: rolling targets player, squiggly disabled during UFO
+          let btype;
+          const roll = Math.random();
+          if (roll < 0.4) {
+            btype = 'rolling';
+          } else if (roll < 0.7 && !ufo.active) {
+            btype = 'squiggly';
+          } else {
+            btype = 'plunger';
+          }
+          invaderBullets.push({ x: shooter.x + sz.w / 2, y: shooter.y + sz.h, speed: 1 + level * 0.2 + cycle * 0.3, type: btype, frame: 0 });
         }
 
         // Check if invaders reached player zone
@@ -945,8 +1017,13 @@ function update() {
   for (let i = invaderBullets.length - 1; i >= 0; i--) {
     const b = invaderBullets[i];
     b.y += b.speed;
+    // Animate bullet frame
+    if (b.frame !== undefined && frameCount % 4 === 0) b.frame = (b.frame + 1) % 4;
 
-    if (b.y > H) {
+    if (b.y > H - 16) {
+      explosions.push({ x: b.x - 3, y: H - 24, timer: 10, sprite: SPRITES.alienShotExplosion, color: COLOR_GREEN });
+      erodeBaseline(Math.round(b.x));
+      playBulletMiss();
       invaderBullets.splice(i, 1);
       continue;
     }
@@ -1077,6 +1154,8 @@ function updateBossFight() {
     const b = bossFightBullets[i];
     b.y -= BOSS_BULLET_SPEED;
     if (b.y < 8) {
+      explosions.push({ x: b.x - 4, y: 4, timer: 10, sprite: SPRITES.playerShotExplosion, color: COLOR_RED });
+      playBulletMiss();
       bossFightBullets.splice(i, 1);
       continue;
     }
@@ -1193,7 +1272,27 @@ function updateDemo() {
   // Bullet movement
   if (bullet.active) {
     bullet.y -= bullet.speed;
-    if (bullet.y < 8) bullet.active = false;
+    if (bullet.y < 8) {
+      bullet.active = false;
+      explosions.push({ x: bullet.x - 4, y: 4, timer: 10, sprite: SPRITES.playerShotExplosion, color: COLOR_RED });
+      playBulletMiss();
+    }
+
+    // Demo bullet-bullet collision
+    if (bullet.active) {
+      for (let bi = invaderBullets.length - 1; bi >= 0; bi--) {
+        const ib = invaderBullets[bi];
+
+        if (ib.type === 'rolling') continue; // Rolling shots indistruttibili (come originale)
+        if (Math.abs(bullet.x - ib.x) < 3 && bullet.y < ib.y + 7 && bullet.y + 4 > ib.y) {
+          bullet.active = false;
+          invaderBullets.splice(bi, 1);
+          explosions.push({ x: ib.x - 3, y: ib.y, timer: 8, sprite: SPRITES.alienShotExplosion, color: getZoneColor(ib.y) });
+          playBulletMiss();
+          break;
+        }
+      }
+    }
 
     for (let inv of invaders) {
       if (!inv.alive) continue;
@@ -1256,7 +1355,12 @@ function updateDemo() {
         if (demoBottomInvaders.length > 0 && invaderBullets.length < 3 && Math.random() < 0.3) {
           const shooter = demoBottomInvaders[Math.floor(Math.random() * demoBottomInvaders.length)];
           const ssz = getInvaderSize(shooter.type);
-          invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2 });
+          let dbtype;
+          const droll = Math.random();
+          if (droll < 0.4) { dbtype = 'rolling'; }
+          else if (droll < 0.7 && !ufo.active) { dbtype = 'squiggly'; }
+          else { dbtype = 'plunger'; }
+          invaderBullets.push({ x: shooter.x + ssz.w / 2, y: shooter.y + ssz.h, speed: 1.2, type: dbtype, frame: 0 });
         }
 
         for (let inv of invaders) {
@@ -1302,8 +1406,12 @@ function updateDemo() {
   for (let i = invaderBullets.length - 1; i >= 0; i--) {
     const b = invaderBullets[i];
     b.y += b.speed;
+    if (b.frame !== undefined && frameCount % 4 === 0) b.frame = (b.frame + 1) % 4;
 
-    if (b.y > H) {
+    if (b.y > H - 16) {
+      explosions.push({ x: b.x - 3, y: H - 24, timer: 10, sprite: SPRITES.alienShotExplosion, color: COLOR_GREEN });
+      erodeBaseline(Math.round(b.x));
+      playBulletMiss();
       invaderBullets.splice(i, 1);
       continue;
     }
@@ -1406,8 +1514,7 @@ function render() {
       drawBossFightScreen();
     } else {
       drawHUD();
-      ctx.fillStyle = COLOR_GREEN;
-      ctx.fillRect(0, H - 16, W, 1);
+      drawBaseline();
       ctx.fillStyle = COLOR_GREEN;
       for (let s of shields) {
         if (s.alive) ctx.fillRect(s.x, s.y, s.w, s.h);
@@ -1442,8 +1549,7 @@ function render() {
   if (state === STATE.BOSS_INTRO) {
     drawHUD();
     // Ground line
-    ctx.fillStyle = COLOR_GREEN;
-    ctx.fillRect(0, H - 16, W, 1);
+    drawBaseline();
     // Shields
     ctx.fillStyle = COLOR_GREEN;
     for (let s of shields) {
@@ -1471,8 +1577,7 @@ function render() {
   drawHUD();
 
   // Ground line
-  ctx.fillStyle = COLOR_GREEN;
-  ctx.fillRect(0, H - 16, W, 1);
+  drawBaseline();
 
   // Shields
   ctx.fillStyle = COLOR_GREEN;
@@ -1482,7 +1587,7 @@ function render() {
 
   // Player
   if (state === STATE.DYING) {
-    drawSprite(SPRITES.playerExplosion, player.x, player.y, COLOR_GREEN);
+    drawSprite(frameCount % 8 < 4 ? SPRITES.playerExplosion : SPRITES.playerExplosion2, player.x, player.y, COLOR_GREEN);
   } else {
     drawSprite(SPRITES.player, player.x, player.y, COLOR_GREEN);
     // Shield power-up glow
@@ -1519,11 +1624,25 @@ function render() {
     drawSprite(sprite, inv.x, inv.y, getZoneColor(inv.y + 4));
   }
 
-  // Invader bullets
+  // Invader bullets (3 types with animated sprites)
   for (let b of invaderBullets) {
-    ctx.fillStyle = getZoneColor(b.y);
-    const zigzag = Math.floor(b.y / 3) % 2;
-    ctx.fillRect(b.x + zigzag, b.y, 1, 3);
+    const bColor = getZoneColor(b.y);
+    if (b.type) {
+      const frameNames = ['A', 'B', 'C', 'D'];
+      const frameLetter = frameNames[b.frame || 0];
+      const spriteKey = b.type + frameLetter;
+      if (SPRITES[spriteKey]) {
+        drawSprite(SPRITES[spriteKey], b.x - 1, b.y, bColor);
+      } else {
+        ctx.fillStyle = bColor;
+        ctx.fillRect(b.x, b.y, 1, 3);
+      }
+    } else {
+      // Fallback for legacy bullets without type
+      ctx.fillStyle = bColor;
+      const zigzag = Math.floor(b.y / 3) % 2;
+      ctx.fillRect(b.x + zigzag, b.y, 1, 3);
+    }
   }
 
   // UFO
@@ -1533,11 +1652,13 @@ function render() {
 
   // Explosions
   for (let ex of explosions) {
-    const exColor = getZoneColor(ex.y);
+    const exColor = ex.color || getZoneColor(ex.y);
     if (ex.text) {
       ctx.fillStyle = exColor;
       ctx.font = '5px "Press Start 2P"';
       ctx.fillText(ex.text, ex.x, ex.y + 4);
+    } else if (ex.sprite) {
+      drawSprite(ex.sprite, ex.x, ex.y, exColor);
     } else {
       drawSprite(SPRITES.explosion, ex.x, ex.y, exColor);
     }
@@ -1619,8 +1740,7 @@ function drawBossFightScreen() {
   drawHUD();
 
   // Ground line
-  ctx.fillStyle = COLOR_GREEN;
-  ctx.fillRect(0, H - 16, W, 1);
+  drawBaseline();
 
   // Shields
   ctx.fillStyle = COLOR_GREEN;
@@ -1630,7 +1750,7 @@ function drawBossFightScreen() {
 
   // Player
   if (state === STATE.DYING) {
-    drawSprite(SPRITES.playerExplosion, player.x, player.y, COLOR_GREEN);
+    drawSprite(frameCount % 8 < 4 ? SPRITES.playerExplosion : SPRITES.playerExplosion2, player.x, player.y, COLOR_GREEN);
   } else {
     drawSprite(SPRITES.player, player.x, player.y, COLOR_GREEN);
     // Shield power-up glow (boss fight)
@@ -1658,11 +1778,13 @@ function drawBossFightScreen() {
 
   // Explosions
   for (let ex of explosions) {
-    const exColor = getZoneColor(ex.y);
+    const exColor = ex.color || getZoneColor(ex.y);
     if (ex.text) {
       ctx.fillStyle = exColor;
       ctx.font = '5px "Press Start 2P"';
       ctx.fillText(ex.text, ex.x, ex.y + 4);
+    } else if (ex.sprite) {
+      drawSprite(ex.sprite, ex.x, ex.y, exColor);
     } else {
       drawSprite(SPRITES.explosion, ex.x, ex.y, exColor);
     }
@@ -1716,7 +1838,7 @@ const INTRO_TITLE_SPEED = 4;
 
 const PLAY_X = W/2;
 const PLAY_Y = 220;
-const Y_OFFSET_X = 18;
+const Y_OFFSET_X = 13;
 
 function updateIntro() {
   const f = intro.frame;
@@ -1862,21 +1984,23 @@ function drawIntroScreen() {
 
     if (intro.phase >= 1 && intro.phase <= 4) {
       const alienY = PLAY_Y - 10;
-      drawSprite(SPRITES.invader3a, intro.alienX, alienY, COLOR_WHITE);
+      const animFrame = Math.floor(intro.frame / 8) % 2;
 
       if (intro.alienCarriesY) {
-        ctx.fillStyle = COLOR_WHITE;
-        ctx.font = '6px "Press Start 2P"';
-        ctx.textAlign = 'center';
+        // Sprite combinato alieno+Y dalla ROM originale
         if (intro.yFlipped) {
-          ctx.save();
-          ctx.translate(intro.alienX - 6, PLAY_Y);
-          ctx.scale(1, -1);
-          ctx.fillText('Y', 0, 3);
-          ctx.restore();
+          // Phase 2: alieno trascina Y capovolta verso destra
+          const spr = animFrame === 0 ? SPRITES.alienPullYA : SPRITES.alienPullYB;
+          drawSprite(spr, intro.alienX - 7, alienY, COLOR_WHITE);
         } else {
-          ctx.fillText('Y', intro.alienX - 6, PLAY_Y);
+          // Phase 3: alieno porta Y corretta da destra
+          const spr = animFrame === 0 ? SPRITES.alienCarryYA : SPRITES.alienCarryYB;
+          drawSprite(spr, intro.alienX - 7, alienY, COLOR_WHITE);
         }
+      } else {
+        // Phase 1 (avvicinamento) e 4 (uscita) - alieno squid normale
+        const spr = animFrame === 0 ? SPRITES.invader2a : SPRITES.invader2b;
+        drawSprite(spr, intro.alienX, alienY, COLOR_WHITE);
       }
     }
   }

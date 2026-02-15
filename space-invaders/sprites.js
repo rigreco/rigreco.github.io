@@ -10,7 +10,7 @@ const SPRITES = {
     '000000000000',
     '  000  000  ',
     ' 00  00  00 ',
-    '00  0000  00'
+    '  00    00  '
   ],
   invader1b: [
     '    0000    ',
@@ -60,7 +60,7 @@ const SPRITES = {
     '0 0000000 0',
     '000 000 000',
     '00000000000',
-    ' 00000000  ',
+    ' 000000000 ',
     '  0     0  ',
     ' 0       0 '
   ],
@@ -75,16 +75,27 @@ const SPRITES = {
     '0000000000000',
     '0000000000000'
   ],
-  // Player explosion - 13x8
+  // Player explosion frame 1 - ROM: 1C70
   playerExplosion: [
-    '0    0 0    0',
-    ' 0  00 0  0  ',
-    '  0  000 0  0',
-    '00 00   0 00 ',
-    '   00 0 00   ',
-    ' 00 0   0 00 ',
-    '0 0  000  0 0',
-    ' 0  0 0 0  0 '
+    '     0         ',
+    '          0    ',
+    '     0 0 0     ',
+    '  0  0         ',
+    '      00 00    ',
+    '0   0 00 0 0   ',
+    '  00000000  0  ',
+    ' 0000000000 0 0'
+  ],
+  // Player explosion frame 2 - ROM: 1C80
+  playerExplosion2: [
+    '   0         0  ',
+    '0     0    00  0',
+    '   0    00      ',
+    '      0       0 ',
+    ' 0  0 00  00   0',
+    '  0    000   0  ',
+    '   000000000    ',
+    '  00 0000000  0 '
   ],
   // UFO - 16x7
   ufo: [
@@ -96,14 +107,63 @@ const SPRITES = {
     '  000  00  000  ',
     '   0        0   '
   ],
+  // Alien explosion - ROM: 00 08 49 22 14 81 42 00 42 81 14 22 49 08 00 00
   explosion: [
-    '0 0   0   0 0',
+    '    0   0    ',
+    ' 0   0 0   0 ',
+    '  0       0  ',
+    '   0     0   ',
+    '00         00',
+    '   0     0   ',
     '  0  0 0  0  ',
-    ' 0  0   0  0 ',
-    '0  0     0  0',
-    ' 0  0   0  0 ',
-    '  0  0 0  0  ',
-    '0 0   0   0 0'
+    ' 0  0   0  0 '
+  ],
+
+  // ─── INTRO ANIMATION: Alien + Y sprites from ROM ───
+
+  // AlienSprCYA - Alien pulling upside-down Y (frame A) - ROM: 1BA0
+  alienPullYA: [
+    '         00   ',
+    '  0     0000  ',
+    '  0    000000 ',
+    '  000 00 00 00',
+    '  0  000000000',
+    ' 0 0   0 00 0 ',
+    '0   0 0      0',
+    '0   0  0    0 '
+  ],
+  // AlienSprCYB - Alien pulling upside-down Y (frame B) - ROM: 1BD0
+  alienPullYB: [
+    '        00   ',
+    '  0    0000  ',
+    '  0   000000 ',
+    '  00 00 00 00',
+    '  0 000000000',
+    ' 0 0   0  0  ',
+    '0   0 0 00 0 ',
+    '0   00 0  0 0'
+  ],
+  // AlienSprCA - Alien carrying correct Y (frame A) - ROM: 1F80
+  alienCarryYA: [
+    '          00   ',
+    '0   0    0000  ',
+    '0   00  000000 ',
+    ' 0 0 0000 00 00',
+    '  0   000000000',
+    '  0     0 00 0 ',
+    '  0    0      0',
+    '  0     0    0 '
+  ],
+  // AlienSprCB - Alien carrying correct Y (frame B) - ROM: 1FB0
+  alienCarryYB: [
+    '         00   ',
+    '0   0   0000  ',
+    '0   00 000000 ',
+    ' 0 0 000 00 00',
+    '  0  000000000',
+    '  0     0  0  ',
+    '  0    0 00 0 ',
+    '  0   0 0  0 0'
   ],
 
   // ─── BOSS: Signore dell'Abisso (Mid-Boss) - 24x16, mechanical monster ───
@@ -263,6 +323,158 @@ const SPRITES = {
     '0000000',
     ' 00000 ',
     '  000  '
+  ],
+
+  // Player shot explosion (8x8) - ROM: 99 3C 7E 3D BC 3E 7C 99
+  playerShotExplosion: [
+    '0  0   0',
+    '  0  0  ',
+    ' 000000 ',
+    '00000000',
+    '00000000',
+    ' 000000 ',
+    '  0   0 ',
+    '0   0  0'
+  ],
+
+  // Alien shot explosion (6x8) - ROM: 4A 15 BE 3F 5E 25
+  alienShotExplosion: [
+    ' 0 0 0',
+    '0 000 ',
+    ' 00000',
+    '0 000 ',
+    ' 0000 ',
+    '  00 0',
+    '0   0 ',
+    '  0   '
+  ],
+
+  // Alien bullet types (3x7, 4 frames each) - from original 1978 ROM
+
+  // Rolling shot (spiral) - targets player - ROM: 00 FE 00 | 24 FE 12 | 00 FE 00 | 48 FE 90
+  rollingA: [
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 '
+  ],
+  rollingB: [
+    '   ',
+    ' 00',
+    '00 ',
+    ' 0 ',
+    ' 00',
+    '00 ',
+    ' 0 ',
+    ' 0 '
+  ],
+  rollingC: [
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 '
+  ],
+  rollingD: [
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    '00 ',
+    ' 00',
+    ' 0 ',
+    '00 ',
+    ' 00'
+  ],
+
+  // Plunger shot (sturalavandini) - ROM: 04 FC 04 | 10 FC 10 | 20 FC 20 | 80 FC 80
+  plungerA: [
+    '   ',
+    '   ',
+    '000',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 '
+  ],
+  plungerB: [
+    '   ',
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    '000',
+    ' 0 ',
+    ' 0 ',
+    ' 0 '
+  ],
+  plungerC: [
+    '   ',
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    '000',
+    ' 0 ',
+    ' 0 '
+  ],
+  plungerD: [
+    '   ',
+    '   ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    ' 0 ',
+    '000'
+  ],
+
+  // Squiggly shot (zig-zag) - ROM: 44 AA 10 | 88 54 22 | 10 AA 44 | 22 54 88
+  squigglyA: [
+    '   ',
+    ' 0 ',
+    '0  ',
+    ' 0 ',
+    '  0',
+    ' 0 ',
+    '0  ',
+    ' 0 '
+  ],
+  squigglyB: [
+    '   ',
+    '  0',
+    ' 0 ',
+    '0  ',
+    ' 0 ',
+    '  0',
+    ' 0 ',
+    '0  '
+  ],
+  squigglyC: [
+    '   ',
+    ' 0 ',
+    '  0',
+    ' 0 ',
+    '0  ',
+    ' 0 ',
+    '  0',
+    ' 0 '
+  ],
+  squigglyD: [
+    '   ',
+    '0  ',
+    ' 0 ',
+    '  0',
+    ' 0 ',
+    '0  ',
+    ' 0 ',
+    '  0'
   ],
 
   // Shield for boss (small shield icon for boss shield phase)
