@@ -98,6 +98,10 @@ window.addEventListener('touchstart', onFirstInteraction, { once: false });
 let shotsFired = 0;
 const UFO_SCORE_PATTERN = [100,50,50,100,150,100,100,50,300,100,100,100,50,150,100];
 let ufoFromLeft = true;
+const UFO_TIMER_RESET = 600;   // ROM TimeToSaucer reset (0x0600)
+const UFO_TIMER_GATE_Y = 120;  // ROM gate threshold (0x78)
+const UFO_W = 24;
+const UFO_H = 8;
 
 // Wave Y offsets
 const WAVE_Y_OFFSETS = [0, 8, 16, 24, 32, 40, 48, 48];
@@ -136,7 +140,7 @@ const FLEET_SOUND_ALIEN_THRESHOLDS = [50, 43, 36, 28, 22, 17, 13, 10, 8, 7, 6, 5
 const FLEET_SOUND_DELAY_TABLE = [52, 46, 39, 34, 28, 24, 21, 19, 16, 14, 13, 12, 11, 9, 7, 5];
 
 // UFO
-let ufo = { x: -16, y: 18, active: false, speed: 0.5, timer: 0 };
+let ufo = { x: -UFO_W, y: 18, active: false, speed: 0.5, timer: UFO_TIMER_RESET };
 
 // Shields
 let shields = [];
@@ -443,7 +447,7 @@ function initGame() {
   particles = [];
   explosions = [];
   ufo.active = false;
-  ufo.timer = 0;
+  ufo.timer = UFO_TIMER_RESET;
   activePowerup = null;
   powerupEffect = null;
   playerShieldHits = 0;
@@ -467,7 +471,7 @@ function initDemo() {
   particles = [];
   explosions = [];
   ufo.active = false;
-  ufo.timer = 0;
+  ufo.timer = UFO_TIMER_RESET;
   boss = null;
   bossBullets = [];
   bossFightBullets = [];
@@ -489,7 +493,7 @@ function startLevel() {
   particles = [];
   explosions = [];
   ufo.active = false;
-  ufo.timer = 0;
+  ufo.timer = UFO_TIMER_RESET;
   boss = null;
   bossBullets = [];
   bossFightBullets = [];
@@ -559,6 +563,43 @@ function updateFleetSound() {
   if (changeFleetSound) {
     fleetSoundReload = getFleetSoundReloadForAliens(aliveAliens);
     changeFleetSound = false;
+  }
+}
+
+function getReferenceAlienY() {
+  let refY = Infinity;
+  for (let i = 0; i < invaders.length; i++) {
+    const inv = invaders[i];
+    if (!inv.alive) continue;
+    if (inv.y < refY) refY = inv.y;
+  }
+  return refY === Infinity ? null : refY;
+}
+
+function updateUfoState() {
+  if (!ufo.active) {
+    const refAlienY = getReferenceAlienY();
+    // ROM-style gate: countdown only while rack is in the allowed vertical band.
+    if (refAlienY !== null && refAlienY < UFO_TIMER_GATE_Y) {
+      if (ufo.timer <= 0) {
+        ufo.active = true;
+        ufo.timer = UFO_TIMER_RESET;
+        if (ufoFromLeft) {
+          ufo.x = -UFO_W;
+          ufo.speed = 0.5;
+        } else {
+          ufo.x = W + UFO_W;
+          ufo.speed = -0.5;
+        }
+        ufoFromLeft = !ufoFromLeft;
+      } else {
+        ufo.timer--;
+      }
+    }
+  } else {
+    ufo.x += ufo.speed;
+    if (frameCount % 12 === 0) playUfo();
+    if (ufo.x > W + UFO_W || ufo.x < -UFO_W) ufo.active = false;
   }
 }
 
@@ -647,7 +688,7 @@ function startNewGamePlus() {
   particles = [];
   explosions = [];
   ufo.active = false;
-  ufo.timer = 0;
+  ufo.timer = UFO_TIMER_RESET;
   boss = null;
   bossBullets = [];
   bossFightBullets = [];
@@ -954,20 +995,20 @@ function update() {
 
     // Hit UFO
     if (ufo.active &&
-        bullet.x >= ufo.x && bullet.x <= ufo.x + 16 &&
-        bullet.y >= ufo.y && bullet.y <= ufo.y + 7) {
+        bullet.x >= ufo.x && bullet.x < ufo.x + UFO_W &&
+        bullet.y >= ufo.y && bullet.y < ufo.y + UFO_H) {
       ufo.active = false;
       bullet.active = false;
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
       playUfoExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 32, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
 
       // Power-up drop (30% chance)
       if (Math.random() < 0.3 && !activePowerup) {
         var ptype = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
-        activePowerup = { type: ptype, x: ufo.x + 8, y: ufo.y + 8, speed: 0.5 };
+        activePowerup = { type: ptype, x: ufo.x + Math.floor(UFO_W / 2), y: ufo.y + UFO_H, speed: 0.5 };
       }
     }
   }
@@ -1037,15 +1078,15 @@ function update() {
 
     // Hit UFO
     if (bullet2.active && ufo.active &&
-        bullet2.x >= ufo.x && bullet2.x <= ufo.x + 16 &&
-        bullet2.y >= ufo.y && bullet2.y <= ufo.y + 7) {
+        bullet2.x >= ufo.x && bullet2.x < ufo.x + UFO_W &&
+        bullet2.y >= ufo.y && bullet2.y < ufo.y + UFO_H) {
       ufo.active = false;
       bullet2.active = false;
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
       playUfoExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 32, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
     }
   }
 
@@ -1179,25 +1220,7 @@ function update() {
   }
 
   // UFO
-  if (!ufo.active) {
-    ufo.timer++;
-    if (ufo.timer >= 1536) {
-      ufo.active = true;
-      ufo.timer = 0;
-      if (ufoFromLeft) {
-        ufo.x = -16;
-        ufo.speed = 0.5;
-      } else {
-        ufo.x = W + 16;
-        ufo.speed = -0.5;
-      }
-      ufoFromLeft = !ufoFromLeft;
-    }
-  } else {
-    ufo.x += ufo.speed;
-    if (frameCount % 12 === 0) playUfo();
-    if (ufo.x > W + 16 || ufo.x < -16) ufo.active = false;
-  }
+  updateUfoState();
 
   // ─── POWER-UP UPDATE ───
   if (activePowerup) {
@@ -1438,15 +1461,15 @@ function updateDemo() {
     }
 
     if (ufo.active &&
-        bullet.x >= ufo.x && bullet.x <= ufo.x + 16 &&
-        bullet.y >= ufo.y && bullet.y <= ufo.y + 7) {
+        bullet.x >= ufo.x && bullet.x < ufo.x + UFO_W &&
+        bullet.y >= ufo.y && bullet.y < ufo.y + UFO_H) {
       ufo.active = false;
       bullet.active = false;
       const ufoScoreIndex = (shotsFired - 1) % UFO_SCORE_PATTERN.length;
       const ufoPoints = UFO_SCORE_PATTERN[ufoScoreIndex];
       score += ufoPoints;
       playUfoExplosion();
-      explosions.push({ x: ufo.x, y: ufo.y, timer: 28, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
+      explosions.push({ x: ufo.x, y: ufo.y, timer: 32, text: ufoPoints.toString(), ufoExplosion: true, color: COLOR_RED });
     }
   }
 
@@ -1548,25 +1571,7 @@ function updateDemo() {
   }
 
   // UFO
-  if (!ufo.active) {
-    ufo.timer++;
-    if (ufo.timer >= 1536) {
-      ufo.active = true;
-      ufo.timer = 0;
-      if (ufoFromLeft) {
-        ufo.x = -16;
-        ufo.speed = 0.5;
-      } else {
-        ufo.x = W + 16;
-        ufo.speed = -0.5;
-      }
-      ufoFromLeft = !ufoFromLeft;
-    }
-  } else {
-    ufo.x += ufo.speed;
-    if (frameCount % 12 === 0) playUfo();
-    if (ufo.x > W + 16 || ufo.x < -16) ufo.active = false;
-  }
+  updateUfoState();
 
   updateParticles();
 
@@ -1762,8 +1767,8 @@ function render() {
   for (let ex of explosions) {
     const exColor = ex.color || getZoneColor(ex.y);
     if (ex.ufoExplosion) {
-      if (ex.timer > 14) {
-        drawSprite(SPRITES.ufoExplosion, ex.x - 4, ex.y, COLOR_RED);
+      if (ex.timer > 24) {
+        drawSprite(SPRITES.ufoExplosion, ex.x, ex.y, COLOR_RED);
       } else if (ex.text) {
         ctx.fillStyle = COLOR_WHITE;
         ctx.font = '5px "Press Start 2P"';
@@ -1896,8 +1901,8 @@ function drawBossFightScreen() {
   for (let ex of explosions) {
     const exColor = ex.color || getZoneColor(ex.y);
     if (ex.ufoExplosion) {
-      if (ex.timer > 14) {
-        drawSprite(SPRITES.ufoExplosion, ex.x - 4, ex.y, COLOR_RED);
+      if (ex.timer > 24) {
+        drawSprite(SPRITES.ufoExplosion, ex.x, ex.y, COLOR_RED);
       } else if (ex.text) {
         ctx.fillStyle = COLOR_WHITE;
         ctx.font = '5px "Press Start 2P"';
@@ -1950,10 +1955,10 @@ function drawHUD() {
 
 // ─── INTRO ANIMATION ───
 const introScoreRows = [
-  { sprite: SPRITES.ufo, label: '= ??? PTS', y: 100 },
-  { sprite: SPRITES.invader2a, label: '= 30 PTS', y: 118 },
-  { sprite: SPRITES.invader3a, label: '= 20 PTS', y: 134 },
-  { sprite: SPRITES.invader1a, label: '= 10 PTS', y: 150 }
+  { sprite: SPRITES.ufo, label: '=? MYSTERY', y: 100 },
+  { sprite: SPRITES.invader2a, label: '=30 POINTS', y: 118 },
+  { sprite: SPRITES.invader3a, label: '=20 POINTS', y: 134 },
+  { sprite: SPRITES.invader1a, label: '=10 POINTS', y: 150 }
 ];
 
 const INTRO_TYPE_SPEED = 9;
@@ -1963,6 +1968,9 @@ const INTRO_TITLE_SPEED = 4;
 const PLAY_X = W/2;
 const PLAY_Y = 220;
 const Y_OFFSET_X = 13;
+const SCORE_TABLE_SPRITE_X = W / 2 - 30;
+const SCORE_TABLE_SPRITE_CENTER_X = SCORE_TABLE_SPRITE_X + UFO_W / 2;
+const SCORE_TABLE_LABEL_X = SCORE_TABLE_SPRITE_X + UFO_W + 2;
 
 function updateIntro() {
   const f = intro.frame;
@@ -2073,17 +2081,19 @@ function drawIntroScreen() {
   ctx.font = '5px "Press Start 2P"';
   for (let i = 0; i < introScoreRows.length; i++) {
     const row = introScoreRows[i];
+    const spriteX = Math.floor(SCORE_TABLE_SPRITE_CENTER_X - row.sprite[0].length / 2);
+    const labelX = SCORE_TABLE_LABEL_X;
 
     if (i < intro.scoreLineIndex) {
-      drawSprite(row.sprite, W/2 - 30, row.y - 4, COLOR_WHITE);
+      drawSprite(row.sprite, spriteX, row.y - 4, COLOR_WHITE);
       ctx.fillStyle = COLOR_WHITE;
       ctx.textAlign = 'left';
-      ctx.fillText(row.label, W/2 - 14, row.y + 2);
+      ctx.fillText(row.label, labelX, row.y + 2);
     } else if (i === intro.scoreLineIndex && intro.scoreCharIndex > 0) {
-      drawSprite(row.sprite, W/2 - 30, row.y - 4, COLOR_WHITE);
+      drawSprite(row.sprite, spriteX, row.y - 4, COLOR_WHITE);
       ctx.fillStyle = COLOR_WHITE;
       ctx.textAlign = 'left';
-      ctx.fillText(row.label.substring(0, intro.scoreCharIndex), W/2 - 14, row.y + 2);
+      ctx.fillText(row.label.substring(0, intro.scoreCharIndex), labelX, row.y + 2);
     }
   }
 
@@ -2150,17 +2160,19 @@ function drawTitleScreen() {
 
   ctx.font = '5px "Press Start 2P"';
   const demos = [
-    { sprite: SPRITES.ufo, y: 100, label: '= ??? PTS' },
-    { sprite: SPRITES.invader2a, y: 118, label: '= 30 PTS' },
-    { sprite: SPRITES.invader3a, y: 134, label: '= 20 PTS' },
-    { sprite: SPRITES.invader1a, y: 150, label: '= 10 PTS' }
+    { sprite: SPRITES.ufo, y: 100, label: '=? MYSTERY' },
+    { sprite: SPRITES.invader2a, y: 118, label: '=30 POINTS' },
+    { sprite: SPRITES.invader3a, y: 134, label: '=20 POINTS' },
+    { sprite: SPRITES.invader1a, y: 150, label: '=10 POINTS' }
   ];
 
   for (let d of demos) {
-    drawSprite(d.sprite, W/2 - 30, d.y - 4, COLOR_WHITE);
+    const spriteX = Math.floor(SCORE_TABLE_SPRITE_CENTER_X - d.sprite[0].length / 2);
+    const labelX = SCORE_TABLE_LABEL_X;
+    drawSprite(d.sprite, spriteX, d.y - 4, COLOR_WHITE);
     ctx.fillStyle = COLOR_WHITE;
     ctx.textAlign = 'left';
-    ctx.fillText(d.label, W/2 - 14, d.y + 2);
+    ctx.fillText(d.label, labelX, d.y + 2);
   }
 
   ctx.textAlign = 'center';

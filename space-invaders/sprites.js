@@ -97,15 +97,16 @@ const SPRITES = {
     '   000000000    ',
     '  00 0000000  0 '
   ],
-  // UFO - 16x7
+  // UFO - original SpriteSaucer from ROM table 1D64 (CCW rotated), 24x8
   ufo: [
-    '     000000     ',
-    '   0000000000   ',
-    '  000000000000  ',
-    ' 00 00 00 00 00 ',
-    '0000000000000000',
-    '  000  00  000  ',
-    '   0        0   '
+    '         000000         ',
+    '       0000000000       ',
+    '      000000000000      ',
+    '     00 00 00 00 00     ',
+    '    0000000000000000    ',
+    '      000  00  000      ',
+    '       0        0       ',
+    '                        '
   ],
   // UFO explosion - original SpriteSaucerExp from ROM table 1D7C (CCW rotated)
   ufoExplosion: [

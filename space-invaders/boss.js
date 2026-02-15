@@ -88,7 +88,7 @@ function initBoss(type) {
       introY: -30,
       introPhase: 0,       // 0=UFO enters, 1=UFO stops, 2=expand to mothership
       introTimer: 0,
-      introUfoX: -16,      // UFO starts off-screen left
+      introUfoX: -24,      // UFO starts off-screen left (24px UFO sprite)
       shieldVisible: false,
       // Turrets
       turretLeft: { hp: 3, maxHp: 3, alive: true },
@@ -119,8 +119,8 @@ function updateBossIntro() {
     if (boss.introPhase === 0) {
       // UFO enters from left like normal
       boss.introUfoX += 0.8;
-      if (boss.introUfoX >= W / 2 - 8) {
-        boss.introUfoX = W / 2 - 8;
+      if (boss.introUfoX >= W / 2 - 12) {
+        boss.introUfoX = W / 2 - 12;
         boss.introPhase = 1;
         boss.introTimer = 0;
       }
@@ -216,7 +216,7 @@ function renderBossIntro() {
       // Also draw fading-out UFO
       if (progress < 0.5) {
         ctx.globalAlpha = 1 - progress * 2;
-        drawSprite(SPRITES.ufo, W / 2 - 8, 18, COLOR_RED);
+        drawSprite(SPRITES.ufo, W / 2 - 12, 18, COLOR_RED);
         ctx.globalAlpha = 1;
       }
 
