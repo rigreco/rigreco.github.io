@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'cosmic-invaders-v14';
+const CACHE_NAME = 'stellar-abyss-v15';
 const urlsToCache = [
   './',
   './index.html',

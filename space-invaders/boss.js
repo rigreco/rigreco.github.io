@@ -902,7 +902,7 @@ let creditsScrollY = 0;
 let creditsTimer = 0;
 
 var CREDITS_LINES = [
-  { text: 'COSMIC INVADERS', size: 10, color: '#ffffff', gap: 30 },
+  { text: 'STELLAR ABYSS', size: 10, color: '#ffffff', gap: 30 },
   { text: 'THE MATHSYNTH LABS MASTER', size: 5, color: '#888888', gap: 20 },
   { text: '', size: 5, color: '', gap: 15 },
   { text: '--- BOSS ---', size: 5, color: '#ff3333', gap: 15 },

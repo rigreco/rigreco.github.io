@@ -202,7 +202,7 @@ let hsEntryConfirmed = 0;
 
 function loadHighScores() {
   try {
-    const saved = localStorage.getItem('spaceInvadersHighScores');
+    const saved = localStorage.getItem('stellarAbyssHighScores');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -214,7 +214,7 @@ function loadHighScores() {
 
 function saveHighScores() {
   try {
-    localStorage.setItem('spaceInvadersHighScores', JSON.stringify(highScores));
+    localStorage.setItem('stellarAbyssHighScores', JSON.stringify(highScores));
   } catch (e) {}
 }
 
@@ -2058,18 +2058,22 @@ function updateIntro() {
 }
 
 function drawIntroScreen() {
-  const titleFull = 'COSMIC INVADERS';
+  const titleFull = 'STELLAR ABYSS';
   const titleShow = titleFull.substring(0, intro.titleChars);
+  const titleParts = titleFull.split(' ');
+  const titleTop = titleParts[0] || titleFull;
+  const titleBottom = titleParts.slice(1).join(' ');
+  const titleSplit = titleTop.length + 1;
 
   ctx.fillStyle = COLOR_WHITE;
   ctx.font = '10px "Press Start 2P"';
   ctx.textAlign = 'center';
 
-  if (titleShow.length <= 6) {
+  if (titleShow.length <= titleTop.length) {
     ctx.fillText(titleShow, W/2, 50);
   } else {
-    ctx.fillText('COSMIC', W/2, 50);
-    ctx.fillText(titleShow.substring(7), W/2, 68);
+    ctx.fillText(titleTop, W/2, 50);
+    ctx.fillText(titleShow.substring(titleSplit, titleSplit + titleBottom.length), W/2, 68);
   }
 
   if (intro.titleDone) {
@@ -2155,8 +2159,8 @@ function drawTitleScreen() {
   ctx.fillStyle = COLOR_WHITE;
   ctx.font = '10px "Press Start 2P"';
   ctx.textAlign = 'center';
-  ctx.fillText('SPACE', W/2, 50);
-  ctx.fillText('INVADERS', W/2, 68);
+  ctx.fillText('STELLAR', W/2, 50);
+  ctx.fillText('ABYSS', W/2, 68);
 
   ctx.font = '5px "Press Start 2P"';
   const demos = [

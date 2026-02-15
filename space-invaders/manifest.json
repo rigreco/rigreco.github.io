@@ -1,11 +1,11 @@
 {
-    "name": "Cosmic Invaders",
-    "short_name": "SpaceInv",
+    "name": "Stellar Abyss",
+    "short_name": "Stellar",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "Cosmic Invaders - Retro Arcade Game",
+    "description": "Stellar Abyss - Retro Arcade Game",
     "orientation": "portrait",
     "icons": [
       {
