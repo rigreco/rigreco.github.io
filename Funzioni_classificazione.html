@@ -46,7 +46,7 @@
         <li class="dropdown">
           <a href="#" class="dropbtn"><i data-lucide="gamepad-2"></i> Arcade</a>
           <div class="dropdown-content">
-            <a href="space-invaders/index.html"><i data-lucide="target"></i> Cosmic Invaders</a>
+            <a href="space-invaders/index.html"><i data-lucide="target"></i> Stellar Abyss</a>
           </div>
         </li>
         <li><a href="apple2.html"><span class="apple2-icon">⌘</span> Apple II</a></li>
@@ -114,8 +114,253 @@
         </td>
       </tr>
     </table>
+  <section style="width:90%; margin: 30px auto;">
+    <h3 style="margin-bottom:10px;">Animazione: Seno e Coseno sulla Circonferenza Goniometrica</h3>
+    <div style="background:#e8f4fc; border-left:3px solid #3498db; padding:10px; margin-bottom:12px; font-size:0.92em;">
+      Un punto ruota in senso antiorario sulla circonferenza unitaria. La sua <strong style="color:#e74c3c;">ordinata</strong> (seno) traccia la sinusoide verso destra; la sua <strong style="color:#2196f3;">ascissa</strong> (coseno) traccia la cosinusoide verso il basso.
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+      <button id="btn-playstop" style="cursor:pointer; background:#3498db; color:white; border:none; border-radius:4px; padding:6px 14px;">⏸ Pausa</button>
+      <button id="btn-restart"  style="cursor:pointer; background:#3498db; color:white; border:none; border-radius:4px; padding:6px 14px;">↺ Riavvia</button>
+    </div>
+    <canvas id="gonio-canvas" style="border:1px solid #ddd; width:100%; max-width:700px; display:block;"></canvas>
+    <div style="display:flex; flex-wrap:wrap; gap:16px; margin-top:8px; font-size:0.82em;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:20px;height:3px;background:#e74c3c;"></span> sin(θ)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:20px;height:3px;background:#2196f3;"></span> cos(θ)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff9800;"></span> Punto P</span>
+    </div>
+  </section>
+
+  <script>
+  (function() {
+    const canvas = document.getElementById('gonio-canvas');
+    const ctx    = canvas.getContext('2d');
+
+    // Dimensioni interne fisse; il CSS scala il canvas in larghezza
+    const CW = 700, CH = 500;
+    canvas.width  = CW;
+    canvas.height = CH;
+
+    // Circonferenza
+    const R  = 80;
+    const cx = 155;
+    const cy = 185;
+
+    // Onda seno (si sviluppa a destra)
+    const sinX0  = cx + R + 15;   // punto di partenza sull'asse x
+    const sinXe  = CW - 20;       // punto finale
+    const sinW   = sinXe - sinX0; // larghezza area onda
+    const sinAmp = R;              // ampiezza = R → proiezione orizzontale dritta
+
+    // Onda coseno (si sviluppa verso il basso)
+    const cosY0  = cy + R + 15;   // punto di partenza sull'asse y
+    const cosYe  = CH - 20;       // punto finale
+    const cosH   = cosYe - cosY0; // altezza area onda
+    const cosAmp = R;              // ampiezza = R → proiezione verticale dritta
+
+    const MAX_HIST = 300;          // frame di storia visibile (= 1 ciclo completo)
+    const SPEED    = (2 * Math.PI) / MAX_HIST; // radianti per frame
+
+    let angle   = 0;
+    let history = [];   // [{s, c}] — s=sin, c=cos; [0]=più vecchio, [last]=più recente
+    let playing = true;
+    let rafId   = null;
+
+    // ── Bottoni ──────────────────────────────────────────────────────────────
+    document.getElementById('btn-playstop').addEventListener('click', function() {
+      playing = !playing;
+      this.textContent = playing ? '⏸ Pausa' : '▶ Play';
+      if (playing) loop();
+    });
+    document.getElementById('btn-restart').addEventListener('click', function() {
+      angle   = 0;
+      history = [];
+      playing = true;
+      document.getElementById('btn-playstop').textContent = '⏸ Pausa';
+      if (!rafId) loop();
+    });
+
+    // ── Utilità ───────────────────────────────────────────────────────────────
+    function setLineDash(arr) { ctx.setLineDash(arr); }
+
+    // Mappa indice storia → x sull'onda seno (indice 0 = oldest = più a destra)
+    function sineXAt(i, len) {
+      return sinX0 + ((len - 1 - i) / MAX_HIST) * sinW;
+    }
+    // Mappa indice storia → y sull'onda coseno (indice 0 = oldest = più in basso)
+    function cosYAt(i, len) {
+      return cosY0 + ((len - 1 - i) / MAX_HIST) * cosH;
+    }
+
+    // ── Disegno ──────────────────────────────────────────────────────────────
+    function draw() {
+      ctx.clearRect(0, 0, CW, CH);
+
+      const sinVal = Math.sin(angle);
+      const cosVal = Math.cos(angle);
+
+      // Coordinate del punto P sul canvas
+      const px = cx + R * cosVal;
+      const py = cy - R * sinVal;   // canvas: y verso il basso
+
+      // ── Assi di riferimento ───────────────────────────────────────────────
+      ctx.strokeStyle = '#bbb';
+      ctx.lineWidth   = 1;
+      setLineDash([]);
+
+      // Asse orizzontale (seno)
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(sinXe, cy);
+      ctx.stroke();
+
+      // Asse verticale (coseno, verso il basso)
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx, cosYe);
+      ctx.stroke();
+
+      // Separatore circonferenza / area onde
+      ctx.strokeStyle = '#e0e0e0';
+      setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(sinX0, cy - R - 10);
+      ctx.lineTo(sinX0, cy + R + 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx - R - 10, cosY0);
+      ctx.lineTo(cx + R + 10, cosY0);
+      ctx.stroke();
+      setLineDash([]);
+
+      // ── Circonferenza ─────────────────────────────────────────────────────
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // Raggio verso P
+      ctx.strokeStyle = '#999';
+      ctx.lineWidth   = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+
+      // ── Onda seno ─────────────────────────────────────────────────────────
+      if (history.length > 1) {
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth   = 2;
+        ctx.beginPath();
+        const len = history.length;
+        ctx.moveTo(sineXAt(0, len), cy - history[0].s * sinAmp);
+        for (let i = 1; i < len; i++) {
+          ctx.lineTo(sineXAt(i, len), cy - history[i].s * sinAmp);
+        }
+        ctx.stroke();
+      }
+
+      // ── Onda coseno ───────────────────────────────────────────────────────
+      if (history.length > 1) {
+        ctx.strokeStyle = '#2196f3';
+        ctx.lineWidth   = 2;
+        ctx.beginPath();
+        const len = history.length;
+        ctx.moveTo(cx + history[0].c * cosAmp, cosYAt(0, len));
+        for (let i = 1; i < len; i++) {
+          ctx.lineTo(cx + history[i].c * cosAmp, cosYAt(i, len));
+        }
+        ctx.stroke();
+      }
+
+      // ── Linee di proiezione dal punto P ──────────────────────────────────
+      const newestSinX = history.length > 0 ? sineXAt(history.length - 1, history.length) : sinX0;
+      const newestCosY = history.length > 0 ? cosYAt(history.length - 1, history.length) : cosY0;
+
+      // Linea orizzontale P → onda seno (tratteggiata rossa)
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth   = 1;
+      setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(newestSinX, py);
+      ctx.stroke();
+
+      // Linea verticale P → onda coseno (tratteggiata blu)
+      ctx.strokeStyle = '#2196f3';
+      setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, newestCosY);
+      ctx.stroke();
+
+      setLineDash([]);
+
+      // ── Punto corrente sull'onda seno ────────────────────────────────────
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(newestSinX, py, 4, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // ── Punto corrente sull'onda coseno ──────────────────────────────────
+      ctx.fillStyle = '#2196f3';
+      ctx.beginPath();
+      ctx.arc(px, newestCosY, 4, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // ── Punto P ──────────────────────────────────────────────────────────
+      ctx.fillStyle = '#ff9800';
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#c77800';
+      ctx.lineWidth   = 1.5;
+      ctx.stroke();
+
+      // ── Etichette ────────────────────────────────────────────────────────
+      ctx.fillStyle = '#333';
+      ctx.font      = '11px Roboto, Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('sin(θ)', sinXe - 38, cy - 6);
+      ctx.fillText('cos(θ)', cx + 4, cosYe - 6);
+
+      // Valore numerico corrente
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillText('sin = ' + sinVal.toFixed(3), sinX0 + 4, cy - R - 4);
+      ctx.fillStyle = '#2196f3';
+      ctx.fillText('cos = ' + cosVal.toFixed(3), cx + R + 4, cosY0 - 4);
+
+      // θ vicino al punto
+      ctx.fillStyle = '#555';
+      ctx.font = '11px Roboto, Arial, sans-serif';
+      const thetaDeg = Math.round((angle % (2 * Math.PI)) * 180 / Math.PI);
+      ctx.fillText('θ = ' + thetaDeg + '°', cx + 4, cy - R - 4);
+    }
+
+    // ── Loop di animazione ────────────────────────────────────────────────────
+    function loop() {
+      rafId = null;
+      if (!playing) return;
+
+      angle += SPEED;
+      if (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
+
+      history.push({ s: Math.sin(angle), c: Math.cos(angle) });
+      if (history.length > MAX_HIST) history.shift();
+
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+
+    // Prima render statica, poi avvia
+    draw();
+    loop();
+  })();
+  </script>
+
   </main>
-  
+
   <footer> 
     <div class="footer-container">
       <div class="footer-section">
