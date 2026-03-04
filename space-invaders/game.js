@@ -39,7 +39,8 @@ const STATE = {
   BOSS_FIGHT: 9,
   VICTORY: 10,
   PAUSED: 11,
-  CREDITS: 12
+  CREDITS: 12,
+  MATH_QUIZ: 13
 };
 
 let state = STATE.INTRO;
@@ -66,6 +67,102 @@ const intro = {
   readyBlink: 0
 };
 let cycle = 0; // New Game+ cycle (0 = first run, 1 = NG+, 2 = NG++...)
+
+// ─── MATH QUIZ (accesso durante le lezioni) ───
+let mathProblem = null;  // { type, lines, answers, fields, activeField, cursorBlink }
+let mathAttempts = 0;    // tentativi errati nella sessione corrente
+const MATH_MAX_ATTEMPTS = 3;
+
+function isSchoolHours() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Dom, 1=Lun, ..., 5=Ven, 6=Sab
+  const h = d.getHours();
+  return day >= 1 && day <= 5 && h >= 8 && h < 14;
+}
+
+function generateQuadratic() {
+  // Genera equazione con radici intere distinte nell'intervallo [-9, 9]
+  let r1, r2;
+  do {
+    r1 = Math.floor(Math.random() * 19) - 9;
+    r2 = Math.floor(Math.random() * 19) - 9;
+  } while (r1 === r2);
+  // x^2 - (r1+r2)x + r1*r2 = 0
+  const b = -(r1 + r2);
+  const c = r1 * r2;
+  const bStr = b === 0 ? '' : (b > 0 ? ' + ' + b + 'x' : ' - ' + Math.abs(b) + 'x');
+  const cStr = c === 0 ? '' : (c > 0 ? ' + ' + c : ' - ' + Math.abs(c));
+  const eq = 'x\u00B2' + bStr + cStr + ' = 0';
+  return {
+    type: 'quadratic',
+    lines: ['Risolvi:', eq],
+    hint: 'es. ' + r1 + ',' + r2,
+    answers: [r1, r2],
+    fields: [{ label: 'x1,x2 = ', value: '' }],
+    activeField: 0
+  };
+}
+
+function generateLinearSystem() {
+  // Sceglie soluzione intera, genera coefficienti interi con det != 0
+  let x0, y0, a, b, c, d;
+  let det = 0;
+  do {
+    x0 = Math.floor(Math.random() * 11) - 5;
+    y0 = Math.floor(Math.random() * 11) - 5;
+    a = Math.floor(Math.random() * 5) + 1;
+    b = Math.floor(Math.random() * 5) - 2;
+    c = Math.floor(Math.random() * 5) - 2;
+    d = Math.floor(Math.random() * 5) + 1;
+    det = a * d - b * c;
+  } while (det === 0 || (x0 === 0 && y0 === 0));
+  const e = a * x0 + b * y0;
+  const f = c * x0 + d * y0;
+  function term(coef, varName, first) {
+    if (coef === 0) return '';
+    if (first) return (coef === 1 ? '' : coef === -1 ? '-' : coef) + varName;
+    return coef > 0 ? ' + ' + (coef === 1 ? '' : coef) + varName
+                    : ' - ' + (coef === -1 ? '' : Math.abs(coef)) + varName;
+  }
+  const eq1 = term(a,'x',true) + term(b,'y',false) + ' = ' + e;
+  const eq2 = term(c,'x',true) + term(d,'y',false) + ' = ' + f;
+  return {
+    type: 'linear',
+    lines: ['Risolvi il sistema:', '{ ' + eq1, '{ ' + eq2],
+    answers: [x0, y0],
+    fields: [
+      { label: 'x = ', value: '' },
+      { label: 'y = ', value: '' }
+    ],
+    activeField: 0
+  };
+}
+
+function generateMathProblem() {
+  mathProblem = Math.random() < 0.5 ? generateQuadratic() : generateLinearSystem();
+  mathProblem.cursorBlink = 0;
+  mathProblem.errorMsg = '';
+}
+
+function checkMathAnswer() {
+  if (!mathProblem) return false;
+  const p = mathProblem;
+  if (p.type === 'quadratic') {
+    const raw = p.fields[0].value.replace(/\s/g, '');
+    const parts = raw.split(',');
+    if (parts.length !== 2) return false;
+    const v1 = parseInt(parts[0], 10);
+    const v2 = parseInt(parts[1], 10);
+    if (isNaN(v1) || isNaN(v2)) return false;
+    const [a, b] = p.answers;
+    return (v1 === a && v2 === b) || (v1 === b && v2 === a);
+  } else {
+    const vx = parseInt(p.fields[0].value, 10);
+    const vy = parseInt(p.fields[1].value, 10);
+    if (isNaN(vx) || isNaN(vy)) return false;
+    return vx === p.answers[0] && vy === p.answers[1];
+  }
+}
 
 let score = 0;
 let lives = 3;
@@ -262,6 +359,38 @@ window.addEventListener('keydown', function(e) {
       keys['KeyP'] = false;
       return;
     }
+  }
+
+  if (state === STATE.MATH_QUIZ) {
+    e.preventDefault();
+    if (!mathProblem) return;
+    const field = mathProblem.fields[mathProblem.activeField];
+    if ((e.key >= '0' && e.key <= '9') || e.key === '-' || e.key === ',') {
+      if (field.value.length < 8) field.value += e.key;
+    } else if (e.code === 'Backspace') {
+      field.value = field.value.slice(0, -1);
+    } else if ((e.code === 'Tab' || e.code === 'ArrowRight') && mathProblem.type === 'linear') {
+      mathProblem.activeField = (mathProblem.activeField + 1) % mathProblem.fields.length;
+    } else if (e.code === 'Enter') {
+      if (checkMathAnswer()) {
+        mathAttempts = 0;
+        mathProblem = null;
+        initAudio();
+        initGame();
+        keys['Enter'] = false;
+      } else {
+        mathAttempts++;
+        if (mathAttempts >= MATH_MAX_ATTEMPTS) {
+          mathProblem.errorMsg = 'ACCESSO NEGATO. RICARICO...';
+          setTimeout(function() { location.reload(); }, 3000);
+        } else {
+          const errMsg = 'ERRATA! Rimasti: ' + (MATH_MAX_ATTEMPTS - mathAttempts);
+          generateMathProblem();
+          mathProblem.errorMsg = errMsg;
+        }
+      }
+    }
+    return;
   }
 
   if (state === STATE.HIGH_SCORE_ENTRY) {
@@ -761,11 +890,17 @@ function update() {
   if (state === STATE.TITLE) {
     titleIdleTimer++;
     if (keys['Enter'] || keys['Space']) {
-      initAudio();
-      initGame();
       keys['Enter'] = false;
       keys['Space'] = false;
       titleIdleTimer = 0;
+      if (isSchoolHours()) {
+        mathAttempts = 0;
+        generateMathProblem();
+        state = STATE.MATH_QUIZ;
+      } else {
+        initAudio();
+        initGame();
+      }
     } else if (keys['KeyH']) {
       state = STATE.HIGH_SCORES;
       keys['KeyH'] = false;
@@ -1116,14 +1251,12 @@ function update() {
         // Shooting follows a deterministic phase cadence (rolling -> plunger -> squiggly).
         runAlienShotPhase(false);
 
-        // Check if invaders reached player zone
+        // Check if invaders reached the baseline (INVASION = immediate game over)
         for (let inv of invaders) {
-          if (inv.alive && inv.y + 8 >= player.y) {
+          if (inv.alive && inv.y + 8 >= H - 16) {
             lives = 0;
-            state = STATE.DYING;
-            dyingTimer = 60;
-            playPlayerDie();
-            spawnPlayerExplosion();
+            state = STATE.GAME_OVER;
+            stopBossMusic();
             return;
           }
         }
@@ -1593,6 +1726,11 @@ function render() {
 
   if (state === STATE.TITLE) {
     drawTitleScreen();
+    return;
+  }
+
+  if (state === STATE.MATH_QUIZ) {
+    drawMathQuizScreen();
     return;
   }
 
@@ -2150,6 +2288,88 @@ function drawIntroScreen() {
     ctx.textAlign = 'center';
     ctx.fillText('PREMI UN TASTO', W/2, 248);
   }
+  ctx.textAlign = 'left';
+}
+
+function drawMathQuizScreen() {
+  if (!mathProblem) return;
+  const p = mathProblem;
+  p.cursorBlink = (p.cursorBlink + 1) % 60;
+  const showCursor = p.cursorBlink < 30;
+
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Titolo
+  ctx.fillStyle = COLOR_RED;
+  ctx.font = '5px "Press Start 2P"';
+  ctx.textAlign = 'center';
+  ctx.fillText('ACCESSO LEZIONI', W/2, 20);
+  ctx.fillRect(10, 26, W - 20, 1);
+
+  // Testo problema
+  ctx.fillStyle = COLOR_WHITE;
+  ctx.font = '5px "Press Start 2P"';
+  let y = 45;
+  for (const line of p.lines) {
+    ctx.fillText(line, W/2, y);
+    y += 14;
+  }
+
+  // Separatore
+  ctx.fillStyle = GREEN_DIM;
+  ctx.fillRect(10, y + 2, W - 20, 1);
+  y += 12;
+
+  // Campi di input
+  ctx.font = '5px "Press Start 2P"';
+  if (p.type === 'quadratic') {
+    const f = p.fields[0];
+    const cursor = showCursor ? '_' : ' ';
+    ctx.fillStyle = COLOR_GREEN;
+    ctx.textAlign = 'center';
+    ctx.fillText(f.label + f.value + cursor, W/2, y);
+    y += 14;
+    ctx.fillStyle = '#555555';
+    ctx.font = '4px "Press Start 2P"';
+    ctx.fillText('(separale con virgola)', W/2, y);
+    y += 12;
+  } else {
+    for (let i = 0; i < p.fields.length; i++) {
+      const f = p.fields[i];
+      const isActive = i === p.activeField;
+      const cursor = isActive && showCursor ? '_' : ' ';
+      ctx.fillStyle = isActive ? COLOR_GREEN : '#888888';
+      ctx.textAlign = 'center';
+      ctx.fillText(f.label + f.value + cursor, W/2, y);
+      y += 14;
+    }
+    ctx.fillStyle = '#555555';
+    ctx.font = '4px "Press Start 2P"';
+    ctx.fillText('[TAB] campo successivo', W/2, y);
+    y += 12;
+  }
+
+  // Messaggio errore / conferma
+  if (p.errorMsg) {
+    ctx.fillStyle = COLOR_RED;
+    ctx.font = '4px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.errorMsg, W/2, y + 4);
+    y += 14;
+  }
+
+  // Istruzioni fisse in basso
+  ctx.fillStyle = '#555555';
+  ctx.font = '4px "Press Start 2P"';
+  ctx.textAlign = 'center';
+  ctx.fillText('[INVIO] Conferma', W/2, H - 18);
+
+  // Indicatore tentativi
+  ctx.fillStyle = mathAttempts > 0 ? COLOR_RED : '#555555';
+  const dots = '\u25A0'.repeat(mathAttempts) + '\u25A1'.repeat(MATH_MAX_ATTEMPTS - mathAttempts);
+  ctx.fillText(dots + ' ' + mathAttempts + '/' + MATH_MAX_ATTEMPTS, W/2, H - 8);
+
   ctx.textAlign = 'left';
 }
 

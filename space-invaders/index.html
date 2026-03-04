@@ -195,9 +195,45 @@
     .mobile-btn { width: 48px; height: 48px; font-size: 16px; }
     .mobile-btn.fire { width: 64px; font-size: 8px; }
   }
+
+  #update-banner {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 999;
+    background: #000;
+    border-bottom: 2px solid #33ff33;
+    padding: 10px 16px;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #33ff33;
+    box-shadow: 0 0 20px rgba(51,255,51,0.3);
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  #update-banner.visible { display: flex; }
+  #update-btn {
+    background: #33ff33;
+    color: #000;
+    border: none;
+    padding: 6px 12px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  #update-btn:hover { background: #1a8a1a; color: #33ff33; }
 </style>
 </head>
 <body>
+
+<div id="update-banner">
+  <span>&#11088; NUOVA VERSIONE DISPONIBILE!</span>
+  <button id="update-btn">AGGIORNA</button>
+</div>
 
 <div class="monitor">
   <div class="screen-wrapper">
@@ -219,5 +255,39 @@
 <script src="audio.js"></script>
 <script src="boss.js"></script>
 <script src="game.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  let swRegistration = null;
+
+  navigator.serviceWorker.register('./sw.js').then(function(reg) {
+    swRegistration = reg;
+
+    // Controlla se c'è già un SW in attesa al caricamento
+    if (reg.waiting && navigator.serviceWorker.controller) {
+      document.getElementById('update-banner').classList.add('visible');
+    }
+
+    reg.addEventListener('updatefound', function() {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', function() {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          document.getElementById('update-banner').classList.add('visible');
+        }
+      });
+    });
+  });
+
+  // Quando il nuovo SW prende controllo, ricarica per applicare i nuovi file
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    location.reload();
+  });
+
+  document.getElementById('update-btn').addEventListener('click', function() {
+    if (swRegistration && swRegistration.waiting) {
+      swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  });
+}
+</script>
 </body>
 </html>

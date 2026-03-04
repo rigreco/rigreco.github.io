@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'stellar-abyss-v15';
+const CACHE_NAME = 'stellar-abyss-v17';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,8 +14,6 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -27,6 +25,13 @@ self.addEventListener('install', (event) => {
       })
   );
   console.log('Service Worker installato');
+});
+
+// Attiva il nuovo SW su richiesta esplicita della pagina
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', (event) => {
