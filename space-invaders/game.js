@@ -770,11 +770,11 @@ function spawnAlienShotByType(type, isDemo) {
     }
   } else {
     // Squiggly advances through available bottom columns deterministically.
+    if (ufo.active) return false; // Keep existing "no squiggly during UFO" rule.
     const sorted = bottomInvaders.slice().sort(function(a, b) { return a.x - b.x; });
     if (alienShotColumnIndex >= sorted.length) alienShotColumnIndex = 0;
     shooter = sorted[alienShotColumnIndex];
     alienShotColumnIndex = (alienShotColumnIndex + 1) % sorted.length;
-    if (ufo.active) return false; // Keep existing "no squiggly during UFO" rule.
   }
 
   if (!shooter) return false;
@@ -1161,7 +1161,7 @@ function update() {
     if (bullet2.active) {
       for (let bi = invaderBullets.length - 1; bi >= 0; bi--) {
         const ib = invaderBullets[bi];
-
+        if (ib.type === 'rolling') continue; // Rolling shots indistruttibili (come originale)
         if (Math.abs(bullet2.x - ib.x) < 3 && bullet2.y < ib.y + 7 && bullet2.y + 4 > ib.y) {
           bullet2.active = false;
           invaderBullets.splice(bi, 1);
@@ -2576,15 +2576,4 @@ window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', function() { setTimeout(resizeCanvas, 200); });
 resizeCanvas();
 
-// ─── SERVICE WORKER ───
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js')
-      .then(function(reg) {
-        console.log('Service Worker registrato:', reg.scope);
-      })
-      .catch(function(err) {
-        console.log('Service Worker errore:', err);
-      });
-  });
-}
+// Service Worker registrato da index.html (con gestione banner di aggiornamento).

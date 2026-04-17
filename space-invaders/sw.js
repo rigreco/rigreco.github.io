@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = 'stellar-abyss-v17';
+const CACHE_NAME = 'stellar-abyss-v18';
 const urlsToCache = [
   './',
   './index.html',
